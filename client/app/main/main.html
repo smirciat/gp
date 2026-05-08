@@ -1,0 +1,223 @@
+<div ng-hide="main.hasRole('user')||!main.isLoggedIn()"><h1>See site admin to upgrade your credentials!</h1></div>
+<div ng-if="main.hasRole('user')">
+  <!--main hub-->
+  <div ng-if="!main.chosenView">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <table class="table table-bordered table-striped dashboard" style="table-layout: fixed; width: 100%;">
+            <thead style="width:100%;">
+              <tr style="width:100%;">
+                <th class="width50">Customers</th>
+                <th class="width50">Gold Points</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td ng-click="main.setView(0)"><a href="#">{{main.views[0]}}</a></td>
+                <td ng-click="main.setView(1)"><a href="#">{{main.views[1]}}</td>
+              </tr>
+              <tr>
+                <td ng-click="main.setView(2)"><a href="#">{{main.views[2]}}</td>
+                <td ng-click="main.setView(3)"><a href="#">{{main.views[3]}}</td>
+              </tr>
+              <tr>
+                <td></td>
+                <td ng-click="main.setView(4)"><a href="#">{{main.views[4]}}</td>
+              </tr>
+              <tr>
+                <td></td>
+                <td ng-click="main.setView(5)"><a href="#">{{main.views[5]}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--Back to Hub Button-->
+  <div ng-if="main.chosenView" class="single-centered">
+    <button class="btn btn-success" ng-click="main.backToHub()">Return to Hub</button>
+  </div>
+  <!--Manage Users Selector-->
+  <div ng-if="main.testView('Manage Users','Assign Points')&&!main.queryGo&&!main.showTransactions">
+    <div class="single-centered">
+      ID: &nbsp<textarea rows="1" ng-model="main.query.id" class="short-textarea"></textarea>&nbsp
+      Username: &nbsp<textarea rows="1" ng-model="main.query.username"></textarea>&nbsp
+      Status Of: &nbsp<textarea rows="1" ng-model="main.query.status" class="short-textarea"></textarea>
+    </div>
+    <div class="single-centered">
+      First Name: &nbsp<textarea rows="1" ng-model="main.query.firstName"></textarea>&nbsp
+      Last Name: &nbsp<textarea rows="1" ng-model="main.query.lastName"></textarea>
+    </div>
+    <div class="single-centered">
+      Email: &nbsp<textarea rows="1" ng-model="main.query.email"></textarea>
+    </div>
+    <div class="single-centered">
+      Account#: &nbsp<textarea rows="1" ng-model="main.query.account"></textarea>&nbsp
+      CA: &nbsp<textarea rows="1" ng-model="main.query.ca" class="short-textarea"></textarea>
+    </div>
+    <div class="single-centered">
+      <textarea rows="1" ng-model="main.query.resCount" class="short-textarea"></textarea>&nbsp
+      <textarea rows="1" ng-model="main.query.resModifier" class="short-textarea"></textarea>&nbsp
+      reservations and/or have spent &nbsp
+      <textarea rows="1" ng-model="main.query.spentModifier" class="short-textarea"></textarea>&nbsp
+      <textarea rows="1" ng-model="main.query.spent" class="short-textarea"></textarea>
+    </div>
+    <div class="single-centered">
+      Departing from &nbsp
+      <textarea rows="1" ng-model="main.query.departing" class="short-textarea"></textarea>&nbsp
+      between &nbsp
+      <textarea rows="1" ng-model="main.query.startMonth" class="short-textarea"></textarea>/
+      <textarea rows="1" ng-model="main.query.startDay" class="short-textarea"></textarea>/
+      <textarea rows="1" ng-model="main.query.startYear" class="short-textarea"></textarea>&nbsp and &nbsp
+      <textarea rows="1" ng-model="main.query.endMonth" class="short-textarea"></textarea>/
+      <textarea rows="1" ng-model="main.query.endDay" class="short-textarea"></textarea>/
+      <textarea rows="1" ng-model="main.query.endYear" class="short-textarea"></textarea>
+    </div>
+    <div class="single-centered">
+      Sort by &nbsp
+      <textarea rows="1" ng-model="main.query.sortBy" class="short-textarea"></textarea>&nbsp
+      in a &nbsp
+      <textarea rows="1" ng-model="main.query.sortDirection" class="short-textarea"></textarea>&nbsp
+      order and display &nbsp
+      <textarea rows="1" ng-model="main.query.limit" class="short-textarea"></textarea>&nbsp
+      results per page
+    </div>
+    <div class="single-centered">
+      <button class="btn btn-primary" ng-click="main.go()">Display all customers with</button>&nbsp
+      <span style="padding-top:7px">(leave fields blank to show all)</span>
+    </div>
+  
+  </div>
+    <!--Assign Points Area-->
+    <div ng-if="main.chosenView==='Assign Points'">
+      <br><hr><br>
+      <div class="single-centered" style="font-weight:bold;margin:0;">
+        Account# &nbsp&nbsp
+        Member Id &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+        Points &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+        Status
+      </div>
+      <div class="single-centered">
+        <textarea rows="1" ng-model="main.transaction.account" class="short-textarea"></textarea>&nbsp
+        <textarea rows="1" ng-model="main.transaction.userId" class="short-textarea"></textarea>&nbsp&nbsp&nbsp&nbsp&nbsp
+        <textarea rows="1" ng-model="main.transaction.awardRedeem" class="short-textarea"></textarea>
+        <textarea rows="1" ng-model="main.transaction.points" class="short-textarea"></textarea>&nbsp&nbsp&nbsp&nbsp&nbsp
+        <textarea rows="1" ng-model="main.transaction.status" class="short-textarea"></textarea>&nbsp
+      </div>
+      <div class="single-centered" style="font-weight:bold;margin:0;">
+        Date Flown &nbsp&nbsp&nbsp&nbsp
+        Booking# &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+        Routes &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+        Flight#
+      </div>
+      <div class="single-centered">
+        <textarea rows="1" ng-model="main.transaction.dateFlown" class="short-textarea"></textarea>&nbsp&nbsp&nbsp
+        <textarea rows="1" ng-model="main.transaction.booking" class="short-textarea"></textarea>&nbsp&nbsp&nbsp
+        <textarea rows="1" ng-model="main.transaction.route" class="short-textarea"></textarea>&nbsp&nbsp&nbsp
+        <textarea rows="1" ng-model="main.transaction.flight" class="short-textarea"></textarea>
+      </div>
+      <div class="single-centered">
+        <strong>Description &nbsp</strong>
+        <textarea rows="3" ng-model="main.transaction.description" class="long-textarea"></textarea>
+      </div>
+      <div class="single-centered">
+        <button class="btn btn-success" ng-click="main.assign()">Assign Gold Points</button>
+      </div>
+      <br><hr><br>
+    </div>
+  <!--Manage Users Results-->
+  <div ng-if="main.testView('Manage Users','Assign Points')&&main.queryGo">
+    <!--Back to Query Button-->
+    <div class="single-centered">
+      <button class="btn btn-warning" ng-click="main.retryQuery()">Retry Query</button>
+    </div>
+    <!--Query Results pagination-->
+    <div style="margin-left:10%;margin-right:10%;display:flex;justify-content:space-between;">
+      <span>
+        <button ng-click="main.rwStart()" class="btn btn-default" style="display:inline-block"><<</button>
+        <button ng-click="main.rw()" class="btn btn-default" style="display:inline-block"><</button>
+      </span>
+      <span>Records &nbsp {{main.showStart}} - {{main.showLength}} &nbsp of &nbsp {{main.customers.length}} &nbsp total</span>
+      <span>
+        <button ng-click="main.ff()" class="btn btn-default" style="display:inline-block">></button>
+        <button ng-click="main.ffEnd()" class="btn btn-default" style="display:inline-block">>></button>
+      </span>
+    </div>
+    <!--Query Results for Manage Users-->
+    <div style="margin-left:10%;margin-right:10%;">
+      <table class="table table-bordered table-striped">
+        <thead><tr style="background-color:black;">
+          <th style="color:white;font-weight:bold">Select</th>
+          <th style="color:white;font-weight:bold">User ID</th>
+          <th style="color:white;font-weight:bold">Username</th>
+          <th style="color:white;font-weight:bold">Full Name</th>
+          <th style="color:white;font-weight:bold">Email</th>
+          <th style="color:white;font-weight:bold">Points</th>
+          <th style="color:white;font-weight:bold"># Orders</th>
+          <th style="color:white;font-weight:bold">Spent</th>
+          <th style="color:white;font-weight:bold"></th>
+        </tr></thead>
+        <tbody><tr ng-repeat="cust in main.customers">
+          <td><input type="checkbox" ng-model="cust.selected" ng-click="main.select(cust)"></td>
+          <td>{{cust.userId}}</td>
+          <td>{{cust.userName}}</td>
+          <td>{{cust.fullName}}</td>
+          <td>{{cust.email}}</td>
+          <td>{{cust.currentPoints}}</td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr></tbody>
+      </table>
+    </div>
+  </div>
+  <!--Show Transactions-->
+  <div ng-if="main.showTransactions&&main.chosenView==='Manage Users'">
+    <table class="table table-bordered table-striped">
+      <tbody><tr ng-repeat="tran in main.customerTransactions">
+        <td>{{tran.userId}}</td>
+        <td>{{tran.dateString}}</td>
+        <td>{{tran.awardRedeem}}</td>
+        <td>{{tran.points}}</td>
+        <td>{{tran.description}}</td>
+        <td>{{tran.status}}</td>
+        <td>{{tran.lastUpdatedBy}}</td>
+        
+      </tr></tbody>
+    </table>
+  </div>
+  <!-Add New User-->
+  <div ng-if="main.testView('Add User')">
+    <div class="single-centered">
+      <h3>Add a New Gold Points User</h3>
+    </div>
+    <div class="single-centered">
+      Full Name: &nbsp
+      <textarea rows="1" ng-model="main.newUser.fullName"></textarea>&nbsp
+      Date of Birth: &nbsp
+      <textarea rows="1" ng-model="main.newUser.dob"></textarea>
+    </div>
+    <div class="single-centered">
+      Email: &nbsp
+      <textarea rows="1" ng-model="main.newUser.email"></textarea>&nbsp
+      Phone: &nbsp
+      <textarea rows="1" ng-model="main.newUser.phone"></textarea>
+    </div>
+    <div class="single-centered">
+      Address: &nbsp
+      <textarea rows="1" ng-model="main.newUser.address" class="short-textarea"></textarea>&nbsp
+      City: &nbsp
+      <textarea rows="1" ng-model="main.newUser.city" class="short-textarea"></textarea>&nbsp
+      State: &nbsp
+      <textarea rows="1" ng-model="main.newUser.state" class="short-textarea"></textarea>&nbsp
+      Zip: &nbsp
+      <textarea rows="1" ng-model="main.newUser.zip" class="short-textarea"></textarea>
+    </div>
+    <div class="single-centered">
+      <button class="btu btn-info" ng-click="main.createNewUser()">Create New User</button>
+    </div>
+  </div>
+  
+</div>

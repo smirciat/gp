@@ -1,0 +1,13 @@
+<div class="container">
+  <ul class="list-group user-list">
+    <li class="list-group-item" ng-repeat="user in admin.users">
+	    <div class="user-info">
+	        <strong>{{user.name}}</strong><br>
+	        <span class="text-muted">{{user.email}}&nbsp ID:{{user._id}}&nbsp role:{{user.role}}</span>
+	    </div>
+	      <a ng-click="admin.demote(user)" class="trash"><span class="fa fa-arrow-down fa-2x"></span></a>
+	      <a ng-click="admin.promote(user)" class="trash"><span class="fa fa-arrow-up fa-2x"></span></a>
+        <a ng-click="admin.delete(user)" class="trash"><span class="fa fa-trash fa-2x"></span></a>
+    </li>
+  </ul>
+</div>

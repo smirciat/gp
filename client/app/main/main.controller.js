@@ -1,0 +1,169 @@
+'use strict';
+
+(function() {
+
+  class MainController {
+
+    constructor($http, $scope, socket,Auth,User) {
+      this.isLoggedIn=Auth.isLoggedIn;
+      this.hasRole=Auth.hasRole;
+      this.isAdmin=Auth.isAdmin;
+      this.user=User.get();
+      this.http = $http;
+      this.socket = socket;
+      this.query={};
+      this.newUser={};
+      this.chosenView=null;
+      this.queryGo=null;
+      this.customers=[];
+      this.transaction={status:'Approved',awardRedeem:'redeem',points:0};
+      this.showStart=1;
+      this.showLength=25;
+      this.views=['Manage Users','Approve Points','Add User','Assign Points','Create Member','List By Points'];
+
+      $scope.$on('$destroy', function() {
+        socket.unsyncUpdates('thing');
+      });
+    }
+
+    $onInit() {
+      this.http.get('/api/things')
+        .then(response => {
+          this.awesomeThings = response.data;
+          this.socket.syncUpdates('thing', this.awesomeThings);
+        });
+    }
+    
+    createNewUser(){
+      this.http.get('/api/customers').then(res=>{
+        let cs=res.data.sort((a,b)=>{
+          return b.userId.localeCompare(a.userId, undefined, { numeric: true });
+        });
+        cs.shift();
+        this.newUser.userId=cs[0].userId*1+1;
+        this.newUser.userId=this.newUser.userId.toString();
+        this.newUser.points=10;
+        this.http.post('/api/customers',this.newUser).then(res=>{
+          this.newUser={};
+        }).catch(err=>{console.log(err)});
+      })
+      .catch(err=>{console.log(err)});
+      
+      //
+      
+    }
+    
+    assign(){
+      this.transaction.points=this.transaction.points*1;
+      if (!Number.isInteger(this.transaction.points)||!this.transaction.userId||!this.transaction.account||this.transaction.points<1) {
+        alert('Missing Information!');
+        return;
+      }
+      let index=this.customers.map(e=>e.userId).indexOf(this.transaction.userId);
+      if (index<0) {
+        alert('Can`t find customer');
+        return;
+      }
+      this.transaction.date=new Date();
+      this.transaction.lastUpdatedBy=this.user._id;
+      console.log(this.transaction)
+      this.http.post('/api/transactions',this.transaction).then(res=>{
+        if (this.transaction.status==="Approved") {
+          if (!this.customers[index].currentPoints) this.customers[index].currentPoints = this.customers[index].points;
+          if (this.transaction.awardRedeem==='award') this.customers[index].currentPoints += this.transaction.points;
+          else this.customers[index].currentPoints -= this.transaction.points;
+          this.customers[index].lastTransaction=res.data._id;
+          this.http.patch('/api/customers/'+this.customers[index]._id,this.customers[index])
+            .then(res=>{console.log(res.data)})
+            .catch(err=>{console.log(err)});
+        }
+        this.transaction={status:'Approved',awardRedeem:'redeem',points:0};
+      }).catch(err=>{console.log(err)});
+    }
+    
+    select(cust){
+      if (this.chosenView==='Manage Users') {
+        if (!cust.selected) return;
+        cust.selected=undefined;
+         this.http.post('/api/transactions/query',{userId:cust.userId}).then(res=>{
+           this.customerTransactions=res.data.sort((a,b)=>{
+             return a._id-b._id;
+           });
+           this.customerTransactions.forEach(tran=>{
+             if (tran.date) tran.dateString=new Date(tran.date).toLocaleString();
+           });
+           this.queryGo=null;
+           this.showTransactions=true;
+         })
+          .catch(err=>{console.log(err)});
+         return; 
+      }
+      if (!cust.selected) {
+        this.transaction={status:'Approved',awardRedeem:'redeem',points:0};
+        return;
+      }
+      cust.selected=undefined;
+      this.transaction.account=cust.account;
+      this.transaction.userId=cust.userId;
+    }
+    
+    backToHub(){
+      this.transaction={status:'Approved',awardRedeem:'redeem',points:0};
+      this.query={};
+      this.newUser={};
+      this.chosenView=null;
+      this.queryGo=null;
+      this.showTransactions=false;
+    }
+    
+    retryQuery(){
+      this.queryGo=null;
+    }
+    
+    setView(index){
+      this.chosenView=this.views[index];
+      this.queryGo=null;
+      this.showTransactions=false;
+    }
+    
+    testView(view,otherView){
+      if (!this.chosenView) return false;
+      let index=this.views.indexOf(view);
+      if (index<0) return false;
+      otherView=otherView||'';
+      return this.chosenView.toLowerCase()===view.toLowerCase()||this.chosenView.toLowerCase()===otherView.toLowerCase();
+    }
+    
+    go(){
+      this.http.post('/api/customers/query',{query:this.query})
+        .then(res=>{
+          this.customers=res.data;
+          this.customers.forEach(cust=>{
+            if (!cust.currentPoints) cust.currentPoints=cust.points;
+          });
+        })
+        .catch(err=>{console.log(err)});
+      this.queryGo='go';
+    }
+    
+    rw(){
+      
+    }
+    rwStart(){
+      
+    }
+    ff(){
+      
+    }
+    ffEnd(){
+      
+    }
+  }
+
+  angular.module('goldPointsApp')
+    .component('main', {
+      templateUrl: 'app/main/main.html',
+      controller: MainController,
+      controllerAs: 'main'
+    });
+})();
