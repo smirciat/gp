@@ -30,6 +30,8 @@ export default function(sequelize, DataTypes) {
     address: DataTypes.STRING,
     city: DataTypes.STRING,
     state: DataTypes.STRING,
-    zip: DataTypes.STRING
+    zip: DataTypes.STRING,
+    gpType: DataTypes.STRING,
+    ca: DataTypes.STRING
   });
 }

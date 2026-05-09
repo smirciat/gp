@@ -2,11 +2,14 @@
 
 var express = require('express');
 var controller = require('./thing.controller');
+import * as auth from '../../auth/auth.service';
 
 var router = express.Router();
 
 router.get('/', controller.index);
 router.get('/:id', controller.show);
+router.post('/sms', auth.isAuthenticated(), controller.sms);
+router.post('/email', auth.hasRole('user'), controller.email);
 router.post('/', controller.create);
 router.put('/:id', controller.update);
 router.patch('/:id', controller.update);

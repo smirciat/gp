@@ -26,7 +26,7 @@ function respondWithResult(res, statusCode) {
 function saveUpdates(updates) {
   return function(entity) {
     if(entity) {
-      return entity.updateAttributes(updates)
+      return entity.update(updates)
         .then(updated => {
           return updated;
         });
@@ -97,12 +97,15 @@ export function query(req, res) {
   let q=req.body.query||{};
   let newQ={where:{}};
   if (q) {
+    if (q.account) newQ.where.account={[Op.iLike]:'%'+q.account+'%'};
     if (q.id) newQ.where.userId={[Op.iLike]:'%'+q.id+'%'};
     if (q.firstName&&q.lastName) {
       newQ.where.fullName={[Op.and]:[{[Op.iLike]:'%'+q.firstName+'%'},{[Op.iLike]:'%'+q.lastName+'%'}]};
     }
     else if (q.firstName) newQ.where.fullName={[Op.iLike]:'%'+q.firstName+'%'};
     else if (q.lastName) newQ.where.fullName={[Op.iLike]:'%'+q.lastName+'%'};
+    if (q.email) newQ.where.email=q.email;
+    if (q.ca) newQ.where.ca=q.ca;
   }
   return Customer.findAll(newQ)
     .then(respondWithResult(res))
@@ -136,6 +139,7 @@ export function createApp(customer) {
 
 // Updates an existing Customer in the DB
 export function update(req, res) {
+  console.log(req.body)
   if (req.body._id) {
     delete req.body._id;
   }

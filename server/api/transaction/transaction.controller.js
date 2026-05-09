@@ -25,7 +25,7 @@ function respondWithResult(res, statusCode) {
 function saveUpdates(updates) {
   return function(entity) {
     if(entity) {
-      return entity.updateAttributes(updates)
+      return entity.update(updates)
         .then(updated => {
           return updated;
         });

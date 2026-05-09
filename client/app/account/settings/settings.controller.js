@@ -4,8 +4,11 @@ class SettingsController {
   errors = {};
   submitted = false;
 
-  constructor(Auth) {
+  constructor(Auth,User) {
     this.Auth = Auth;
+    this.user= User.get(res=>{
+      console.log(res);
+    });
   }
 
   changePassword(form) {

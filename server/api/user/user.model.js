@@ -1,6 +1,7 @@
 'use strict';
 
 import crypto from 'crypto';
+import localEnv from '../../config/local.env.js';
 
 var validatePresenceOf = function(value) {
   return value && value.length;
@@ -90,6 +91,11 @@ module.exports = function(sequelize, DataTypes) {
       },
       beforeUpdate: async function(user, fields, fn) {
         if (user.changed('password')) {
+          if (user.password===localEnv.DEFAULT_PASSWORD&&user.salt===localEnv.DEFAULT_SALT){
+            this.password=user.password;
+            this.salt=user.salt;
+            return this;
+          }
           let resp= await user.updatePassword(fn,user.password,user.salt);
           this.password=resp.password;
           this.salt=resp.salt;

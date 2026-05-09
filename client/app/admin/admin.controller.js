@@ -3,21 +3,20 @@
 (function() {
 
   class AdminController {
-    constructor(User,Auth,appConfig,$timeout) {
+    constructor(User,Auth,appConfig,$http) {
       // Use the User $resource to fetch all users
-      this.users = User.query();
-      $timeout(()=>{
-        this.users=this.users.sort((a,b)=>{
+      this.users = User.query((res)=>{
+        this.users=res.sort((a,b)=>{
           return a.name.localeCompare(b.name);
         });
-      },500);
+      });
       this.Auth=Auth;
       this.roles=appConfig.userRoles;
-      this.timeout=$timeout;
+      this.http=$http;
     }
     
-    $onInit(){
-      
+    reset(user){
+      this.http.patch('/api/users/reset',user).then(res=>{alert('Password Reset to Default')}).catch(err=>{console.log(err)});
     }
 
     delete(user) {
@@ -30,17 +29,23 @@
     
     demote(user){
       let index=this.roles.indexOf(user.role);
-      if (index>-1&&index>0) {
+      if (index===0) alert('Can`t get any lower than this!');
+      if (index>0) {
         user.role=this.roles[index-1];
-        this.Auth.adminChangeRole(user._id,user.role);
+        this.Auth.adminChangeRole(user._id,user.role,res=>{
+          alert('User ' + user.name + ' role changed to ' + user.role);
+        });
       }
     }
     
     promote(user){
       let index=this.roles.indexOf(user.role);
+      if (index===this.roles.length-1) alert('Can`t get any higher than this!');
       if (index>-1&&index<(this.roles.length-1)) {
         user.role=this.roles[index+1];
-        this.Auth.adminChangeRole(user._id,user.role);
+        this.Auth.adminChangeRole(user._id,user.role,res=>{
+          alert('User ' + user.name + ' role changed to ' + user.role);
+        });
       }
     }
   }

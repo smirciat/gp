@@ -5,9 +5,14 @@
 	        <strong>{{user.name}}</strong><br>
 	        <span class="text-muted">{{user.email}}&nbsp ID:{{user._id}}&nbsp role:{{user.role}}</span>
 	    </div>
-	      <a ng-click="admin.demote(user)" class="trash"><span class="fa fa-arrow-down fa-2x"></span></a>
-	      <a ng-click="admin.promote(user)" class="trash"><span class="fa fa-arrow-up fa-2x"></span></a>
-        <a ng-click="admin.delete(user)" class="trash"><span class="fa fa-trash fa-2x"></span></a>
+	      <a ng-click="admin.demote(user)" class="trash">
+	          <span class="fa fa-arrow-down fa-2x" uib-tooltip="Downgrade User Role"></span></a>
+	      <a ng-click="admin.promote(user)" class="trash">
+	          <span class="fa fa-arrow-up fa-2x" uib-tooltip="Upgrade User Role"></span></a>
+        <a ng-click="admin.reset(user)" class="trash">
+            <span class="fa fa-key fa-2x" uib-tooltip="Reset User Password to Default"></span></a>
+        <a ng-click="admin.delete(user)" class="trash">
+            <span class="fa fa-trash fa-2x" uib-tooltip="Delete User"></span></a>
     </li>
   </ul>
 </div>

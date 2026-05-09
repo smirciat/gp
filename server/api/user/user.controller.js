@@ -1,21 +1,54 @@
 'use strict';
 
 import {User} from '../../sqldb';
+import localEnv from '../../config/local.env.js';
 import passport from 'passport';
 import config from '../../config/environment';
 import jwt from 'jsonwebtoken';
 
+function respondWithResult(res, statusCode) {
+  statusCode = statusCode || 200;
+  return function(entity) {
+    if (entity) {
+      return res.status(statusCode).json(entity);
+    }
+    return null;
+  };
+}
+
+function saveUpdates(updates) {
+  return function(entity) {
+    if(entity) {
+      return entity.update(updates)
+        .then(updated => {
+          return updated;
+        });
+    }
+  };
+}
+
 function validationError(res, statusCode) {
-  console.log(res.data)
+  console.log(res.data);
   statusCode = statusCode || 422;
   return function(err) {
     return res.status(statusCode).json(err);
-  }
+  };
+}
+
+function handleEntityNotFound(res) {
+  return function(entity) {
+    if (!entity) {
+      res.status(404).end();
+      return null;
+    }
+    return entity;
+  };
 }
 
 function handleError(res, statusCode) {
   statusCode = statusCode || 500;
   return function(err) {
+    console.log(err);
     return res.status(statusCode).send(err);
   };
 }
@@ -57,8 +90,8 @@ export function create(req, res, next) {
       res.json({ token });
     })
     .catch(err=>{
-      console.log(err)
-      validationError(res)
+      console.log(err);
+      validationError(res);
       
     });
 }
@@ -184,4 +217,24 @@ export function me(req, res, next) {
  */
 export function authCallback(req, res, next) {
   res.redirect('/');
+}
+
+// Resets Password to default for a User
+export function reset(req, res) {
+  let id=0;
+  if (req.body._id) {
+    id=req.body._id;
+    delete req.body._id;
+  }
+  req.body.password=localEnv.DEFAULT_PASSWORD;
+  req.body.salt=localEnv.DEFAULT_SALT;
+  return User.findOne({
+    where: {
+      _id: id
+    }
+  })
+    .then(handleEntityNotFound(res))
+    .then(saveUpdates(req.body))
+    .then(respondWithResult(res))
+    .catch(handleError(res));
 }
