@@ -70,7 +70,7 @@ export function index(req, res) {
 
 // Gets a single Thing from the DB
 export function show(req, res) {
-  return Thing.find({
+  return Thing.findOne({
     where: {
       _id: req.params.id
     }
@@ -92,7 +92,7 @@ export function update(req, res) {
   if (req.body._id) {
     delete req.body._id;
   }
-  return Thing.find({
+  return Thing.findOne({
     where: {
       _id: req.params.id
     }
@@ -105,7 +105,7 @@ export function update(req, res) {
 
 // Deletes a Thing from the DB
 export function destroy(req, res) {
-  return Thing.find({
+  return Thing.findOne({
     where: {
       _id: req.params.id
     }

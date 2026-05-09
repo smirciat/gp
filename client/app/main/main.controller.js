@@ -21,26 +21,18 @@
       this.showLength=25;
       this.views=['Manage Users','Approve Points','Add User','Assign Points','Create Member','List By Points'];
 
-      $scope.$on('$destroy', function() {
-        socket.unsyncUpdates('thing');
-      });
     }
 
     $onInit() {
-      this.http.get('/api/things')
+      this.http.post('/api/customers/last')
         .then(response => {
-          this.awesomeThings = response.data;
-          this.socket.syncUpdates('thing', this.awesomeThings);
+          console.log(response.data);
         });
     }
     
     createNewUser(){
-      this.http.get('/api/customers').then(res=>{
-        let cs=res.data.sort((a,b)=>{
-          return b.userId.localeCompare(a.userId, undefined, { numeric: true });
-        });
-        cs.shift();
-        this.newUser.userId=cs[0].userId*1+1;
+      this.http.post('/api/customers/last').then(res=>{
+        this.newUser.userId=res.data.maxInt*1+1;
         this.newUser.userId=this.newUser.userId.toString();
         this.newUser.points=10;
         this.http.post('/api/customers',this.newUser).then(res=>{
@@ -48,9 +40,6 @@
         }).catch(err=>{console.log(err)});
       })
       .catch(err=>{console.log(err)});
-      
-      //
-      
     }
     
     assign(){

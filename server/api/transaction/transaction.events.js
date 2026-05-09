@@ -21,11 +21,11 @@ var events = {
 // Register the event emitter to the model events
 for (var e in events) {
   var event = events[e];
-  Transaction.hook(e, emitEvent(event));
+  Transaction.addHook(e, emitEvent(event));
 }
 
 function emitEvent(event) {
-  return function(doc, options, done) {
+  return async function(doc, options, done) {
     TransactionEvents.emit(event + ':' + doc._id, doc);
     TransactionEvents.emit(event, doc);
     //done(null);

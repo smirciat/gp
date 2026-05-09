@@ -80,7 +80,7 @@ export function index(req, res) {
 
 // Gets a single Transaction from the DB
 export function show(req, res) {
-  return Transaction.find({
+  return Transaction.findOne({
     where: {
       _id: req.params.id
     }
@@ -102,7 +102,7 @@ export function update(req, res) {
   if (req.body._id) {
     delete req.body._id;
   }
-  return Transaction.find({
+  return Transaction.findOne({
     where: {
       _id: req.params.id
     }
@@ -115,7 +115,7 @@ export function update(req, res) {
 
 // Deletes a Transaction from the DB
 export function destroy(req, res) {
-  return Transaction.find({
+  return Transaction.findOne({
     where: {
       _id: req.params.id
     }

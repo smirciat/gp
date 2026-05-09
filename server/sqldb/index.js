@@ -14,9 +14,9 @@ var db = {
 };
 
 // Insert models below
-db.Transaction = db.sequelize.import('../api/transaction/transaction.model');
-db.Customer = db.sequelize.import('../api/customer/customer.model');
-db.Thing = db.sequelize.import('../api/thing/thing.model');
-db.User = db.sequelize.import('../api/user/user.model');
+db.Transaction = require('../api/transaction/transaction.model').default(db.sequelize, Sequelize.DataTypes);
+db.Customer = require('../api/customer/customer.model').default(db.sequelize, Sequelize.DataTypes);
+db.Thing = require('../api/thing/thing.model').default(db.sequelize, Sequelize.DataTypes);
+db.User = require('../api/user/user.model')(db.sequelize, Sequelize.DataTypes);
 
 module.exports = db;

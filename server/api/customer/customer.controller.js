@@ -10,8 +10,7 @@
 'use strict';
 
 import _ from 'lodash';
-import {Customer} from '../../sqldb';
-import sequelize from '../../sqldb';;
+import {Customer,sequelize} from '../../sqldb';
 const { Op } = require('sequelize');
 
 function respondWithResult(res, statusCode) {
@@ -59,17 +58,29 @@ function handleEntityNotFound(res) {
 function handleError(res, statusCode) {
   statusCode = statusCode || 500;
   return function(err) {
+    console.log(err);
     res.status(statusCode).send(err);
   };
 }
 
 // Gets a list of Customers
 export function last(req, res) {
-  return Customer.findOne({order: [['userId', 'DESC']]})
-  //return Customer.findAll({order: [['userId', 'DESC']],limit:2})
-  //return Customer.findOne({order: [
-  //  sequelize.cast(Customer.col('userId'), 'INTEGER', 'DESC')]
-  //})
+  return Customer.findOne({
+    // Cast and select the column
+    attributes: [
+      [sequelize.literal('CAST("userId" AS INTEGER)'), 'maxInt']
+    ],
+    // Order by casted value descending
+    order: [
+      [sequelize.literal('CAST("userId" AS INTEGER)'), 'DESC']
+    ],
+    // Ensure we only get non-null results for casting safety
+    where: {
+      userId: {
+        [Op.ne]: null
+      }
+    }
+  })
     .then(respondWithResult(res))
     .catch(handleError(res));
 }
@@ -100,7 +111,7 @@ export function query(req, res) {
 
 // Gets a single Customer from the DB
 export function show(req, res) {
-  return Customer.find({
+  return Customer.findOne({
     where: {
       _id: req.params.id
     }
@@ -128,7 +139,7 @@ export function update(req, res) {
   if (req.body._id) {
     delete req.body._id;
   }
-  return Customer.find({
+  return Customer.findOne({
     where: {
       _id: req.params.id
     }
@@ -141,7 +152,7 @@ export function update(req, res) {
 
 // Deletes a Customer from the DB
 export function destroy(req, res) {
-  return Customer.find({
+  return Customer.findOne({
     where: {
       _id: req.params.id
     }

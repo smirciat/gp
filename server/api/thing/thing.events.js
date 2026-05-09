@@ -21,11 +21,11 @@ var events = {
 // Register the event emitter to the model events
 for (var e in events) {
   var event = events[e];
-  Thing.hook(e, emitEvent(event));
+  Thing.addHook(e, emitEvent(event));
 }
 
 function emitEvent(event) {
-  return function(doc, options, done) {
+  return async function(doc, options, done) {
     ThingEvents.emit(event + ':' + doc._id, doc);
     ThingEvents.emit(event, doc);
     //done(null);
