@@ -41,6 +41,11 @@
   justify-content:center;
   margin-bottom:10px;
 }
+.single-centered .selectize-input{
+  padding:5px 5px 0px 0px;
+  border:none;
+  margin-left:20px;
+}
 .long-textarea{
   width:25em;
 }

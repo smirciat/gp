@@ -18,8 +18,9 @@
       this.queryGo=null;
       this.customers=[];
       this.transaction={status:'Approved',awardRedeem:'redeem',points:0};
-      this.showStart=1;
-      this.showLength=25;
+      this.showLength=50;
+      this.start=0;
+      this.end=50;
       this.views=['Manage Users','Approve Points','Add User','Assign Points','Create Member','List By Points'];
 
     }
@@ -143,22 +144,47 @@
           this.customers.forEach(cust=>{
             if (!cust.currentPoints) cust.currentPoints=cust.points;
           });
+          if (this.customers.length===0) this.start=0;
+          if (this.customers.length<this.end) this.end=this.customers.length;
         })
         .catch(err=>{console.log(err)});
       this.queryGo='go';
     }
     
     rw(){
-      
+      this.start-=this.showLength;
+      this.end-=this.showLength;
+      if (this.start<=0) this.start=1;
+      if (this.end<this.showLength) this.end=this.showLength;
+      if (this.customers.length===0) this.start=0;
+      if (this.customers.length<this.end) this.end=this.customers.length;
+      this.start--;
+      this.end--;
     }
     rwStart(){
-      
+      this.start=1;
+      this.end=25;
+      if (this.customers.length===0) this.start=0;
+      if (this.customers.length<this.end) this.end=this.customers.length;
+      this.start--;
+      this.end--;
     }
     ff(){
-      
+      this.start+=this.showLength;
+      this.end+=this.showLength;
+      if (this.start>=this.customers.length) this.start=this.customers.length;
+      if (this.send>=this.customers.length) this.end=this.customers.length;
+      if (this.customers.length===0) this.start=0;
+      if (this.customers.length<this.end) this.end=this.customers.length;
+      this.start--;
+      this.end--;
     }
     ffEnd(){
-      
+      this.start=this.customers.length-this.showLength;
+      this.end=this.customers.length;
+      if (this.customers.length===0) this.start=0;
+      this.start--;
+      this.end--;
     }
   }
 

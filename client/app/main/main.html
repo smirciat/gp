@@ -47,7 +47,6 @@
     <div class="single-centered">
       ID: &nbsp<textarea rows="1" ng-model="main.query.id" class="short-textarea" ng-keydown="main.handle($event,2)"></textarea>&nbsp
       Username: &nbsp<textarea rows="1" ng-model="main.query.username" ng-keydown="main.handle($event,2)"></textarea>&nbsp
-      Status Of: &nbsp<textarea rows="1" ng-model="main.query.status" class="short-textarea" ng-keydown="main.handle($event,2)"></textarea>
     </div>
     <div class="single-centered">
       First Name: &nbsp<textarea rows="1" ng-model="main.query.firstName" ng-keydown="main.handle($event,2)"></textarea>&nbsp
@@ -88,8 +87,7 @@
       results per page
     </div>-->
     <div class="single-centered">
-      <button class="btn btn-primary" ng-click="main.go()">Display all customers with</button>&nbsp
-      <span style="padding-top:7px">(leave fields blank to show all)</span>
+      <button class="btn btn-primary" ng-click="main.go()">Display all customers with</button>
     </div>
   </div>
     <!--Assign Points Area-->
@@ -103,10 +101,22 @@
       </div>
       <div class="single-centered">
         <textarea rows="1" ng-model="main.transaction.account" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp
-        <textarea rows="1" ng-model="main.transaction.userId" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp></textarea>&nbsp&nbsp&nbsp&nbsp&nbsp
-        <textarea rows="1" ng-model="main.transaction.awardRedeem" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp></textarea>
-        <textarea rows="1" ng-model="main.transaction.points" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp></textarea>&nbsp&nbsp&nbsp&nbsp&nbsp
-        <textarea rows="1" ng-model="main.transaction.status" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp></textarea>&nbsp
+        <textarea rows="1" ng-model="main.transaction.userId" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp
+        <ui-select ng-model="main.transaction.awardRedeem" theme="selectize">
+          <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
+          <ui-select-choices repeat="choice in ['award','redeem']" >
+            <div ng-bind-html="choice | highlight: $select.search"></div>
+          </ui-select-choices>
+        </ui-select>&nbsp&nbsp
+        <!--<textarea rows="1" ng-model="main.transaction.awardRedeem" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>-->&nbsp
+        <textarea rows="1" ng-model="main.transaction.points" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp
+        <ui-select ng-model="main.transaction.status" theme="selectize">
+          <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
+          <ui-select-choices repeat="choice in ['Approved','Pending','Rejected']" >
+            <div ng-bind-html="choice | highlight: $select.search"></div>
+          </ui-select-choices>
+        </ui-select>
+        <!--<textarea rows="1" ng-model="main.transaction.status" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp-->
       </div>
       <div class="single-centered" style="font-weight:bold;margin:0;">
         Date Flown &nbsp&nbsp&nbsp&nbsp
@@ -115,14 +125,14 @@
         Flight#
       </div>
       <div class="single-centered">
-        <textarea rows="1" ng-model="main.transaction.dateFlown" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp></textarea>&nbsp&nbsp&nbsp
-        <textarea rows="1" ng-model="main.transaction.booking" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp></textarea>&nbsp&nbsp&nbsp
-        <textarea rows="1" ng-model="main.transaction.route" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp></textarea>&nbsp&nbsp&nbsp
-        <textarea rows="1" ng-model="main.transaction.flight" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp></textarea>
+        <textarea rows="1" ng-model="main.transaction.dateFlown" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp
+        <textarea rows="1" ng-model="main.transaction.booking" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp
+        <textarea rows="1" ng-model="main.transaction.route" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp
+        <textarea rows="1" ng-model="main.transaction.flight" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp
       </div>
       <div class="single-centered">
         <strong>Description &nbsp</strong>
-        <textarea rows="3" ng-model="main.transaction.description" class="long-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp></textarea>
+        <textarea rows="3" ng-model="main.transaction.description" class="long-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp
       </div>
       <div class="single-centered">
         <button class="btn btn-success" ng-click="main.assign()">Assign Gold Points</button>
@@ -141,7 +151,7 @@
         <button ng-click="main.rwStart()" class="btn btn-default" style="display:inline-block">&lt;&lt;</button>
         <button ng-click="main.rw()" class="btn btn-default" style="display:inline-block">&lt;</button>
       </span>
-      <span>Records &nbsp {{main.showStart}} - {{main.showLength}} &nbsp of &nbsp {{main.customers.length}} &nbsp total</span>
+      <span>Records &nbsp {{main.start+1}} - {{main.end+1}} &nbsp of &nbsp {{main.customers.length}} &nbsp total</span>
       <span>
         <button ng-click="main.ff()" class="btn btn-default" style="display:inline-block">&gt;</button>
         <button ng-click="main.ffEnd()" class="btn btn-default" style="display:inline-block">&gt;&gt;</button>
@@ -161,7 +171,7 @@
           <th style="color:white;font-weight:bold">Spent</th>
           <th style="color:white;font-weight:bold"></th>
         </tr></thead>
-        <tbody><tr ng-repeat="cust in main.customers">
+        <tbody><tr ng-repeat="cust in main.customers | limitTo: main.showLength : main.start">
           <td><input type="checkbox" ng-model="cust.selected" ng-click="main.select(cust)"></td>
           <td>{{cust.userId}}</td>
           <td>{{cust.userName}}</td>
