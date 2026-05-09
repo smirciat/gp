@@ -4,13 +4,14 @@
 
   class MainController {
 
-    constructor($http, $scope, socket,Auth,User) {
+    constructor($http, $scope, socket,Auth,User,$timeout) {
       this.isLoggedIn=Auth.isLoggedIn;
       this.hasRole=Auth.hasRole;
       this.isAdmin=Auth.isAdmin;
       this.user=User.get();
       this.http = $http;
       this.socket = socket;
+      this.timeout=$timeout;
       this.query={};
       this.newUser={};
       this.chosenView=null;
@@ -24,17 +25,30 @@
     }
 
     $onInit() {
-      this.http.post('/api/customers/last')
-        .then(response => {
-          console.log(response.data);
-        });
+    }
+    
+    handle(event,source) {
+      if (event.keyCode === 13 && !event.shiftKey) {
+          event.preventDefault(); // Stops the newline from being added
+          if (source===1) this.createNewUser();
+          if (source===2) this.go();
+          if (source===3) this.assign();
+      }
     }
     
     createNewUser(){
+      if (!this.newUser.email||!this.newUser.lastName||!this.newUser.firstName){
+        alert('We need some info to create a new user');
+        return;
+      }
       this.http.post('/api/customers/last').then(res=>{
         this.newUser.userId=res.data.maxInt*1+1;
         this.newUser.userId=this.newUser.userId.toString();
         this.newUser.points=10;
+        this.newUser.firstName += ' ';
+        if (this.newUser.middleName) this.newUser.middleName += ' ';
+        else this.newUser.middleName='';
+        this.newUser.fullName=this.newUser.firstName+this.newUser.middleName+this.newUser.lastName;
         this.http.post('/api/customers',this.newUser).then(res=>{
           this.newUser={};
         }).catch(err=>{console.log(err)});
@@ -55,7 +69,6 @@
       }
       this.transaction.date=new Date();
       this.transaction.lastUpdatedBy=this.user._id;
-      console.log(this.transaction)
       this.http.post('/api/transactions',this.transaction).then(res=>{
         if (this.transaction.status==="Approved") {
           if (!this.customers[index].currentPoints) this.customers[index].currentPoints = this.customers[index].points;
@@ -63,7 +76,7 @@
           else this.customers[index].currentPoints -= this.transaction.points;
           this.customers[index].lastTransaction=res.data._id;
           this.http.patch('/api/customers/'+this.customers[index]._id,this.customers[index])
-            .then(res=>{console.log(res.data)})
+            .then(res=>{})
             .catch(err=>{console.log(err)});
         }
         this.transaction={status:'Approved',awardRedeem:'redeem',points:0};
@@ -72,9 +85,9 @@
     
     select(cust){
       if (this.chosenView==='Manage Users') {
-        if (!cust.selected) return;
-        cust.selected=undefined;
+         if (!cust.selected) return;
          this.http.post('/api/transactions/query',{userId:cust.userId}).then(res=>{
+           cust.selected=undefined;
            this.customerTransactions=res.data.sort((a,b)=>{
              return a._id-b._id;
            });
@@ -91,7 +104,7 @@
         this.transaction={status:'Approved',awardRedeem:'redeem',points:0};
         return;
       }
-      cust.selected=undefined;
+      this.timeout(()=>{cust.selected=undefined},5000);
       this.transaction.account=cust.account;
       this.transaction.userId=cust.userId;
     }

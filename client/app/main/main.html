@@ -36,28 +36,31 @@
     </div>
   </div>
   <!--Back to Hub Button-->
-  <div ng-if="main.chosenView" class="single-centered">
-    <button class="btn btn-success" ng-click="main.backToHub()">Return to Hub</button>
+  <div ng-if="main.chosenView">
+    <div class="single-centered">
+      <button class="btn btn-success" ng-click="main.backToHub()">Return to Hub</button>
+    </div>
+    <hr>
   </div>
   <!--Manage Users Selector-->
-  <div ng-if="main.testView('Manage Users','Assign Points')&&!main.queryGo&&!main.showTransactions">
+  <div ng-if="main.testView('Manage Users','Assign Points')&&!main.showTransactions">
     <div class="single-centered">
-      ID: &nbsp<textarea rows="1" ng-model="main.query.id" class="short-textarea"></textarea>&nbsp
-      Username: &nbsp<textarea rows="1" ng-model="main.query.username"></textarea>&nbsp
-      Status Of: &nbsp<textarea rows="1" ng-model="main.query.status" class="short-textarea"></textarea>
+      ID: &nbsp<textarea rows="1" ng-model="main.query.id" class="short-textarea" ng-keydown="main.handle($event,2)"></textarea>&nbsp
+      Username: &nbsp<textarea rows="1" ng-model="main.query.username" ng-keydown="main.handle($event,2)"></textarea>&nbsp
+      Status Of: &nbsp<textarea rows="1" ng-model="main.query.status" class="short-textarea" ng-keydown="main.handle($event,2)"></textarea>
     </div>
     <div class="single-centered">
-      First Name: &nbsp<textarea rows="1" ng-model="main.query.firstName"></textarea>&nbsp
-      Last Name: &nbsp<textarea rows="1" ng-model="main.query.lastName"></textarea>
+      First Name: &nbsp<textarea rows="1" ng-model="main.query.firstName" ng-keydown="main.handle($event,2)"></textarea>&nbsp
+      Last Name: &nbsp<textarea rows="1" ng-model="main.query.lastName" ng-keydown="main.handle($event,2)"></textarea>
     </div>
     <div class="single-centered">
-      Email: &nbsp<textarea rows="1" ng-model="main.query.email"></textarea>
+      Email: &nbsp<textarea rows="1" ng-model="main.query.email" ng-keydown="main.handle($event,2)"></textarea>
     </div>
     <div class="single-centered">
-      Account#: &nbsp<textarea rows="1" ng-model="main.query.account"></textarea>&nbsp
-      CA: &nbsp<textarea rows="1" ng-model="main.query.ca" class="short-textarea"></textarea>
+      Account#: &nbsp<textarea rows="1" ng-model="main.query.account" ng-keydown="main.handle($event,2)"></textarea>&nbsp
+      CA: &nbsp<textarea rows="1" ng-model="main.query.ca" class="short-textarea" ng-keydown="main.handle($event,2)"></textarea>
     </div>
-    <div class="single-centered">
+    <!--<div class="single-centered">
       <textarea rows="1" ng-model="main.query.resCount" class="short-textarea"></textarea>&nbsp
       <textarea rows="1" ng-model="main.query.resModifier" class="short-textarea"></textarea>&nbsp
       reservations and/or have spent &nbsp
@@ -83,12 +86,11 @@
       order and display &nbsp
       <textarea rows="1" ng-model="main.query.limit" class="short-textarea"></textarea>&nbsp
       results per page
-    </div>
+    </div>-->
     <div class="single-centered">
       <button class="btn btn-primary" ng-click="main.go()">Display all customers with</button>&nbsp
       <span style="padding-top:7px">(leave fields blank to show all)</span>
     </div>
-  
   </div>
     <!--Assign Points Area-->
     <div ng-if="main.chosenView==='Assign Points'">
@@ -100,11 +102,11 @@
         Status
       </div>
       <div class="single-centered">
-        <textarea rows="1" ng-model="main.transaction.account" class="short-textarea"></textarea>&nbsp
-        <textarea rows="1" ng-model="main.transaction.userId" class="short-textarea"></textarea>&nbsp&nbsp&nbsp&nbsp&nbsp
-        <textarea rows="1" ng-model="main.transaction.awardRedeem" class="short-textarea"></textarea>
-        <textarea rows="1" ng-model="main.transaction.points" class="short-textarea"></textarea>&nbsp&nbsp&nbsp&nbsp&nbsp
-        <textarea rows="1" ng-model="main.transaction.status" class="short-textarea"></textarea>&nbsp
+        <textarea rows="1" ng-model="main.transaction.account" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp
+        <textarea rows="1" ng-model="main.transaction.userId" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp></textarea>&nbsp&nbsp&nbsp&nbsp&nbsp
+        <textarea rows="1" ng-model="main.transaction.awardRedeem" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp></textarea>
+        <textarea rows="1" ng-model="main.transaction.points" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp></textarea>&nbsp&nbsp&nbsp&nbsp&nbsp
+        <textarea rows="1" ng-model="main.transaction.status" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp></textarea>&nbsp
       </div>
       <div class="single-centered" style="font-weight:bold;margin:0;">
         Date Flown &nbsp&nbsp&nbsp&nbsp
@@ -113,14 +115,14 @@
         Flight#
       </div>
       <div class="single-centered">
-        <textarea rows="1" ng-model="main.transaction.dateFlown" class="short-textarea"></textarea>&nbsp&nbsp&nbsp
-        <textarea rows="1" ng-model="main.transaction.booking" class="short-textarea"></textarea>&nbsp&nbsp&nbsp
-        <textarea rows="1" ng-model="main.transaction.route" class="short-textarea"></textarea>&nbsp&nbsp&nbsp
-        <textarea rows="1" ng-model="main.transaction.flight" class="short-textarea"></textarea>
+        <textarea rows="1" ng-model="main.transaction.dateFlown" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp></textarea>&nbsp&nbsp&nbsp
+        <textarea rows="1" ng-model="main.transaction.booking" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp></textarea>&nbsp&nbsp&nbsp
+        <textarea rows="1" ng-model="main.transaction.route" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp></textarea>&nbsp&nbsp&nbsp
+        <textarea rows="1" ng-model="main.transaction.flight" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp></textarea>
       </div>
       <div class="single-centered">
         <strong>Description &nbsp</strong>
-        <textarea rows="3" ng-model="main.transaction.description" class="long-textarea"></textarea>
+        <textarea rows="3" ng-model="main.transaction.description" class="long-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp></textarea>
       </div>
       <div class="single-centered">
         <button class="btn btn-success" ng-click="main.assign()">Assign Gold Points</button>
@@ -189,35 +191,39 @@
     </table>
   </div>
   <!--Add New User-->
-  <div ng-if="main.testView('Add User')">
+  <form ng-if="main.testView('Add User')">
     <div class="single-centered">
       <h3>Add a New Gold Points User</h3>
     </div>
     <div class="single-centered">
-      Full Name: &nbsp
-      <textarea rows="1" ng-model="main.newUser.fullName"></textarea>&nbsp
-      Date of Birth: &nbsp
-      <textarea rows="1" ng-model="main.newUser.dob"></textarea>
+      First: &nbsp
+      <textarea rows="1" ng-model="main.newUser.firstName" ng-keydown="main.handle($event,0)"></textarea>&nbsp
+      Middle: &nbsp
+      <textarea rows="1" ng-model="main.newUser.middleName" ng-keydown="main.handle($event,0)"></textarea>&nbsp
+      Last: &nbsp
+      <textarea rows="1" ng-model="main.newUser.lastName" ng-keydown="main.handle($event,1)"></textarea>&nbsp
     </div>
     <div class="single-centered">
+      Date of Birth: &nbsp
+      <textarea rows="1" ng-model="main.newUser.dob" ng-keydown="main.handle($event,1)"></textarea>&nbsp
       Email: &nbsp
-      <textarea rows="1" ng-model="main.newUser.email"></textarea>&nbsp
+      <textarea rows="1" ng-model="main.newUser.email" ng-keydown="main.handle($event,1)"></textarea>&nbsp
       Phone: &nbsp
-      <textarea rows="1" ng-model="main.newUser.phone"></textarea>
+      <textarea rows="1" ng-model="main.newUser.phone" ng-keydown="main.handle($event,1)"></textarea>
     </div>
     <div class="single-centered">
       Address: &nbsp
-      <textarea rows="1" ng-model="main.newUser.address" class="short-textarea"></textarea>&nbsp
+      <textarea rows="1" ng-model="main.newUser.address" class="short-textarea" ng-keydown="main.handle($event,1)"></textarea>&nbsp
       City: &nbsp
-      <textarea rows="1" ng-model="main.newUser.city" class="short-textarea"></textarea>&nbsp
+      <textarea rows="1" ng-model="main.newUser.city" class="short-textarea" ng-keydown="main.handle($event,1)"></textarea>&nbsp
       State: &nbsp
-      <textarea rows="1" ng-model="main.newUser.state" class="short-textarea"></textarea>&nbsp
+      <textarea rows="1" ng-model="main.newUser.state" class="short-textarea" ng-keydown="main.handle($event,1)"></textarea>&nbsp
       Zip: &nbsp
-      <textarea rows="1" ng-model="main.newUser.zip" class="short-textarea"></textarea>
+      <textarea rows="1" ng-model="main.newUser.zip" class="short-textarea" ng-keydown="main.handle($event,1)"></textarea>
     </div>
     <div class="single-centered">
-      <button class="btu btn-info" ng-click="main.createNewUser()">Create New User</button>
+      <button class="btn btn-info" ng-click="main.createNewUser()">Create New User</button>
     </div>
-  </div>
+  </form>
   
 </div>
