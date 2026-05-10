@@ -14,7 +14,8 @@
       this.timeout=$timeout;
       this.query={};
       this.gpTransfer={};
-      this.newMember={gpType:'Primary'};
+      this.newMember={gpType:'Primary',associates:[{},{},{},{}]};
+      this.existing={associates:['','','','']};
       this.chosenView=null;
       this.queryGo=null;
       this.customers=[];
@@ -44,6 +45,48 @@
           if (source===1) this.createNewMember();
           if (source===2) this.go();
           if (source===3) this.assign();
+          if (source===4) this.processExisting();
+      }
+    }
+    
+    processExisting(){
+      let associates=JSON.parse(JSON.stringify(this.existing.associates));
+      //up to 5 userId s find each one if the exist and update: primaryUserId for associate, associate array for primary
+      if (!this.existing.primary||(!this.existing.associates[0]&&!this.existing.associates[1]&&!this.existing.associates[2]&&!this.existing.associates[3])) return;
+      //primary
+      this.http.post('/api/customers/one',{userId:this.existing.primary}).then(res=>{
+        if (!res.data||!res.data.userId) return;
+        let primary=JSON.parse(JSON.stringify(res.data));
+        primary.associatedAccounts=primary.associatedAccounts||[];
+        associates.forEach(ass=>{
+          primary.associatedAccounts.push(ass);
+        });
+        //remove duplicates
+        primary.associatedAccounts = [...new Set(primary.associatedAccounts.filter(str => str !== ""))];
+        //update the customer
+        this.http.patch('/api/customers/'+primary._id,{gpType:"Primary",associatedAccounts:primary.associatedAccounts,primaryUserId:''}).then(res=>{
+          this.existing={associates:['','','','']};
+          //find each associate and update them
+          associates.forEach(ass=>{
+            this.http.post('/api/customers/one',{userId:ass}).then(res=>{
+              if (!res.data||!res.data.userId) return;
+              this.http.patch('/api/customers/'+res.data._id,{gpType:"Associate",primaryUserId:primary.userId,associatedAccounts:[]}).then(res=>{}).catch(err=>{console.log(err)});
+            }).catch(err=>{console.log(err)});
+          });
+        }).catch(err=>{console.log(err)});
+      }).catch(err=>{console.log(err)});
+    }
+    
+    changePrimary(){
+      if (confirm('Confirm you want to change your Primary Member to ' +this.selectedAssociate.fullName+ ' and change your status to Associate')) {
+        this.existing={primary:this.selectedAssociate.userId};
+        this.existing.associates=[this.customer.userId];
+        this.associated.forEach(ass=>{
+          if (ass.userId!==this.selectedAssociate.userId) this.existing.associates.push(ass.userId);
+        });
+        this.selectedAssociate=undefined;
+        this.processExisting();
+        this.timeout(()=>{this.backToHub();},1000);
       }
     }
     
@@ -78,7 +121,7 @@
           transaction.status="Approved";
           this.http.post('/api/transactions',transaction).then(res=>{}).catch(err=>{console.log(err)});
           if (nm==='Associate'){
-            this.http.get('/api/customers/one',{userId:nm.primaryUserId}).then(res=>{
+            this.http.post('/api/customers/one',{userId:nm.primaryUserId}).then(res=>{
               if (!res.data||!res.data.userId) return;
               let accounts=res.data.associatedAccounts||[];
               if (!Array.isArray(accounts)) return;
@@ -88,7 +131,8 @@
              })
              .catch(err=>{console.log(err)});
           }
-          this.newMember={gpType:"Primary"};
+          this.newMember={gpType:'Primary',associates:[{},{},{},{}]};
+          this.existing={associates:['','','','']};
         }).catch(err=>{console.log(err)});
       })
       .catch(err=>{console.log(err)});
@@ -126,11 +170,12 @@
     select(cust){
       if (this.chosenView==='Manage Members') {
          if (!cust.selected) return;
+         this.selectedAssociate=undefined;
          this.customer=JSON.parse(JSON.stringify(cust));
          this.associated=[];
          if (this.customer.associatedAccounts) {
            this.customer.associatedAccounts.forEach(cust=>{
-             this.http.get('/api/customers/one',{userId:cust}).then(res=>{
+             this.http.post('/api/customers/one',{userId:cust}).then(res=>{
                this.associated.push(res.data);
              })
              .catch(err=>{console.log(err)});
@@ -177,7 +222,8 @@
     backToHub(){
       this.transaction={status:'Approved',awardRedeem:'redeem',points:0};
       this.query={};
-      this.newMember={gpType:'Primary'};
+      this.newMember={gpType:'Primary',associates:[{},{},{},{}]};
+      this.existing={associates:['','','','']};
       this.chosenView=null;
       this.queryGo=null;
       this.showTransactions=false;
@@ -228,6 +274,12 @@
         console.log(err);
         alert('Try Again!');
       });
+    }
+    
+    undoST(){
+      this.showTransactions=false;
+      this.queryGo='go';
+      this.customer=undefined;
     }
     
     go(){

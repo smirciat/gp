@@ -20,10 +20,11 @@
                 <td ng-click="main.setView(3)"><a href="#" ng-if="main.hasRole('user')">{{main.views[3]}}</a></td>
               </tr>
               <tr>
-                <td uib-tooltip="This link is to connect a Gold Points Member Account to a User Account." 
+                <!--<td uib-tooltip="This link is to connect a Gold Points Member Account to a User Account." 
                   tooltip-placement="bottom" tooltip-append-to-body="true" ng-click="main.setView(2)">
                   <a href="#" ng-if="main.hasRole('user')">{{main.views[2]}}</a>
-                </td>
+                </td>-->
+                <td></td>
                 <td uib-tooltip="This link is to create a New Gold Points Primary Member. Associate Accounts can be created or monitored in 'Manage Members'" 
                   tooltip-placement="bottom" tooltip-append-to-body="true" ng-click="main.setView(4)">
                   <a href="#" ng-if="main.hasRole('user')">{{main.views[4]}}</a>
@@ -171,6 +172,10 @@
   </div>
   <!--Show Transactions-->
   <div ng-if="main.showTransactions&&main.chosenView==='Manage Members'">
+    <div class="single-centered" ng-if="main.hasRole('user')">
+      <button class="btn btn-warning" ng-click="main.undoST()">Back to Query</button>
+    </div>
+    <hr>
     <div class="single-centered">
       <h3>Details for GP Member</h3>
     </div>
@@ -190,30 +195,38 @@
       Zip: &nbsp <textarea rows="1" ng-model="main.customer.zip" class="short-textarea"></textarea>&nbsp
     </div>
     <div class="single-centered">
-      Primary/Associate: &nbsp
-      <ui-select ng-model="main.customer.gpType" theme="selectize">
+      Primary/Associate: {{main.customer.gpType}}
+      <!--<ui-select ng-model="main.customer.gpType" theme="selectize">
         <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
         <ui-select-choices repeat="choice in ['Primary','Associate']" >
           <div ng-bind-html="choice | highlight: $select.search"></div>
         </ui-select-choices>
-      </ui-select>
-    </div>
-    <div ng-if="main.customer.gpType==='Primary'">
-      <div class="single-centered">
-        <h5>This Account is a Primary Gold Points Account.  You may add Associate accounts to it if you wish.</h5>
-      </div>
-      <div class="single-centered" ng-if="main.associated.length>0">
-        Associated Accounts: <strong ng-repeat="account main.associated track by $index">{{account.fullName}}</strong>
-      </div>
-    </div>
-    <div ng-if="main.customer.gpType==='Associate'" class="single-centered">
-      Your Primary Member ID is &nbsp<textarea rows="1" ng-model="main.customer.primaryUserId" class="short-textarea"></textarea>
+      </ui-select>-->
     </div>
     <div class="single-centered">
       <button class="btn btn-info" ng-click="main.updateCustomer()">Update Member Details</button>
     </div>
     <div class="single-centered">
       <h5>Current Points: {{main.customer.currentPoints}},  Member ID: {{main.customer.userId}}</h5>
+    </div>
+    <div ng-if="main.customer.gpType==='Primary'">
+      <div class="single-centered" ng-if="main.associated.length>0">
+        Associated Accounts: &nbsp
+        <ui-select ng-model="main.selectedAssociate" theme="selectize">
+          <ui-select-match placeholder="Choose...">{{$select.selected.fullName}}</ui-select-match>
+          <ui-select-choices repeat="choice in main.associated" >
+            <div ng-bind-html="choice.fullName | highlight: $select.search"></div>
+          </ui-select-choices>
+        </ui-select>
+      </div>
+      <div class="single-centered" ng-if="main.associated.length>0">
+        <button class="btn btn-secondary" ng-click="main.changePrimary()"
+            uib-tooltip="To change the person who is the primary on this membership, select from the list below then click this button.">
+            Click to Change Primary</button>
+      </div>
+    </div>
+    <div ng-if="main.customer.gpType==='Associate'" class="single-centered">
+      Your Primary Member ID is {{main.customer.primaryUserId}}
     </div>
     <div class="single-centered"><h4>Gold Points Transactions</h4></div>
     <div ng-if="main.customerTransactions.length===0">
@@ -251,7 +264,7 @@
   <!--Add New User-->
   <div ng-if="main.testView('Create Member')">
     <div class="single-centered">
-      <h3>Add a New Gold Points User</h3>
+      <h3>Add a New Gold Points Member</h3>
     </div>
     <div class="single-centered">
       First: &nbsp
@@ -291,8 +304,33 @@
           class="short-textarea" ng-keydown="main.handle($event,1)"></textarea>&nbsp&nbsp&nbsp
       <span ng-if="main.newMember.gpType==='Associate'">Primary Member's ID</span>
     </div>
+    <div class="single-centered" ng-if="main.newMember.gpType==='Primary'">
+      Associate Members (First and Last Name)
+    </div>
+    <div class="single-centered" ng-if="main.newMember.gpType==='Primary'" ng-repeat="ass in main.newMember.associates track by $index">
+      <textarea rows="1" ng-model="ass.firstName" ng-keydown="main.handle($event,1)"></textarea>&nbsp
+      <textarea rows="1" ng-model="ass.lastName" ng-keydown="main.handle($event,1)"></textarea>&nbsp
+    </div>
     <div class="single-centered">
       <button class="btn btn-info" ng-click="main.createNewMember()">Create New GP Member</button>
+    </div>
+    <hr>
+    <div class="single-centered">
+      <h3>Add Existing Gold Points Members to an existing Primary Gold Points Member Account</h3>
+    </div>
+    <div class="single-centered">
+      <strong>Primary User Id: &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+          Associate Member User Id(s) &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</strong>
+    </div>
+    <div class="single-centered">
+      <textarea rows="1" ng-model="main.existing.primary" class="short-textarea" ng-keydown="main.handle($event,4)"></textarea>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+      <textarea rows="1" ng-model="main.existing.associates[0]" class="short-textarea" ng-keydown="main.handle($event,4)"></textarea>&nbsp
+      <textarea rows="1" ng-model="main.existing.associates[1]" class="short-textarea" ng-keydown="main.handle($event,4)"></textarea>&nbsp
+      <textarea rows="1" ng-model="main.existing.associates[2]" class="short-textarea" ng-keydown="main.handle($event,4)"></textarea>&nbsp
+      <textarea rows="1" ng-model="main.existing.associates[3]" class="short-textarea" ng-keydown="main.handle($event,4)"></textarea>
+    </div>
+    <div class="single-centered">
+      <button class="btn btn-info" ng-click="main.processExisting()">Attach Associate Members</button>
     </div>
   </div>
   
