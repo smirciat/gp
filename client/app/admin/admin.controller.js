@@ -9,10 +9,33 @@
         this.users=res.sort((a,b)=>{
           return a.name.localeCompare(b.name);
         });
+        this.filteredUsers=JSON.parse(JSON.stringify(this.users));
       });
       this.Auth=Auth;
       this.roles=appConfig.userRoles;
       this.http=$http;
+      this.roles.unshift('All');
+      this.role={};
+      this.role.selected = "";
+      this.sort={};
+      this.sort.selected = "email";
+      this.sortBy = ["_id","email","name"];
+      this.filteredUsers=[];
+    }
+    
+    newSort() {
+      this.filteredUsers=this.filteredUsers.sort((a,b)=>{
+        if (this.sort.selected==="_id") return a[this.sort.selected]-b[this.sort.selected];
+        else return a[this.sort.selected].localeCompare( b[this.sort.selected]);
+      });
+    }
+    
+    filterResults(){
+      if (!this.role.selected||this.role.selected==="All") this.filteredUsers=JSON.parse(JSON.stringify(this.users));
+      else {
+        this.filteredUsers=this.users.filter(user=>user.role===this.role.selected);
+      }
+      this.newSort();
     }
     
     reset(user){
@@ -23,6 +46,7 @@
       if (confirm('Are you sure you want to delete this user named ' + user.name + '?')){
         user.$remove();
         this.users.splice(this.users.indexOf(user), 1);
+        this.filteredUsers.splice(this.filteredUsers.indexOf(user), 1);
       }
       else alert('Action Canceled');
     }

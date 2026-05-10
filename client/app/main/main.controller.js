@@ -25,7 +25,7 @@
       this.end=50;
       this.views=['Manage Members','Approve Points','Add User','Assign Points','Create Member','List By Points'];
       this.welcomeEmail="Congratulations! <br> You have just created a Bering Air Gold Points Membership!<br>";
-      this.welcomeEmail+="Please head over to beringair.net to complete your sign up process. Once you have loaded beringair.net on an internet browser, click the 'Register' button.  Make sure you use the same email address there that you used when you signed up for the Gold Points Membership.  You can use any password you like.  Once registered, you will be able to see any future Gold Points transactions that are attached to this account.  Please let us know if you have any questions or difficulties.  Thanks for flying with Bering Air!";
+      this.welcomeEmail+="Please head over to gp.beringair.com to complete your sign up process. Once you have loaded gp.beringair.com on an internet browser, click the 'Register' button.  Make sure you use the same email address there that you used when you signed up for the Gold Points Membership.  You can use any password you like.  Once registered, you will be able to see any future Gold Points transactions that are attached to this account.  Please let us know if you have any questions or difficulties.  Thanks for flying with Bering Air!";
     }
 
     $onInit() {
@@ -49,10 +49,21 @@
       }
     }
     
-    processExisting(){
+    processExisting(swap){
       let associates=JSON.parse(JSON.stringify(this.existing.associates));
       //up to 5 userId s find each one if the exist and update: primaryUserId for associate, associate array for primary
       if (!this.existing.primary||(!this.existing.associates[0]&&!this.existing.associates[1]&&!this.existing.associates[2]&&!this.existing.associates[3])) return;
+      //if not swapping within an existing group, don't add current primary members as associates
+      let fail=false;
+      if (!swap){
+        this.existing.associated.forEach(ass=>{
+          if (ass.gpType==="Primary") fail=true;
+        });
+        if (fail){
+          alert('One of those associate User ID`s may belong to a primary member');
+          return;
+        }
+      }
       //primary
       this.http.post('/api/customers/one',{userId:this.existing.primary}).then(res=>{
         if (!res.data||!res.data.userId) return;
@@ -85,8 +96,11 @@
           if (ass.userId!==this.selectedAssociate.userId) this.existing.associates.push(ass.userId);
         });
         this.selectedAssociate=undefined;
-        this.processExisting();
-        this.timeout(()=>{this.backToHub();},1000);
+        this.processExisting(true);
+        this.timeout(()=>{
+          if (this.hasRole('user')) this.undoST();
+          else this.backToHub();
+        },1000);
       }
     }
     
@@ -108,9 +122,10 @@
           return;
         }
         let nm=JSON.parse(JSON.stringify(this.newMember));
-        this.http.post('/api/customers',this.newMember).then(res=>{
+        this.http.post('/api/customers',nm).then(res=>{
+          nm=res.data;
           //send a welcome email
-          if (this.newMember.email) this.http.post('/api/things/email',{to:this.newMember.email,html:this.welcomeEmail}).then(res=>{}).catch(err=>{console.log(err)});
+          if (nm.email) this.http.post('/api/things/email',{to:nm.email,html:this.welcomeEmail}).then(res=>{}).catch(err=>{console.log(err)});
           //set up initial transaction for new Member
           let transaction=res.data;
           delete transaction._id;
@@ -119,7 +134,13 @@
           transaction.date=new Date();
           transaction.dateFlown=new Date().toLocaleDateString();
           transaction.status="Approved";
-          this.http.post('/api/transactions',transaction).then(res=>{}).catch(err=>{console.log(err)});
+          this.http.post('/api/transactions',transaction).then(res=>{
+            //navigate to Manage Members with this nm selected
+            nm.selected=true;
+            nm.currentPoints=nm.points;
+            this.chosenView="Manage Members";
+            this.select(nm);
+          }).catch(err=>{console.log(err)});
           if (nm==='Associate'){
             this.http.post('/api/customers/one',{userId:nm.primaryUserId}).then(res=>{
               if (!res.data||!res.data.userId) return;
@@ -145,25 +166,35 @@
         alert('Missing Information!');
         return;
       }
-      let index=this.customers.map(e=>e.userId).indexOf(transaction.userId);
-      if (index<0) {
-        alert('Can`t find customer');
-        return;
-      }
-      transaction.date=new Date();
-      if (!transaction.dateFlown) transaction.dateFlown=new Date().toLocaleDateString();
-      transaction.lastUpdatedBy=this.user._id;
-      this.http.post('/api/transactions',transaction).then(res=>{
-        if (transaction.status==="Approved") {
-          if (!this.customers[index].currentPoints) this.customers[index].currentPoints = this.customers[index].points;
-          if (transaction.awardRedeem==='award') this.customers[index].currentPoints += transaction.points;
-          else this.customers[index].currentPoints -= transaction.points;
-          this.customers[index].lastTransaction=res.data._id;
-          this.http.patch('/api/customers/'+this.customers[index]._id,this.customers[index])
-            .then(res=>{})
-            .catch(err=>{console.log(err)});
+      this.http.post('/api/customers/one',{userId:transaction.userId}).then(res=>{
+        let customer=res.data;       
+        if (res.data.suspended) {
+          alert('Need to remove customer suspension first');
+          return;
         }
-        this.transaction={status:'Approved',awardRedeem:'redeem',points:0};
+        transaction.date=new Date();
+        if (!transaction.dateFlown) transaction.dateFlown=new Date().toLocaleDateString();
+        transaction.lastUpdatedBy=this.user._id;
+        this.http.post('/api/transactions',transaction).then(res=>{
+          if (transaction.status==="Approved") {
+            if (!customer.currentPoints) customer.currentPoints = customer.points;
+            if (transaction.awardRedeem==='award') customer.currentPoints += transaction.points;
+            else customer.currentPoints -= transaction.points;
+            customer.lastTransaction=res.data._id;
+            this.http.patch('/api/customers/'+customer._id,{currentPoints:customer.currentPoints,lastTransaction:customer.lastTransaction})
+              .then(res=>{
+                //email receipt
+                let awardRedeem="awarded";
+                if (transaction.awardRedeem==="redeem") awardRedeem="withdrawn from";
+                let html="You have a new transaction related to your Bering Air Gold Points Membership User ID# " + customer.userId + ".<br>";
+                html+="We have " + awardRedeem + " you " + transaction.points + " points for an updated balance of " + customer.currentPoints + ".<br>";
+                html+="If you have any questions, please contact Bering Air.";
+                if (customer.email) this.http.post('/api/things/email',{to:customer.email,html:html}).then(res=>{}).catch(err=>{console.log(err)});
+              })
+              .catch(err=>{console.log(err)});
+          }
+          this.transaction={status:'Approved',awardRedeem:'redeem',points:0};
+        }).catch(err=>{console.log(err)});
       }).catch(err=>{console.log(err)});
     }
     
@@ -203,6 +234,15 @@
       this.timeout(()=>{cust.selected=undefined},5000);
       this.transaction.account=cust.account;
       this.transaction.userId=cust.userId;
+    }
+    
+    suspendMember(cust){
+      cust.suspended=!cust.suspended;
+      this.http.patch('/api/customers/'+cust._id,{suspended:cust.suspended}).then(res=>{}).catch(err=>{console.log(err)});
+    }
+    
+    suspensionClass(cust){
+      if (cust.suspended) return "suspended";
     }
     
     deleteTransaction(tran,index){
@@ -317,9 +357,17 @@
         alert('Try again with an available amount of points');
         return;
       }
+      if (this.customer.suspended) {
+        alert('Need to remove customer suspension first');
+        return;
+      }
       this.http.post('/api/customers/one',{userId:this.gpTransfer.userId}).then(res=>{
         if (!res.data||!res.data.userId) {
           alert('Didn`t find that User ID');
+          return;
+        }
+        if (res.data.suspended) {
+          alert('Need to remove customer suspension first');
           return;
         }
         if (confirm('Confirm transferring ' + this.gpTransfer.points + ' to ' + res.data.fullName + ' with user ID of ' + this.gpTransfer.userId)) {

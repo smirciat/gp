@@ -28,6 +28,10 @@ export default function(sequelize, DataTypes) {
       type:DataTypes.BOOLEAN,
       default:true
     },
+    suspended: {
+      type:DataTypes.BOOLEAN,
+      default:false
+    },
     dob: DataTypes.STRING,
     address: DataTypes.STRING,
     city: DataTypes.STRING,

@@ -1,6 +1,48 @@
-<div class="container">
+<div class="container second-row">
+  <div class="admin-container">
+    <div class="admin-flex-item">
+      <label>Filter Results by Role</label>
+      <ui-select class="adminselect" ng-model="admin.role.selected" theme="selectize" ng-disabled="disabled" ng-change="admin.filterResults()">
+        <ui-select-match placeholder="Choose a Role">{{$select.selected}}</ui-select-match>
+        <ui-select-choices repeat="role in admin.roles" >
+          <div ng-bind-html="role | highlight: $select.search"></div>
+        </ui-select-choices>
+      </ui-select>
+    </div>
+    <div class="admin-flex-item">
+      <label>Users sorted by:</label>
+      <ui-select class="adminselect" ng-model="admin.sort.selected" theme="selectize" ng-disabled="disabled" ng-change="admin.newSort()">
+        <ui-select-match placeholder="Choose a Sort Order">{{$select.selected}}</ui-select-match>
+        <ui-select-choices repeat="sort in admin.sortBy" >
+          <div ng-bind-html="sort | highlight: $select.search"></div>
+        </ui-select-choices>
+      </ui-select>
+    </div>
+  </div>
+  </br>
+</div>
+<div class="fourth-row">
   <ul class="list-group user-list">
-    <li class="list-group-item" ng-repeat="user in admin.users">
+    <li class="list-group-item" ng-repeat="user in admin.filteredUsers">
+	    <div class="user-info">
+	        <strong>{{user.name}}</strong><br>
+	        <span class="text-muted">{{user.email}}&nbsp ID:{{user._id}}&nbsp role:{{user.role}}</span>
+	    </div>
+        <a ng-click="admin.demote(user)" class="trash">
+	          <span class="fa fa-arrow-down fa-2x" uib-tooltip="Downgrade User Role"></span></a>
+	      <a ng-click="admin.promote(user)" class="trash">
+	          <span class="fa fa-arrow-up fa-2x" uib-tooltip="Upgrade User Role"></span></a>
+        <a ng-click="admin.reset(user)" class="trash">
+            <span class="fa fa-key fa-2x" uib-tooltip="Reset User Password to Default"></span></a>
+        <a ng-click="admin.delete(user)" class="trash">
+            <span class="fa fa-trash fa-2x" uib-tooltip="Delete User"></span></a>
+    </li>
+  </ul>
+</div>
+
+<!--<div class="container">
+  <ul class="list-group user-list">
+    <li class="list-group-item" ng-repeat="user in admin.filteredUsers">
 	    <div class="user-info">
 	        <strong>{{user.name}}</strong><br>
 	        <span class="text-muted">{{user.email}}&nbsp ID:{{user._id}}&nbsp role:{{user.role}}</span>
@@ -15,4 +57,4 @@
             <span class="fa fa-trash fa-2x" uib-tooltip="Delete User"></span></a>
     </li>
   </ul>
-</div>
+</div>-->

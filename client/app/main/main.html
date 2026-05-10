@@ -156,7 +156,7 @@
           <th style="color:white;font-weight:bold"></th>
         </tr></thead>
         <!--<tbody><tr ng-repeat="cust in main.customers | limitTo: main.showLength : main.start">-->
-        <tbody><tr ng-repeat="cust in main.customers">
+        <tbody><tr ng-repeat="cust in main.customers" ng-class="main.suspensionClass(cust)">
           <td><input type="checkbox" ng-model="cust.selected" ng-click="main.select(cust)"></td>
           <td>{{cust.userId}}</td>
           <td>{{cust.userName}}</td>
@@ -165,7 +165,11 @@
           <td>{{cust.currentPoints}}</td>
           <td></td>
           <td></td>
-          <td></td>
+          <td ng-if="main.hasRole('superadmin')"><a ng-click="main.suspendMember(cust)" class="trash" ng-if="!cust.suspended">
+            <span class="fa-solid fa-circle-pause fa-2x" uib-tooltip="Suspend Member"></span></a>
+            <a ng-click="main.suspendMember(cust)" ng-if="cust.suspended">
+            <span class="fa-solid fa-circle-play fa-2x" uib-tooltip="Remove Suspension From Member"></span></a>
+          </td>
         </tr></tbody>
       </table>
     </div>

@@ -52,6 +52,12 @@
 .short-textarea{
   width:5em;
 }
+.suspended{
+  background-color: lightpink;
+}
+.table-striped > tbody > tr.suspended > td {
+    background-color: lightpink;
+}
 textarea {
   text-align: center;
 }
