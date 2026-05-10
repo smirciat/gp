@@ -190,13 +190,33 @@
       Zip: &nbsp <textarea rows="1" ng-model="main.customer.zip" class="short-textarea"></textarea>&nbsp
     </div>
     <div class="single-centered">
+      Primary/Associate: &nbsp
+      <ui-select ng-model="main.customer.gpType" theme="selectize">
+        <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
+        <ui-select-choices repeat="choice in ['Primary','Associate']" >
+          <div ng-bind-html="choice | highlight: $select.search"></div>
+        </ui-select-choices>
+      </ui-select>
+    </div>
+    <div ng-if="main.customer.gpType==='Primary'">
+      <div class="single-centered">
+        <h5>This Account is a Primary Gold Points Account.  You may add Associate accounts to it if you wish.</h5>
+      </div>
+      <div class="single-centered" ng-if="main.associated.length>0">
+        Associated Accounts: <strong ng-repeat="account main.associated track by $index">{{account.fullName}}</strong>
+      </div>
+    </div>
+    <div ng-if="main.customer.gpType==='Associate'" class="single-centered">
+      Your Primary Member ID is &nbsp<textarea rows="1" ng-model="main.customer.primaryUserId" class="short-textarea"></textarea>
+    </div>
+    <div class="single-centered">
       <button class="btn btn-info" ng-click="main.updateCustomer()">Update Member Details</button>
     </div>
     <div class="single-centered">
       <h5>Current Points: {{main.customer.currentPoints}},  Member ID: {{main.customer.userId}}</h5>
     </div>
     <div class="single-centered"><h4>Gold Points Transactions</h4></div>
-    <div ng-if="main.customerTansactions.length===0">
+    <div ng-if="main.customerTransactions.length===0">
       <h4>No Transactions yet for that member!</h4>
     </div>
     <table class="table table-bordered table-striped">
@@ -212,6 +232,21 @@
             <span class="fa fa-trash fa-2x" uib-tooltip="Delete Transaction"></span></a></td>
       </tr></tbody>
     </table>
+    <!--Admin Functions, eventually open some up to guests-->
+    <div ng-if="main.hasRole('user')">
+      <!--Transfer Gold Points, need User Id-->
+      <hr>
+      <div class="single-centered">
+        <h3>Transfer Gold Points</h3>
+      </div>
+      <div class="single-centered">
+        <button class="btn btn-primary" ng-click="main.transfer()">Transfer</button>&nbsp
+        (up to {{main.customer.currentPoints}})&nbsp <textarea rows="1" ng-model="main.gpTransfer.points"></textarea>&nbsp
+        To User ID: &nbsp <textarea rows="1" ng-model="main.gpTransfer.userId"></textarea>&nbsp
+      </div>
+      
+      
+    </div>
   </div>
   <!--Add New User-->
   <div ng-if="main.testView('Create Member')">
@@ -243,6 +278,18 @@
       <textarea rows="1" ng-model="main.newMember.state" class="short-textarea" ng-keydown="main.handle($event,1)"></textarea>&nbsp
       Zip: &nbsp
       <textarea rows="1" ng-model="main.newMember.zip" class="short-textarea" ng-keydown="main.handle($event,1)"></textarea>
+    </div>
+    <div class="single-centered">
+      Select Membership Type: &nbsp
+      <ui-select ng-model="main.newMember.gpType" theme="selectize">
+        <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
+        <ui-select-choices repeat="choice in ['Primary','Associate']" >
+          <div ng-bind-html="choice | highlight: $select.search"></div>
+        </ui-select-choices>
+      </ui-select>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+      <textarea rows="1" ng-model="main.newMember.primaryUserId" ng-if="main.newMember.gpType==='Associate'"
+          class="short-textarea" ng-keydown="main.handle($event,1)"></textarea>&nbsp&nbsp&nbsp
+      <span ng-if="main.newMember.gpType==='Associate'">Primary Member's ID</span>
     </div>
     <div class="single-centered">
       <button class="btn btn-info" ng-click="main.createNewMember()">Create New GP Member</button>

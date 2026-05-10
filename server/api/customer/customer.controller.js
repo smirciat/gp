@@ -112,6 +112,18 @@ export function query(req, res) {
     .catch(handleError(res));
 }
 
+// Gets a single Customer from the DB by attribute 'userId'
+export function one(req, res) {
+  return Customer.findOne({
+    where: {
+      userId: (req.body.userId*1).toString()
+    }
+  })
+    .then(handleEntityNotFound(res))
+    .then(respondWithResult(res))
+    .catch(handleError(res));
+}
+
 // Gets a single Customer from the DB
 export function show(req, res) {
   return Customer.findOne({

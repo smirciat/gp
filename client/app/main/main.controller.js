@@ -13,7 +13,8 @@
       this.socket = socket;
       this.timeout=$timeout;
       this.query={};
-      this.newMember={};
+      this.gpTransfer={};
+      this.newMember={gpType:'Primary'};
       this.chosenView=null;
       this.queryGo=null;
       this.customers=[];
@@ -59,6 +60,11 @@
         if (this.newMember.middleName) this.newMember.middleName += ' ';
         else this.newMember.middleName='';
         this.newMember.fullName=this.newMember.firstName+this.newMember.middleName+this.newMember.lastName;
+        if (this.newMember.gpType==='Associate'&&!this.newMember.primaryUserId){
+          alert('You must have a Primary Member`s Id entered for an Associate account');
+          return;
+        }
+        let nm=JSON.parse(JSON.stringify(this.newMember));
         this.http.post('/api/customers',this.newMember).then(res=>{
           //send a welcome email
           if (this.newMember.email) this.http.post('/api/things/email',{to:this.newMember.email,html:this.welcomeEmail}).then(res=>{}).catch(err=>{console.log(err)});
@@ -71,30 +77,43 @@
           transaction.dateFlown=new Date().toLocaleDateString();
           transaction.status="Approved";
           this.http.post('/api/transactions',transaction).then(res=>{}).catch(err=>{console.log(err)});
-          this.newMember={};
+          if (nm==='Associate'){
+            this.http.get('/api/customers/one',{userId:nm.primaryUserId}).then(res=>{
+              if (!res.data||!res.data.userId) return;
+              let accounts=res.data.associatedAccounts||[];
+              if (!Array.isArray(accounts)) return;
+              if (accounts.indexOf(nm.userId)>-1) return;
+              accounts.push(nm.userId);
+              this.http.patch('/api/customers/'+res.data._id,{associatedAccounts:accounts}).then(res=>{}).catch(err=>{console.log(err)});
+             })
+             .catch(err=>{console.log(err)});
+          }
+          this.newMember={gpType:"Primary"};
         }).catch(err=>{console.log(err)});
       })
       .catch(err=>{console.log(err)});
     }
     
-    assign(){
-      this.transaction.points=this.transaction.points*1;
-      if (!Number.isInteger(this.transaction.points)||!this.transaction.userId||this.transaction.points<1) {
+    assign(transaction){
+      transaction=transaction||this.transaction;
+      transaction.points=transaction.points*1;
+      if (!Number.isInteger(transaction.points)||!transaction.userId||transaction.points<1) {
         alert('Missing Information!');
         return;
       }
-      let index=this.customers.map(e=>e.userId).indexOf(this.transaction.userId);
+      let index=this.customers.map(e=>e.userId).indexOf(transaction.userId);
       if (index<0) {
         alert('Can`t find customer');
         return;
       }
-      this.transaction.date=new Date();
-      this.transaction.lastUpdatedBy=this.user._id;
-      this.http.post('/api/transactions',this.transaction).then(res=>{
-        if (this.transaction.status==="Approved") {
+      transaction.date=new Date();
+      if (!transaction.dateFlown) transaction.dateFlown=new Date().toLocaleDateString();
+      transaction.lastUpdatedBy=this.user._id;
+      this.http.post('/api/transactions',transaction).then(res=>{
+        if (transaction.status==="Approved") {
           if (!this.customers[index].currentPoints) this.customers[index].currentPoints = this.customers[index].points;
-          if (this.transaction.awardRedeem==='award') this.customers[index].currentPoints += this.transaction.points;
-          else this.customers[index].currentPoints -= this.transaction.points;
+          if (transaction.awardRedeem==='award') this.customers[index].currentPoints += transaction.points;
+          else this.customers[index].currentPoints -= transaction.points;
           this.customers[index].lastTransaction=res.data._id;
           this.http.patch('/api/customers/'+this.customers[index]._id,this.customers[index])
             .then(res=>{})
@@ -108,6 +127,16 @@
       if (this.chosenView==='Manage Members') {
          if (!cust.selected) return;
          this.customer=JSON.parse(JSON.stringify(cust));
+         this.associated=[];
+         if (this.customer.associatedAccounts) {
+           this.customer.associatedAccounts.forEach(cust=>{
+             this.http.get('/api/customers/one',{userId:cust}).then(res=>{
+               this.associated.push(res.data);
+             })
+             .catch(err=>{console.log(err)});
+           });
+           this.timeout(()=>{console.log(this.associated)},2000);
+         }
          this.http.post('/api/transactions/query',{userId:cust.userId}).then(res=>{
            cust.selected=undefined;
            this.customerTransactions=res.data.sort((a,b)=>{
@@ -148,7 +177,7 @@
     backToHub(){
       this.transaction={status:'Approved',awardRedeem:'redeem',points:0};
       this.query={};
-      this.newMember={};
+      this.newMember={gpType:'Primary'};
       this.chosenView=null;
       this.queryGo=null;
       this.showTransactions=false;
@@ -229,6 +258,34 @@
           this.queryGo='go';
         })
         .catch(err=>{console.log(err)});
+    }
+    
+    transfer(){
+      if (this.gpTransfer.points>this.customer.currentPoints) {
+        alert('Try again with an available amount of points');
+        return;
+      }
+      this.http.post('/api/customers/one',{userId:this.gpTransfer.userId}).then(res=>{
+        if (!res.data||!res.data.userId) {
+          alert('Didn`t find that User ID');
+          return;
+        }
+        if (confirm('Confirm transferring ' + this.gpTransfer.points + ' to ' + res.data.fullName + ' with user ID of ' + this.gpTransfer.userId)) {
+          this.customer.currentPoints-=this.gpTransfer.points;
+          let i=this.customers.map(e=>e.userId).indexOf(res.data.userId);
+          if (i<0) this.customers.push(res.data);
+          let transaction={userId:this.customer.userId,awardRedeem:'redeem',points:this.gpTransfer.points,
+              description:'GP Transfer from '+ this.customer.userId +' to ' + res.data.fullName + ' with user ID of ' + this.gpTransfer.userId,
+              status:'Approved'
+          };
+          this.assign(transaction);
+          let t=JSON.parse(JSON.stringify(transaction));
+          t.awardRedeem='award';
+          t.userId=res.data.userId;
+          this.assign(t);
+          this.gpTransfer={};
+        }
+      }).catch(err=>{console.log(err)});
     }
   }
 

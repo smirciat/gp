@@ -17,6 +17,8 @@ export default function(sequelize, DataTypes) {
       unique: true,
       allowNull: false
     },
+    primaryUserId:DataTypes.STRING,
+    associatedAccounts:DataTypes.JSONB,
     userName: DataTypes.STRING,
     fullName: DataTypes.STRING,
     email: DataTypes.STRING,
