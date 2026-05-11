@@ -10,6 +10,7 @@ router.get('/', controller.index);
 router.get('/:id', controller.show);
 router.post('/sms', auth.isAuthenticated(), controller.sms);
 router.post('/email', auth.hasRole('user'), controller.email);
+router.post('/getManifest', auth.hasRole('user'), controller.getManifest);
 router.post('/', controller.create);
 router.put('/:id', controller.update);
 router.patch('/:id', controller.update);

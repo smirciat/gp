@@ -4,7 +4,7 @@
 
   class MainController {
 
-    constructor($http, $scope, socket,Auth,User,$timeout) {
+    constructor($http, $scope, socket,Auth,User,$timeout,toaster) {
       this.isLoggedIn=Auth.isLoggedIn;
       this.hasRole=Auth.hasRole;
       this.isAdmin=Auth.isAdmin;
@@ -12,6 +12,7 @@
       this.http = $http;
       this.socket = socket;
       this.timeout=$timeout;
+      this.toaster=toaster;
       this.query={};
       this.gpTransfer={};
       this.newMember={gpType:'Primary',associates:[{},{},{},{}]};
@@ -37,6 +38,9 @@
           this.go();
         }
       });
+      this.http.post('/api/things/getManifest',{date:'5/11/2026',flightNum:'850'}).then(res=>{
+        console.log(res.data);
+      }).catch(err=>{console.log(err)});
     }
     
     handle(event,source) {
@@ -198,9 +202,14 @@
       }).catch(err=>{console.log(err)});
     }
     
+    altSelect(cust){
+      cust.selected=!cust.selected;
+      this.select(cust);
+    }
+    
     select(cust){
       if (this.chosenView==='Manage Members') {
-         if (!cust.selected) return;
+         //if (!cust.selected) return;
          this.selectedAssociate=undefined;
          this.customer=JSON.parse(JSON.stringify(cust));
          this.associated=[];
@@ -227,6 +236,7 @@
           .catch(err=>{console.log(err)});
          return; 
       }
+      this.toaster.pop('info','Member Selected!','Check to see that Account and Member ID have been filled with this Member`s information!');
       if (!cust.selected) {
         this.transaction={status:'Approved',awardRedeem:'redeem',points:0};
         return;
@@ -285,6 +295,15 @@
       }
       this.chosenView=this.views[index];
       this.showTransactions=false;
+      if (index===5){
+        this.http.get('/api/customers').then(res=>{
+          this.allCustomers=res.data.sort((a,b)=>{
+            a.currentPoints=a.currentPoints||a.points;
+            b.currentPoints=b.currentPoints||b.points;
+            return b.currentPoints-a.currentPoints;
+          });
+        }).catch(err=>{console.log(err)});
+      }
     }
     
     testView(view,otherView){

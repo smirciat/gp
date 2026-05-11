@@ -10,8 +10,10 @@
 'use strict';
 
 import _ from 'lodash';
+const axios = require("axios");
 import {Thing} from '../../sqldb';
 import localEnv from '../../config/local.env';
+let bearer='';
 let client = require('twilio')(
   localEnv.TWILIO_ACCOUNT_SID,
   localEnv.TWILIO_AUTH_TOKEN
@@ -171,4 +173,71 @@ export async function sms(req,res){
     console.log(error);
     return res.status(500);
   });
+}
+
+export async function setBearer(){
+  let data = JSON.stringify({
+    "client_id": localEnv.TF_ID,
+    "client_secret": localEnv.TF_SECRET
+  });
+  let config = {
+    method: 'post',
+    url: 'https://api.tflite.com/authentication/oauth/token',
+    headers: { 
+      'Content-Type': 'application/json', 
+      'Accept': 'application/json',
+      'api-version':'v1'
+    },
+    data : data
+  };
+  
+  try{
+    let response=await axios(config);
+    bearer="Bearer "+response.data.access_token;
+    //console.log(bearer);
+    return "TF Bearer Token Set Successfully";
+  }
+  catch(err){
+    console.log(err);
+    return err;
+  }
+}
+
+export async function getManifest(req,res){
+  let date=new Date();
+  let flightNum='860';
+  if (req.body&&req.body.date) {
+    date=new Date(req.body.date);
+    flightNum=req.body.flightNum||flightNum;
+  }
+  date.setHours(0, 0, 0, 0);
+  let startDate=date.toISOString();
+  let config = {
+    method: 'get',
+    url: 'https://api.tflite.com/manifests/'+startDate+'/'+flightNum+'/:departureAirport',
+    headers: { 
+      'Accept': 'application/json', 
+      'api-version': 'v1', 
+      'Authorization': bearer
+    }
+  };
+  try {
+    let response=await axios(config);
+    console.log(response.data);
+    if (res) res.status(200).json(response.data);
+    else return response.data;
+  }
+  catch(err){
+    if (!err.response) err.response={data:err};
+    console.log(err.response.data);
+    setBearer();
+    let secondResponse;
+    if (err&&err.response&&err.response.data&&err.response.data.statusCode===401) {
+      secondResponse=await getManifest(req);
+      if (!res) return secondResponse;
+      else return res.status(200).json(secondResponse);
+    }
+    if (res) return res.status(500).json(err.response.data);
+    return err.response||err;
+  }
 }

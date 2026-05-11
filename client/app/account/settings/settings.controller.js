@@ -7,7 +7,7 @@ class SettingsController {
   constructor(Auth,User) {
     this.Auth = Auth;
     this.user= User.get(res=>{
-      console.log(res);
+      
     });
   }
 

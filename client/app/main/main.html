@@ -1,3 +1,4 @@
+<toaster-container></toaster-container>
 <div ng-if="main.hasRole('guest')">
   <!--main hub-->
   <div ng-if="!main.chosenView">
@@ -146,25 +147,27 @@
       <table class="table table-bordered table-striped">
         <thead><tr style="background-color:black;">
           <th style="color:white;font-weight:bold">Select</th>
+          <th style="color:white;font-weight:bold">Account</th>
           <th style="color:white;font-weight:bold">User ID</th>
           <th style="color:white;font-weight:bold">Username</th>
           <th style="color:white;font-weight:bold">Full Name</th>
           <th style="color:white;font-weight:bold">Email</th>
+          <th style="color:white;font-weight:bold">Phone</th>
           <th style="color:white;font-weight:bold">Points</th>
-          <th style="color:white;font-weight:bold"># Orders</th>
-          <th style="color:white;font-weight:bold">Spent</th>
+          <th style="color:white;font-weight:bold"></th>
           <th style="color:white;font-weight:bold"></th>
         </tr></thead>
         <!--<tbody><tr ng-repeat="cust in main.customers | limitTo: main.showLength : main.start">-->
         <tbody><tr ng-repeat="cust in main.customers" ng-class="main.suspensionClass(cust)">
-          <td><input type="checkbox" ng-model="cust.selected" ng-click="main.select(cust)"></td>
-          <td>{{cust.userId}}</td>
-          <td>{{cust.userName}}</td>
-          <td>{{cust.fullName}}</td>
-          <td>{{cust.email}}</td>
-          <td>{{cust.currentPoints}}</td>
-          <td></td>
-          <td></td>
+          <td>&nbsp&nbsp<input type="checkbox" style="transform:scale(3);margin:10px;" ng-model="cust.selected" ng-click="main.select(cust)"></td>
+          <td ng-click="main.altSelect(cust)">{{cust.account}}</td>
+          <td ng-click="main.altSelect(cust)">{{cust.userId}}</td>
+          <td ng-click="main.altSelect(cust)">{{cust.userName}}</td>
+          <td ng-click="main.altSelect(cust)">{{cust.fullName}}</td>
+          <td ng-click="main.altSelect(cust)">{{cust.email}}</td>
+          <td ng-click="main.altSelect(cust)">{{cust.phone}}</td>
+          <td ng-click="main.altSelect(cust)">{{cust.currentPoints}}</td>
+          <td ng-click="main.altSelect(cust)"></td>
           <td ng-if="main.hasRole('superadmin')"><a ng-click="main.suspendMember(cust)" class="trash" ng-if="!cust.suspended">
             <span class="fa-solid fa-circle-pause fa-2x" uib-tooltip="Suspend Member"></span></a>
             <a ng-click="main.suspendMember(cust)" ng-if="cust.suspended">
@@ -337,5 +340,25 @@
       <button class="btn btn-info" ng-click="main.processExisting()">Attach Associate Members</button>
     </div>
   </div>
-  
+  <!--List By Points-->
+  <div style="margin-left:10%;margin-right:10%;" ng-if="main.testView('List By Points')">
+      <table class="table table-bordered table-striped">
+        <thead><tr style="background-color:black;">
+          <td style="color:white;font-weight:bold">Account</td>
+          <td style="color:white;font-weight:bold">User ID</td>
+          <td style="color:white;font-weight:bold">Full Name</td>
+          <td style="color:white;font-weight:bold">Email</td>
+          <td style="color:white;font-weight:bold">Phone</td>
+          <td style="color:white;font-weight:bold">Points</td>
+        </tr></thead>
+        <tbody><tr ng-repeat="c in main.allCustomers">
+          <td>{{c.account}}</td>
+          <td>{{c.userId}}</td>
+          <td>{{c.fullName}}</td>
+          <td>{{c.email}}</td>
+          <td>{{c.phone}}</td>
+          <td>{{c.currentPoints}}</td>
+        </tr></tbody>
+      </table>
+  </div>
 </div>

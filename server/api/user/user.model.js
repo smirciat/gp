@@ -36,10 +36,10 @@ module.exports = function(sequelize, DataTypes) {
         notEmpty: true
       }
     },
+    forcePasswordChange: DataTypes.BOOLEAN,
     provider: DataTypes.STRING,
     salt: DataTypes.STRING,
     job: DataTypes.STRING
-
   }
 
   , {
@@ -52,7 +52,8 @@ module.exports = function(sequelize, DataTypes) {
       profile: function() {
         return {
           'name': this.name,
-          'role': this.role
+          'role': this.role,
+          'forcePasswordChange': this.forcePasswordChange
         };
       },
 
@@ -60,7 +61,8 @@ module.exports = function(sequelize, DataTypes) {
       token: function() {
         return {
           '_id': this._id,
-          'role': this.role
+          'role': this.role,
+          'forcePasswordChange': this.forcePasswordChange
         };
       }
     },
@@ -94,11 +96,13 @@ module.exports = function(sequelize, DataTypes) {
           if (user.password===localEnv.DEFAULT_PASSWORD&&user.salt===localEnv.DEFAULT_SALT){
             this.password=user.password;
             this.salt=user.salt;
+            //this.forcePasswordChange=true;
             return this;
           }
           let resp= await user.updatePassword(fn,user.password,user.salt);
           this.password=resp.password;
           this.salt=resp.salt;
+          //this.forcePasswordChange=false;
           return resp;
         }
         if (fn) fn();

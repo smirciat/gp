@@ -1,7 +1,6 @@
 'use strict';
 
 import localEnv from '../local.env.js';
-console.log(localEnv)
 // Production specific configuration
 // =================================
 module.exports = {

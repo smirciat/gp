@@ -32,7 +32,18 @@ angular.module('goldPointsApp')
         authenticate: true
       });
   })
-  .run(function($rootScope) {
+  .run(function($rootScope, $state, User) {
+    $rootScope.$on('$locationChangeStart', function(event, next, current) {
+      if (next.slice(-6)!=='signup'&&next.slice(-5)!=='login') {
+        User.get(user=>{
+          if (user && user.forcePasswordChange) {
+            if (next.slice(-8)!=='settings') {
+              $state.go('settings');
+            }
+          }
+        });
+      }
+    });
     $rootScope.$on('$stateChangeStart', function(event, next, nextParams, current) {
       if (next.name === 'logout' && current && current.name && !current.authenticate) {
         next.referrer = current.name;

@@ -64,7 +64,8 @@ export function index(req, res) {
       'name',
       'email',
       'role',
-      'provider'
+      'provider',
+      'forcePasswordChange'
     ]
   })
     .then(users => {
@@ -173,6 +174,8 @@ export function changePassword(req, res, next) {
     .then(user => {
       if (user.authenticate(oldPass,user.salt)) {
         user.password = newPass;
+        user.forcePasswordChange=false;
+        
         return user.save()
           .then(() => {
             res.status(204).end();
@@ -200,7 +203,8 @@ export function me(req, res, next) {
       'email',
       'role',
       'provider',
-      'job'
+      'job',
+      'forcePasswordChange'
     ]
   })
     .then(user => { // don't ever give out the password or salt
@@ -228,6 +232,7 @@ export function reset(req, res) {
   }
   req.body.password=localEnv.DEFAULT_PASSWORD;
   req.body.salt=localEnv.DEFAULT_SALT;
+  req.body.forcePasswordChange=true;
   return User.findOne({
     where: {
       _id: id
