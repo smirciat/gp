@@ -70,53 +70,53 @@
     </div>
   </div>
     <!--Assign Points Area-->
-    <div ng-if="main.chosenView==='Assign Points'" style="background-color:#ffffcc;margin:0 200px 0 200px">
-      <br><hr><br>
-      <div class="single-centered" style="font-weight:bold;margin:0;">
-        Account# &nbsp&nbsp
-        Member Id &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
-        Points &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
-        Status
+    <div class="single-centered">
+      <div ng-if="main.chosenView==='Assign Points'" style="background-color:#ffffcc;width:70%;margin:50px 0 50px 0;padding:25px 0 25px 0;border:4px solid black;">
+        <div class="single-centered" style="font-weight:bold;margin:0;">
+          Account# &nbsp&nbsp
+          Member Id &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+          Points &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+          Status
+        </div>
+        <div class="single-centered">
+          <textarea rows="1" ng-model="main.transaction.account" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp
+          <textarea rows="1" ng-model="main.transaction.userId" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp
+          <ui-select ng-model="main.transaction.awardRedeem" theme="selectize">
+            <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
+            <ui-select-choices repeat="choice in ['award','redeem']" >
+              <div ng-bind-html="choice | highlight: $select.search"></div>
+            </ui-select-choices>
+          </ui-select>&nbsp&nbsp
+          <!--<textarea rows="1" ng-model="main.transaction.awardRedeem" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>-->&nbsp
+          <textarea rows="1" ng-model="main.transaction.points" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp
+          <ui-select ng-model="main.transaction.status" theme="selectize">
+            <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
+            <ui-select-choices repeat="choice in ['Approved','Pending','Rejected']" >
+              <div ng-bind-html="choice | highlight: $select.search"></div>
+            </ui-select-choices>
+          </ui-select>
+          <!--<textarea rows="1" ng-model="main.transaction.status" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp-->
+        </div>
+        <div class="single-centered" style="font-weight:bold;margin:0;">
+          Date Flown &nbsp&nbsp&nbsp&nbsp
+          Booking# &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+          Routes &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+          Flight#
+        </div>
+        <div class="single-centered">
+          <textarea rows="1" ng-model="main.transaction.dateFlown" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp
+          <textarea rows="1" ng-model="main.transaction.booking" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp
+          <textarea rows="1" ng-model="main.transaction.route" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp
+          <textarea rows="1" ng-model="main.transaction.flight" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp
+        </div>
+        <div class="single-centered">
+          <strong>Description &nbsp</strong>
+          <textarea rows="3" ng-model="main.transaction.description" class="long-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp
+        </div>
+        <div class="single-centered">
+          <button class="btn btn-success" ng-click="main.assign()">Assign Gold Points</button>
+        </div>
       </div>
-      <div class="single-centered">
-        <textarea rows="1" ng-model="main.transaction.account" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp
-        <textarea rows="1" ng-model="main.transaction.userId" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp
-        <ui-select ng-model="main.transaction.awardRedeem" theme="selectize">
-          <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
-          <ui-select-choices repeat="choice in ['award','redeem']" >
-            <div ng-bind-html="choice | highlight: $select.search"></div>
-          </ui-select-choices>
-        </ui-select>&nbsp&nbsp
-        <!--<textarea rows="1" ng-model="main.transaction.awardRedeem" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>-->&nbsp
-        <textarea rows="1" ng-model="main.transaction.points" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp
-        <ui-select ng-model="main.transaction.status" theme="selectize">
-          <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
-          <ui-select-choices repeat="choice in ['Approved','Pending','Rejected']" >
-            <div ng-bind-html="choice | highlight: $select.search"></div>
-          </ui-select-choices>
-        </ui-select>
-        <!--<textarea rows="1" ng-model="main.transaction.status" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp-->
-      </div>
-      <div class="single-centered" style="font-weight:bold;margin:0;">
-        Date Flown &nbsp&nbsp&nbsp&nbsp
-        Booking# &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
-        Routes &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
-        Flight#
-      </div>
-      <div class="single-centered">
-        <textarea rows="1" ng-model="main.transaction.dateFlown" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp
-        <textarea rows="1" ng-model="main.transaction.booking" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp
-        <textarea rows="1" ng-model="main.transaction.route" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp
-        <textarea rows="1" ng-model="main.transaction.flight" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp
-      </div>
-      <div class="single-centered">
-        <strong>Description &nbsp</strong>
-        <textarea rows="3" ng-model="main.transaction.description" class="long-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp
-      </div>
-      <div class="single-centered">
-        <button class="btn btn-success" ng-click="main.assign()">Assign Gold Points</button>
-      </div>
-      <br><hr><br>
     </div>
   <!--Manage Members Results-->
   <div ng-if="main.testView('Manage Members','Assign Points')&&main.queryGo">
