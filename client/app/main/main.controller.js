@@ -20,7 +20,7 @@
       this.chosenView=null;
       this.queryGo=null;
       this.customers=[];
-      this.transaction={status:'Approved',awardRedeem:'redeem',points:0};
+      this.transaction={status:'Approved',awardRedeem:'award',points:0};
       this.showLength=50;
       this.start=0;
       this.end=50;
@@ -201,7 +201,7 @@
               })
               .catch(err=>{console.log(err)});
           }
-          this.transaction={status:'Approved',awardRedeem:'redeem',points:0};
+          this.transaction={status:'Approved',awardRedeem:'award',points:0};
         }).catch(err=>{console.log(err)});
       }).catch(err=>{console.log(err)});
     }
@@ -242,7 +242,7 @@
       }
       this.toaster.pop('info','Member Selected!','Check to see that Account and Member ID have been filled with this Member`s information!');
       if (!cust.selected) {
-        this.transaction={status:'Approved',awardRedeem:'redeem',points:0};
+        this.transaction={status:'Approved',awardRedeem:'award',points:0};
         return;
       }
       this.timeout(()=>{cust.selected=undefined},5000);
@@ -276,7 +276,7 @@
     }
     
     backToHub(){
-      this.transaction={status:'Approved',awardRedeem:'redeem',points:0};
+      this.transaction={status:'Approved',awardRedeem:'award',points:0};
       this.query={};
       this.newMember={gpType:'Primary',associates:[{},{},{},{}]};
       this.existing={associates:['','','','']};
