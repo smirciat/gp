@@ -51,6 +51,9 @@
   <!--Manage Members Selector-->
   <div ng-if="main.testView('Manage Members','Assign Points')&&!main.showTransactions&&main.hasRole('user')">
     <div class="single-centered">
+      <button class="btn btn-primary" ng-click="main.go()">Display all customers with</button>
+    </div>
+    <div class="single-centered">
       ID: &nbsp<textarea rows="1" ng-model="main.query.id" class="short-textarea" ng-keydown="main.handle($event,2)"></textarea>&nbsp
       Username: &nbsp<textarea rows="1" ng-model="main.query.username" ng-keydown="main.handle($event,2)"></textarea>&nbsp
     </div>
@@ -64,9 +67,6 @@
     <div class="single-centered">
       Account#: &nbsp<textarea rows="1" ng-model="main.query.account" ng-keydown="main.handle($event,2)"></textarea>&nbsp
       CA: &nbsp<textarea rows="1" ng-model="main.query.ca" class="short-textarea" ng-keydown="main.handle($event,2)"></textarea>
-    </div>
-    <div class="single-centered">
-      <button class="btn btn-primary" ng-click="main.go()">Display all customers with</button>
     </div>
   </div>
     <!--Assign Points Area-->
