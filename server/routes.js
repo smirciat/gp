@@ -81,6 +81,7 @@ app.post('/webhooks', (req, res) => {
   
   app.use(lusca.csrf({angular:true}));
   // Insert routes below
+  app.use('/api/flights', require('./api/flight'));
   app.use('/api/transactions', require('./api/transaction'));
   app.use('/api/customers', require('./api/customer'));
   app.use('/api/things', require('./api/thing'));

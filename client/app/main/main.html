@@ -92,7 +92,7 @@
             </ui-select-choices>
           </ui-select>&nbsp&nbsp
           <!--<textarea rows="1" ng-model="main.transaction.awardRedeem" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>-->&nbsp
-          <textarea rows="1" ng-model="main.transaction.points" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp
+          <textarea rows="1" ng-model="main.transaction.points" class="short-textarea" ng-keydown="main.handle($event,3)" ng-focus="main.transaction.points=''"></textarea>&nbsp
           <ui-select ng-model="main.transaction.status" theme="selectize">
             <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
             <ui-select-choices repeat="choice in ['Approved','Pending','Rejected']" >
@@ -155,6 +155,7 @@
           <th style="color:white;font-weight:bold">User ID</th>
           <th style="color:white;font-weight:bold">Username</th>
           <th style="color:white;font-weight:bold">Full Name</th>
+          <th style="color:white;font-weight:bold">Date of Birth</th>
           <th style="color:white;font-weight:bold">Email</th>
           <th style="color:white;font-weight:bold">Phone</th>
           <th style="color:white;font-weight:bold">Points</th>
@@ -168,6 +169,7 @@
           <td ng-click="main.altSelect(cust)">{{cust.userId}}</td>
           <td ng-click="main.altSelect(cust)">{{cust.userName}}</td>
           <td ng-click="main.altSelect(cust)">{{cust.fullName}}</td>
+          <td ng-click="main.altSelect(cust)">{{cust.dob}}</td>
           <td ng-click="main.altSelect(cust)">{{cust.email}}</td>
           <td ng-click="main.altSelect(cust)">{{cust.phone}}</td>
           <td ng-click="main.altSelect(cust)">{{cust.currentPoints}}</td>
@@ -224,9 +226,9 @@
       <div class="single-centered" ng-if="main.associated.length>0">
         Associated Accounts: &nbsp
         <ui-select ng-model="main.selectedAssociate" theme="selectize">
-          <ui-select-match placeholder="Choose...">{{$select.selected.fullName}}</ui-select-match>
+          <ui-select-match placeholder="Choose...">{{$select.selected.fullName}}, ID: {{$select.selected.userId}}, pts: {{$select.selected.currentPoints}}</ui-select-match>
           <ui-select-choices repeat="choice in main.associated" >
-            <div ng-bind-html="choice.fullName | highlight: $select.search"></div>
+            <div ng-bind-html="choice.fullName + ', ID: '+ choice.userId + ', pts: ' + choice.currentPoints | highlight: $select.search"></div>
           </ui-select-choices>
         </ui-select>
       </div>
@@ -246,7 +248,7 @@
     <table class="table table-bordered table-striped">
       <tbody><tr ng-repeat="tran in main.customerTransactions track by $index">
         <td>{{tran.userId}}</td>
-        <td>{{tran.dateString}}</td>
+        <td>{{tran.dateFlown}}</td>
         <td>{{tran.awardRedeem}}</td>
         <td>{{tran.points}}</td>
         <td>{{tran.description}}</td>
@@ -381,7 +383,7 @@
         <tbody><tr ng-repeat="tran in main.allTransactions">
           <td>{{tran._id}}</td>
           <td>{{tran.userId}}</td>
-          <td>{{tran.dateString}}</td>
+          <td>{{tran.dateFlown}}</td>
           <td>{{tran.awardRedeem}}</td>
           <td>{{tran.points}}</td>
           <td>{{tran.description}}</td>

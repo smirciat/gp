@@ -60,7 +60,7 @@
       //if not swapping within an existing group, don't add current primary members as associates
       let fail=false;
       if (!swap){
-        this.existing.associated.forEach(ass=>{
+        this.existing.associates.forEach(ass=>{
           if (ass.gpType==="Primary") fail=true;
         });
         if (fail){
@@ -116,6 +116,7 @@
       this.http.post('/api/customers/last').then(res=>{
         this.newMember.userId=res.data.maxInt*1+1;
         this.newMember.userId=this.newMember.userId.toString();
+        this.newMember.account=Number(new Date().toISOString().split('T')[0].replace(/-/g, ''))+this.newMember.userId;
         this.newMember.points=10;
         this.newMember.firstName += ' ';
         if (this.newMember.middleName) this.newMember.middleName += ' ';
