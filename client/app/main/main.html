@@ -58,19 +58,19 @@
       <button class="btn btn-primary" ng-click="main.go()">Display all customers with</button>
     </div>
     <div class="single-centered">
-      ID: &nbsp<textarea rows="1" ng-model="main.query.id" class="short-textarea" ng-keydown="main.handle($event,2)"></textarea>&nbsp
-      Username: &nbsp<textarea rows="1" ng-model="main.query.username" ng-keydown="main.handle($event,2)"></textarea>&nbsp
+      ID: &nbsp<textarea rows="1" ng-model="main.query.id" class="short-textarea" ng-keydown="main.handle($event,2)" ng-focus="main.query.id=''"></textarea>&nbsp
+      Username: &nbsp<textarea rows="1" ng-model="main.query.username" ng-keydown="main.handle($event,2)" ng-focus="main.query.username=''"></textarea>&nbsp
     </div>
     <div class="single-centered">
-      First Name: &nbsp<textarea rows="1" ng-model="main.query.firstName" ng-keydown="main.handle($event,2)"></textarea>&nbsp
-      Last Name: &nbsp<textarea rows="1" ng-model="main.query.lastName" ng-keydown="main.handle($event,2)"></textarea>
+      First Name: &nbsp<textarea rows="1" ng-model="main.query.firstName" ng-keydown="main.handle($event,2)" ng-focus="main.query.firstName=''"></textarea>&nbsp
+      Last Name: &nbsp<textarea rows="1" ng-model="main.query.lastName" ng-keydown="main.handle($event,2)" ng-focus="main.query.lastName=''"></textarea>
     </div>
     <div class="single-centered">
-      Email: &nbsp<textarea rows="1" ng-model="main.query.email" ng-keydown="main.handle($event,2)"></textarea>
+      Email: &nbsp<textarea rows="1" ng-model="main.query.email" ng-keydown="main.handle($event,2)" ng-focus="main.query.email=''"></textarea>
     </div>
     <div class="single-centered">
       Account#: &nbsp<textarea rows="1" ng-model="main.query.account" ng-keydown="main.handle($event,2)"></textarea>&nbsp
-      CA: &nbsp<textarea rows="1" ng-model="main.query.ca" class="short-textarea" ng-keydown="main.handle($event,2)"></textarea>
+      CA: &nbsp<textarea rows="1" ng-model="main.query.ca" class="short-textarea" ng-keydown="main.handle($event,2)" ng-focus="main.query.ca=''"></textarea>
     </div>
   </div>
     <!--Assign Points Area-->

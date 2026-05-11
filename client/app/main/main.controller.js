@@ -188,6 +188,9 @@
             console.log(customer)
             this.http.patch('/api/customers/'+customer._id,{currentPoints:customer.currentPoints,lastTransaction:customer.lastTransaction})
               .then(res=>{
+                console.log(res.data)
+                let index=this.customers.map(e=>e.userId).indexOf(res.data.userId);
+                if (index>-1) this.customers[index]=res.data;
                 //email receipt
                 let awardRedeem="awarded";
                 if (transaction.awardRedeem==="redeem") awardRedeem="withdrawn from";
