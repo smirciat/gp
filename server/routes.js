@@ -93,10 +93,20 @@ app.post('/webhooks', (req, res) => {
    .get(errors[404]);
 
   // All other routes should redirect to the index.html
-  app.route('/*')
-    .get((req, res) => {
-      res.sendFile(path.resolve(app.get('appPath') + '/index.html'));
-    });
+  //app.route('/*')
+  //  .get((req, res) => {
+  //    res.sendFile(path.resolve(app.get('appPath') + '/index.html'));
+  //  });
+      
+  app.get(/^\/(?!api|auth).*$/, function(req, res, next) {
+
+    // reject obvious scan requests
+    if (req.path.match(/\.[a-z0-9]+$/i)) {
+      return res.status(404).send('Not Found');
+  }
+    res.sendFile(path.resolve(app.get('appPath') + '/index.html'));
+    //res.sendFile(path.resolve(appConfig.root + '/client/index.html'));
+  });
 }
 
 function handleFlightCompleted(flight) {

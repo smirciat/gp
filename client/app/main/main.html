@@ -35,6 +35,10 @@
                 <td></td>
                 <td ng-click="main.setView(5)"><a href="#" ng-if="main.hasRole('user')">{{main.views[5]}}</a></td>
               </tr>
+              <tr>
+                <td></td>
+                <td ng-click="main.setView(6)"><a href="#" ng-if="main.hasRole('user')">{{main.views[6]}}</a></td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -358,6 +362,33 @@
           <td>{{c.email}}</td>
           <td>{{c.phone}}</td>
           <td>{{c.currentPoints}}</td>
+        </tr></tbody>
+      </table>
+  </div>
+  <!--All Transactions-->
+  <div style="margin-left:10%;margin-right:10%;" ng-if="main.testView('All Transactions')">
+      <table class="table table-bordered table-striped">
+        <thead><tr style="background-color:black;">
+          <td style="color:white;font-weight:bold">Tran ID</td>
+          <td style="color:white;font-weight:bold">User ID</td>
+          <td style="color:white;font-weight:bold">Date Flown</td>
+          <td style="color:white;font-weight:bold">Type</td>
+          <td style="color:white;font-weight:bold">Points</td>
+          <td style="color:white;font-weight:bold">Desription</td>
+          <td style="color:white;font-weight:bold">Agent ID</td>
+          <td></td>
+        </tr></thead>
+        <tbody><tr ng-repeat="tran in main.allTransactions">
+          <td>{{tran._id}}</td>
+          <td>{{tran.userId}}</td>
+          <td>{{tran.dateString}}</td>
+          <td>{{tran.awardRedeem}}</td>
+          <td>{{tran.points}}</td>
+          <td>{{tran.description}}</td>
+          <td>{{tran.status}}</td>
+          <td>{{tran.lastUpdatedBy}}</td>
+          <td ng-if="main.hasRole('superadmin')"><a ng-click="main.deleteTransaction(tran,$index,'all')" class="trash">
+            <span class="fa fa-trash fa-2x" uib-tooltip="Delete Transaction"></span></a></td>
         </tr></tbody>
       </table>
   </div>

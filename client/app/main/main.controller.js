@@ -24,7 +24,7 @@
       this.showLength=50;
       this.start=0;
       this.end=50;
-      this.views=['Manage Members','Approve Points','Add User','Assign Points','Create Member','List By Points'];
+      this.views=['Manage Members','Approve Points','Add User','Assign Points','Create Member','List By Points','All Transactions'];
       this.welcomeEmail="Congratulations! <br> You have just created a Bering Air Gold Points Membership!<br>";
       this.welcomeEmail+="Please head over to gp.beringair.com to complete your sign up process. Once you have loaded gp.beringair.com on an internet browser, click the 'Register' button.  Make sure you use the same email address there that you used when you signed up for the Gold Points Membership.  You can use any password you like.  Once registered, you will be able to see any future Gold Points transactions that are attached to this account.  Please let us know if you have any questions or difficulties.  Thanks for flying with Bering Air!";
     }
@@ -256,16 +256,18 @@
       if (cust.suspended) return "suspended";
     }
     
-    deleteTransaction(tran,index){
+    deleteTransaction(tran,index,all){
       if (confirm('Are you sure you want to delete this transaction?')){
         this.http.delete('/api/transactions/'+tran._id).then(res=>{
-          this.customerTransactions.splice(index,1);
-          let i=this.customers.map(e=>e.userId).indexOf(tran.userId);
-          if (i>-1){
-            if (tran.awardRedeem==="award") this.customers[i].currentPoints-=tran.points;
-            else this.customers[i].currentPoints+=tran.points;
-            this.http.patch('/api/customers/'+this.customers[i]._id,{currentPoints:this.customers[i].currentPoints}).then(res=>{}).catch(err=>{console.log(err)});
-          }
+          if (all) this.allTransactions.splice(index,1);
+          else this.customerTransactions.splice(index,1);
+          this.http.post('/api/customers/one',{userId:tran.userId}).then(res=>{
+            if (!res.data||!res.data.userId) return;
+            if (tran.awardRedeem==="award") res.data.currentPoints-=tran.points;
+            else res.data.currentPoints+=tran.points;
+            this.http.patch('/api/customers/'+res.data._id,{currentPoints:res.data.currentPoints}).then(res=>{}).catch(err=>{console.log(err)});
+          }).catch(err=>{console.log(err)});
+            
         }).catch(err=>{console.log(err)});
       }
     }
@@ -302,6 +304,13 @@
             if (a.currentPoints!==0) a.currentPoints=a.currentPoints||a.points;
             if (b.currentPoints!==0) b.currentPoints=b.currentPoints||b.points;
             return b.currentPoints-a.currentPoints;
+          });
+        }).catch(err=>{console.log(err)});
+      }
+      if (index===6){
+        this.http.get('/api/transactions').then(res=>{
+          this.allTransactions=res.data.sort((a,b)=>{
+            return b._id-a._id;
           });
         }).catch(err=>{console.log(err)});
       }
