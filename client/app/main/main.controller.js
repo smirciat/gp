@@ -141,7 +141,7 @@
           this.http.post('/api/transactions',transaction).then(res=>{
             //navigate to Manage Members with this nm selected
             nm.selected=true;
-            nm.currentPoints=nm.points;
+            if (nm.currentPoints!==0) nm.currentPoints=nm.currentPoints||nm.points;
             this.chosenView="Manage Members";
             this.select(nm);
           }).catch(err=>{console.log(err)});
@@ -181,10 +181,11 @@
         transaction.lastUpdatedBy=this.user._id;
         this.http.post('/api/transactions',transaction).then(res=>{
           if (transaction.status==="Approved") {
-            if (!customer.currentPoints) customer.currentPoints = customer.points;
+            if (customer.currentPoints!==0) customer.currentPoints = customer.currentPoints||customer.points;
             if (transaction.awardRedeem==='award') customer.currentPoints += transaction.points;
             else customer.currentPoints -= transaction.points;
             customer.lastTransaction=res.data._id;
+            console.log(customer)
             this.http.patch('/api/customers/'+customer._id,{currentPoints:customer.currentPoints,lastTransaction:customer.lastTransaction})
               .then(res=>{
                 //email receipt
@@ -298,8 +299,8 @@
       if (index===5){
         this.http.get('/api/customers').then(res=>{
           this.allCustomers=res.data.sort((a,b)=>{
-            a.currentPoints=a.currentPoints||a.points;
-            b.currentPoints=b.currentPoints||b.points;
+            if (a.currentPoints!==0) a.currentPoints=a.currentPoints||a.points;
+            if (b.currentPoints!==0) b.currentPoints=b.currentPoints||b.points;
             return b.currentPoints-a.currentPoints;
           });
         }).catch(err=>{console.log(err)});
@@ -360,7 +361,7 @@
           }
           this.customers=res.data.sort((a,b)=>{return b.points-a.points});
           this.customers.forEach(cust=>{
-            if (!cust.currentPoints) cust.currentPoints=cust.points;
+            if (cust.currentPoints!==0) cust.currentPoints=cust.currentPoints||cust.points;
             if (!cust.gpType) cust.gpType='Primary';
           });
           this.start=0;
