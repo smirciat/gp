@@ -64,7 +64,7 @@
           if (ass.gpType==="Primary") fail=true;
         });
         if (fail){
-          alert('One of those associate User ID`s may belong to a primary member');
+          this.toaster.error('Error','One of those associate User ID`s may belong to a primary member');
           return;
         }
       }
@@ -110,7 +110,7 @@
     
     createNewMember(){
       if (!this.newMember.email||!this.newMember.lastName||!this.newMember.firstName){
-        alert('We need some info to create a new user');
+        this.toaster.error('Error','We need some info to create a new user');
         return;
       }
       this.http.post('/api/customers/last').then(res=>{
@@ -118,12 +118,13 @@
         this.newMember.userId=this.newMember.userId.toString();
         this.newMember.account=Number(new Date().toISOString().split('T')[0].replace(/-/g, ''))+this.newMember.userId;
         this.newMember.points=10;
+        this.newMember.currentPoints=10;
         this.newMember.firstName += ' ';
         if (this.newMember.middleName) this.newMember.middleName += ' ';
         else this.newMember.middleName='';
         this.newMember.fullName=this.newMember.firstName+this.newMember.middleName+this.newMember.lastName;
         if (this.newMember.gpType==='Associate'&&!this.newMember.primaryUserId){
-          alert('You must have a Primary Member`s Id entered for an Associate account');
+          this.toaster.error('Error','You must have a Primary Member`s Id entered for an Associate account');
           return;
         }
         let nm=JSON.parse(JSON.stringify(this.newMember));
@@ -168,13 +169,13 @@
       transaction=transaction||this.transaction;
       transaction.points=transaction.points*1;
       if (!Number.isInteger(transaction.points)||!transaction.userId||transaction.points<1) {
-        alert('Missing Information!');
+        this.toaster.error('Error','Missing Information!');
         return;
       }
       this.http.post('/api/customers/one',{userId:transaction.userId}).then(res=>{
         let customer=res.data;       
         if (res.data.suspended) {
-          alert('Need to remove customer suspension first');
+          this.toaster.error('Error','Need to remove customer suspension first');
           return;
         }
         transaction.date=new Date();
@@ -218,8 +219,8 @@
          this.selectedAssociate=undefined;
          this.customer=JSON.parse(JSON.stringify(cust));
          this.associated=[];
+         this.customer.combinedPoints=this.customer.currentPoints;
          if (this.customer.associatedAccounts) {
-           this.customer.combinedPoints=this.customer.currentPoints;
            this.customer.associatedAccounts.forEach(cust=>{
              this.http.post('/api/customers/one',{userId:cust}).then(res=>{
                this.customer.combinedPoints+=res.data.currentPoints;
@@ -294,7 +295,7 @@
     
     setView(index){
       if (this.user.role==='guest'&&index>0) {
-        alert('This Selection is Restricted to Employee Users.  Contact Site Admin if You Believe This is in Error.');
+        this.toaster.error('Error','This Selection is Restricted to Employee Users.  Contact Site Admin if You Believe This is in Error.');
         return;
       }
       this.queryGo=null;
@@ -344,10 +345,10 @@
           }
           this.customers[index]=res.data;
         }
-        alert('Successfully Updated Member Details!');
+        this.toaster.success('Success','Successfully Updated Member Details!');
       }).catch(err=>{
         console.log(err);
-        alert('Try Again!');
+        this.toaster.error('Error','Try Again!');
       });
     }
     
@@ -387,24 +388,43 @@
         .catch(err=>{console.log(err)});
     }
     
-    transfer(){
+    preTransfer(){
       let combinedPoints=this.customer.combinedPoints;
       if (combinedPoints!==0) combinedPoints=combinedPoints||this.customer.currentPoints;
       if (this.gpTransfer.points>combinedPoints) {
-        alert('Try again with an available amount of points');
+        this.toaster.error('Error','Try again with an available amount of points');
         return;
       }
       if (this.customer.suspended) {
-        alert('Need to remove customer suspension first');
+        this.toaster.error('Error','Need to remove customer suspension first');
         return;
       }
+      if (this.user.role==='guest'){
+        this.randomNumber=this.twoFA(this.customer);
+      }
+      else this.transfer();
+    }
+    
+    transfer(){
+      if (this.user.role==='guest'){
+        if (this.randomNumber*1!==this.enteredRandomNumber*1) {
+          this.toaster.error('Fail','Six Digit Code Did not Match, try again.');
+          this.randomNumber=null;
+          this.enteredRandomNumber=null;
+          return;
+        }
+      }
+      this.randomNumber=null;
+      this.enteredRandomNumber=null;
+      let combinedPoints=this.customer.combinedPoints;
+      if (combinedPoints!==0) combinedPoints=combinedPoints||this.customer.currentPoints;
       this.http.post('/api/customers/one',{userId:this.gpTransfer.userId}).then(res=>{
         if (!res.data||!res.data.userId) {
-          alert('Didn`t find that User ID');
+          this.toaster.error('Error','Didn`t find that User ID');
           return;
         }
         if (res.data.suspended) {
-          alert('Need to remove customer suspension first');
+          this.toaster.error('Error','Need to remove customer suspension first');
           return;
         }
         if (confirm('Confirm transferring ' + this.gpTransfer.points + ' to ' + res.data.fullName + ' with user ID of ' + this.gpTransfer.userId)) {
@@ -463,6 +483,19 @@
         }
       }).catch(err=>{console.log(err)});
     }
+    
+  twoFA(cust){
+    if (!cust||!cust.phone) {
+      this.toaster.error('No Phone!','We need a phone number associated with your account to authenticate a transfer.  Edit this in `Manage Members`');
+      return "Error";
+    }
+    const randomNumber = Math.floor(100000 + Math.random() * 900000);
+    const msg="Bering Air Gold Points Authentication token is " + randomNumber + " Enter it in the browser to confirm your transfer.";
+    this.http.post('/api/things/sms',{to:cust.phone,body:msg}).then(res=>{}).catch(err=>{console.log(err)});
+    return randomNumber;
+  }
+    
+    
   }
 
   angular.module('goldPointsApp')

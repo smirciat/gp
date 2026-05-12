@@ -75,7 +75,7 @@
   </div>
     <!--Assign Points Area-->
     <div class="single-centered">
-      <div ng-if="main.chosenView==='Assign Points'" style="background-color:#ffffcc;width:70%;margin:50px 0 50px 0;padding:25px 0 25px 0;border:4px solid black;">
+      <div ng-if="main.chosenView==='Assign Points'&&main.hasRole('user')" style="background-color:#ffffcc;width:70%;margin:50px 0 50px 0;padding:25px 0 25px 0;border:4px solid black;">
         <div class="single-centered" style="font-weight:bold;margin:0;">
           Account# &nbsp&nbsp
           Member Id &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
@@ -259,19 +259,26 @@
       </tr></tbody>
     </table>
     <!--Admin Functions, eventually open some up to guests-->
-    <div ng-if="main.hasRole('user')">
+    <div>
       <!--Transfer Gold Points, need User Id-->
       <hr>
       <div class="single-centered">
         <h3>Transfer Gold Points</h3>
       </div>
       <div class="single-centered">
-        <button class="btn btn-primary" ng-click="main.transfer()">Transfer</button>&nbsp
+        <button class="btn btn-primary" ng-click="main.preTransfer()">Transfer</button>&nbsp
         (up to {{main.customer.combinedPoints}})&nbsp <textarea rows="1" ng-model="main.gpTransfer.points"></textarea>&nbsp
         To User ID: &nbsp <textarea rows="1" ng-model="main.gpTransfer.userId"></textarea>&nbsp
       </div>
-      
-      
+      <div ng-if="main.randomNumber&&main.randomNumber!=='Error'">
+        <div class="single-centered">
+          Enter Six Digit Code From Text Message, then Click Submit
+        </div>
+        <div class="single-centered">
+          <textarea rows="1" ng-model="main.enteredRandomNumber"></textarea>
+          <button class="btn btn-danger" ng-click="main.transfer()">Submit</button>
+        </div>
+      </div>
     </div>
   </div>
   <!--Add New User-->
@@ -347,7 +354,7 @@
     </div>
   </div>
   <!--List By Points-->
-  <div style="margin-left:10%;margin-right:10%;" ng-if="main.testView('List By Points')">
+  <div style="margin-left:10%;margin-right:10%;" ng-if="main.testView('List By Points')&&main.hasRole('user')">
       <table class="table table-bordered table-striped">
         <thead><tr style="background-color:black;">
           <td style="color:white;font-weight:bold">Account</td>
@@ -368,7 +375,7 @@
       </table>
   </div>
   <!--All Transactions-->
-  <div style="margin-left:10%;margin-right:10%;" ng-if="main.testView('All Transactions')">
+  <div style="margin-left:10%;margin-right:10%;" ng-if="main.testView('All Transactions')&&main.hasRole('user')">
       <table class="table table-bordered table-striped">
         <thead><tr style="background-color:black;">
           <td style="color:white;font-weight:bold">Tran ID</td>
