@@ -490,7 +490,7 @@
       return "Error";
     }
     const randomNumber = Math.floor(100000 + Math.random() * 900000);
-    const msg="Bering Air Gold Points Authentication token is " + randomNumber + " Enter it in the browser to confirm your transfer.";
+    const msg="NOREPLY: Bering Air Gold Points Authentication token is " + randomNumber + " Enter it in the browser to confirm your transfer.";
     this.http.post('/api/things/sms',{to:cust.phone,body:msg}).then(res=>{}).catch(err=>{console.log(err)});
     return randomNumber;
   }
