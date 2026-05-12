@@ -204,7 +204,8 @@
       }).catch(err=>{console.log(err)});
     }
     
-    altSelect(cust){
+    altSelect(cust,fieldName){
+      if (this.chosenView==='Manage Members'&&(fieldName==='account'||fieldName==='userId')) return;
       cust.selected=!cust.selected;
       this.select(cust);
     }
@@ -303,18 +304,12 @@
       this.showTransactions=false;
       if (index===5){
         this.http.get('/api/customers').then(res=>{
-          this.allCustomers=res.data.sort((a,b)=>{
-            if (a.currentPoints!==0) a.currentPoints=a.currentPoints||a.points;
-            if (b.currentPoints!==0) b.currentPoints=b.currentPoints||b.points;
-            return b.currentPoints-a.currentPoints;
-          });
+          this.allCustomers=res.data;
         }).catch(err=>{console.log(err)});
       }
       if (index===6){
         this.http.get('/api/transactions').then(res=>{
-          this.allTransactions=res.data.sort((a,b)=>{
-            return b._id-a._id;
-          });
+          this.manyTransactions=res.data;
         }).catch(err=>{console.log(err)});
       }
     }

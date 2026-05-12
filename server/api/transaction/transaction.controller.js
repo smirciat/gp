@@ -57,7 +57,7 @@ function handleEntityNotFound(res) {
 function handleError(res, statusCode) {
   statusCode = statusCode || 500;
   return function(err) {
-    console.log(err)
+    console.log(err);
     res.status(statusCode).send(err);
   };
 }
@@ -73,7 +73,7 @@ export function query(req, res) {
 
 // Gets a list of Transactions
 export function index(req, res) {
-  return Transaction.findAll()
+  return Transaction.findAll({order: [['_id', 'DESC']]})
     .then(respondWithResult(res))
     .catch(handleError(res));
 }
@@ -100,27 +100,29 @@ export function create(req, res) {
 // Creates a new Transaction in the DB and increments the customer points in accordance
 export async function newTransaction(req, res) {
   if (!req.body||!req.body.userId) return res.status(500).json('Can`t create transaction');
+  let transaction;
   try {
-    let transaction = await Transaction.create(req.body);
-    let increment = req.body.points; //negative increment for redeem
-    let string='"currentPoints" - ' + increment;
-    if (req.body.awardRedeem==='award') string='"currentPoints" + ' + increment;
-    return Customer.update(
-      {
-        lastTransaction : transaction._id,
-        currentPoints : sequelize.literal(string)
-      },
-        {
-          where:{userId:req.body.userId}
-        }
-      )
-      .then(respondWithResult(res, 201))
-      .catch(handleError(res));
+    transaction = await Transaction.create(req.body);
   }
   catch(err){
     console.log(err);
     return res.status(500).json('Sequelize Error while creating transaction');
   }
+  let increment = req.body.points; //negative increment for redeem
+  let string='COALESCE("currentPoints",0) - ' + increment;
+  if (req.body.awardRedeem==='award') string='COALESCE("currentPoints",0) + ' + increment;
+  return Customer.update(
+    {
+      lastTransaction : transaction._id,
+      currentPoints : sequelize.literal(string)
+    },
+      {
+        where:{userId:req.body.userId}
+      }
+    )
+    .then(respondWithResult(res, 201))
+    .catch(handleError(res));
+  
 }
 
 // Updates an existing Transaction in the DB

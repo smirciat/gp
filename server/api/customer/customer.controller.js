@@ -87,7 +87,7 @@ export function last(req, res) {
 
 // Gets a list of Customers
 export function index(req, res) {
-  return Customer.findAll({})
+  return Customer.findAll({order: [['currentPoints', 'DESC']]})
     .then(respondWithResult(res))
     .catch(handleError(res));
 }

@@ -83,7 +83,7 @@
           Status
         </div>
         <div class="single-centered">
-          <textarea rows="1" ng-model="main.transaction.account" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp
+          <textarea rows="1" ng-model="main.transaction.account" ng-keydown="main.handle($event,3)"></textarea>&nbsp
           <textarea rows="1" ng-model="main.transaction.userId" class="short-textarea" ng-keydown="main.handle($event,3)"></textarea>&nbsp
           <ui-select ng-model="main.transaction.awardRedeem" theme="selectize">
             <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
@@ -95,7 +95,7 @@
           <textarea rows="1" ng-model="main.transaction.points" class="short-textarea" ng-keydown="main.handle($event,3)" ng-focus="main.transaction.points=''"></textarea>&nbsp
           <ui-select ng-model="main.transaction.status" theme="selectize">
             <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
-            <ui-select-choices repeat="choice in ['Approved','Pending','Rejected']" >
+            <ui-select-choices repeat="choice in ['Approved']" >
               <div ng-bind-html="choice | highlight: $select.search"></div>
             </ui-select-choices>
           </ui-select>
@@ -165,8 +165,8 @@
         <!--<tbody><tr ng-repeat="cust in main.customers | limitTo: main.showLength : main.start">-->
         <tbody><tr ng-repeat="cust in main.customers" ng-class="main.suspensionClass(cust)">
           <td>&nbsp&nbsp<input type="checkbox" style="transform:scale(3);margin:10px;" ng-model="cust.selected" ng-click="main.select(cust)"></td>
-          <td ng-click="main.altSelect(cust)">{{cust.account}}</td>
-          <td ng-click="main.altSelect(cust)">{{cust.userId}}</td>
+          <td ng-click="main.altSelect(cust,'account')">{{cust.account}}</td>
+          <td ng-click="main.altSelect(cust,'userId')">{{cust.userId}}</td>
           <td ng-click="main.altSelect(cust)">{{cust.userName}}</td>
           <td ng-click="main.altSelect(cust)">{{cust.fullName}}</td>
           <td ng-click="main.altSelect(cust)">{{cust.dob}}</td>
@@ -387,7 +387,7 @@
           <td style="color:white;font-weight:bold">Agent ID</td>
           <td></td>
         </tr></thead>
-        <tbody><tr ng-repeat="tran in main.allTransactions">
+        <tbody><tr ng-repeat="tran in main.manyTransactions">
           <td>{{tran._id}}</td>
           <td>{{tran.userId}}</td>
           <td>{{tran.dateFlown}}</td>
