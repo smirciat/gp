@@ -220,7 +220,7 @@
       <button class="btn btn-info" ng-click="main.updateCustomer()">Update Member Details</button>
     </div>
     <div class="single-centered">
-      <h5>Current Points: {{main.customer.currentPoints}},  Member ID: {{main.customer.userId}}</h5>
+      <h5>Current Points: {{main.customer.currentPoints}} ({{main.customer.combinedPoints||main.customer.currentPoints}}),  Member ID: {{main.customer.userId}}</h5>
     </div>
     <div ng-if="main.customer.gpType==='Primary'">
       <div class="single-centered" ng-if="main.associated.length>0">
@@ -267,7 +267,7 @@
       </div>
       <div class="single-centered">
         <button class="btn btn-primary" ng-click="main.transfer()">Transfer</button>&nbsp
-        (up to {{main.customer.currentPoints}})&nbsp <textarea rows="1" ng-model="main.gpTransfer.points"></textarea>&nbsp
+        (up to {{main.customer.combinedPoints}})&nbsp <textarea rows="1" ng-model="main.gpTransfer.points"></textarea>&nbsp
         To User ID: &nbsp <textarea rows="1" ng-model="main.gpTransfer.userId"></textarea>&nbsp
       </div>
       

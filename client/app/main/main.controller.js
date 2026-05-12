@@ -186,10 +186,10 @@
             if (transaction.awardRedeem==='award') customer.currentPoints += transaction.points;
             else customer.currentPoints -= transaction.points;
             customer.lastTransaction=res.data._id;
-            console.log(customer)
+            
             this.http.patch('/api/customers/'+customer._id,{currentPoints:customer.currentPoints,lastTransaction:customer.lastTransaction})
               .then(res=>{
-                console.log(res.data)
+                
                 let index=this.customers.map(e=>e.userId).indexOf(res.data.userId);
                 if (index>-1) this.customers[index]=res.data;
                 //email receipt
@@ -198,7 +198,7 @@
                 let html="You have a new transaction related to your Bering Air Gold Points Membership User ID# " + customer.userId + ".<br>";
                 html+="We have " + awardRedeem + " you " + transaction.points + " points for an updated balance of " + customer.currentPoints + ".<br>";
                 html+="If you have any questions, please contact Bering Air.";
-                if (customer.email) this.http.post('/api/things/email',{to:customer.email,html:html}).then(res=>{}).catch(err=>{console.log(err)});
+                if (false&&customer.email) this.http.post('/api/things/email',{to:customer.email,html:html}).then(res=>{}).catch(err=>{console.log(err)});
               })
               .catch(err=>{console.log(err)});
           }
@@ -219,8 +219,10 @@
          this.customer=JSON.parse(JSON.stringify(cust));
          this.associated=[];
          if (this.customer.associatedAccounts) {
+           this.customer.combinedPoints=this.customer.currentPoints;
            this.customer.associatedAccounts.forEach(cust=>{
              this.http.post('/api/customers/one',{userId:cust}).then(res=>{
+               this.customer.combinedPoints+=res.data.currentPoints;
                this.associated.push(res.data);
              })
              .catch(err=>{console.log(err)});
@@ -386,7 +388,9 @@
     }
     
     transfer(){
-      if (this.gpTransfer.points>this.customer.currentPoints) {
+      let combinedPoints=this.customer.combinedPoints;
+      if (combinedPoints!==0) combinedPoints=combinedPoints||this.customer.currentPoints;
+      if (this.gpTransfer.points>combinedPoints) {
         alert('Try again with an available amount of points');
         return;
       }
@@ -404,19 +408,58 @@
           return;
         }
         if (confirm('Confirm transferring ' + this.gpTransfer.points + ' to ' + res.data.fullName + ' with user ID of ' + this.gpTransfer.userId)) {
-          this.customer.currentPoints-=this.gpTransfer.points;
           let i=this.customers.map(e=>e.userId).indexOf(res.data.userId);
           if (i<0) this.customers.push(res.data);
           let transaction={userId:this.customer.userId,awardRedeem:'redeem',points:this.gpTransfer.points,
-              description:'GP Transfer from '+ this.customer.userId +' to ' + res.data.fullName + ' with user ID of ' + this.gpTransfer.userId,
+              description:'GP Transfer from '+ this.customer.fullName+', User ID: '  + this.customer.userId +' to ' + res.data.fullName + ', User ID: ' + this.gpTransfer.userId,
               status:'Approved'
           };
+          let awardTransaction=JSON.parse(JSON.stringify(transaction));
+          awardTransaction.awardRedeem='award';
+          awardTransaction.userId=res.data.userId;
+          //for this.associated help, figure out how much of each you need to make the total points
+          let pointsLeft=this.gpTransfer.points;
+          if (this.customer.currentPoints>=this.gpTransfer.points) {
+            pointsLeft=0;
+            this.customer.currentPoints-=this.gpTransfer.points;
+          }
+          else {
+            transaction.points=this.customer.currentPoints;
+            awardTransaction.points=this.customer.currentPoints;
+            pointsLeft-=this.customer.currentPoints;
+            this.customer.currentPoints=0;
+          }
+          
           this.assign(transaction);
-          let t=JSON.parse(JSON.stringify(transaction));
-          t.awardRedeem='award';
-          t.userId=res.data.userId;
-          this.assign(t);
+          
+          let x=1;
+          this.timeout(()=>{this.assign(awardTransaction);},x*250);
+          x++;
           this.gpTransfer={};
+          if (pointsLeft<=0) return;
+          //go through associate accounts to get the rest
+          this.associated.forEach(ass=>{
+            if (pointsLeft<=0) return;
+            if (ass.currentPoints<=0) return;
+            let assTransaction=JSON.parse(JSON.stringify(transaction));
+            assTransaction.description='GP Transfer from '+ ass.fullName+', User ID: '  + ass.userId +' to ' + res.data.fullName + ', User ID: ' + res.data.userId;
+            assTransaction.userId=ass.userId;
+            if (ass.currentPoints>=pointsLeft) {
+              assTransaction.points=pointsLeft;
+              pointsLeft=0;
+            }
+            else {
+              assTransaction.points=ass.currentPoints;
+              pointsLeft-=ass.currentPoints;
+            }
+            this.timeout(()=>{this.assign(assTransaction);},x*250);
+            x++;
+            let assAwardTransaction=JSON.parse(JSON.stringify(awardTransaction));
+            assAwardTransaction.points=assTransaction.points;
+            assAwardTransaction.description=assTransaction.description;
+            this.timeout(()=>{this.assign(assAwardTransaction);},x*250);
+            x++;
+          });
         }
       }).catch(err=>{console.log(err)});
     }
