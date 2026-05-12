@@ -140,6 +140,7 @@
           transaction.date=new Date();
           transaction.dateFlown=new Date().toLocaleDateString();
           transaction.status="Approved";
+          transaction.lastUpdatedBy=this.user._id;
           this.http.post('/api/transactions',transaction).then(res=>{
             //navigate to Manage Members with this nm selected
             nm.selected=true;
@@ -181,28 +182,23 @@
         transaction.date=new Date();
         if (!transaction.dateFlown) transaction.dateFlown=new Date().toLocaleDateString();
         transaction.lastUpdatedBy=this.user._id;
-        this.http.post('/api/transactions',transaction).then(res=>{
-          if (transaction.status==="Approved") {
-            if (customer.currentPoints!==0) customer.currentPoints = customer.currentPoints||customer.points;
-            if (transaction.awardRedeem==='award') customer.currentPoints += transaction.points;
-            else customer.currentPoints -= transaction.points;
-            customer.lastTransaction=res.data._id;
+        this.http.post('/api/transactions/new',transaction).then(res=>{
             
-            this.http.patch('/api/customers/'+customer._id,{currentPoints:customer.currentPoints,lastTransaction:customer.lastTransaction})
-              .then(res=>{
-                
-                let index=this.customers.map(e=>e.userId).indexOf(res.data.userId);
-                if (index>-1) this.customers[index]=res.data;
-                //email receipt
-                let awardRedeem="awarded";
-                if (transaction.awardRedeem==="redeem") awardRedeem="withdrawn from";
-                let html="You have a new transaction related to your Bering Air Gold Points Membership User ID# " + customer.userId + ".<br>";
-                html+="We have " + awardRedeem + " you " + transaction.points + " points for an updated balance of " + customer.currentPoints + ".<br>";
-                html+="If you have any questions, please contact Bering Air.";
-                if (customer.email) this.http.post('/api/things/email',{to:customer.email,html:html}).then(res=>{}).catch(err=>{console.log(err)});
-              })
-              .catch(err=>{console.log(err)});
-          }
+          this.http.post('/api/customers/one',{userId:customer.userId})
+            .then(res=>{
+              customer=res.data;
+              let index=this.customers.map(e=>e.userId).indexOf(customer.userId);
+              if (index>-1) this.customers[index]=customer;
+              //email receipt
+              let awardRedeem="awarded";
+              if (transaction.awardRedeem==="redeem") awardRedeem="withdrawn from";
+              let html="You have a new transaction related to your Bering Air Gold Points Membership User ID# " + customer.userId + ".<br>";
+              html+="We have " + awardRedeem + " you " + transaction.points + " points for an updated balance of " + customer.currentPoints + ".<br>";
+              html+="If you have any questions, please contact Bering Air.";
+              if (customer.email) this.http.post('/api/things/email',{to:customer.email,html:html}).then(res=>{}).catch(err=>{console.log(err)});
+            })
+            .catch(err=>{console.log(err)});
+            
           this.transaction={status:'Approved',awardRedeem:'award',points:0};
         }).catch(err=>{console.log(err)});
       }).catch(err=>{console.log(err)});

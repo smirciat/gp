@@ -10,7 +10,7 @@
 'use strict';
 
 import _ from 'lodash';
-import {Transaction} from '../../sqldb';
+import {Transaction,Customer,sequelize} from '../../sqldb';
 
 function respondWithResult(res, statusCode) {
   statusCode = statusCode || 200;
@@ -95,6 +95,32 @@ export function create(req, res) {
   return Transaction.create(req.body)
     .then(respondWithResult(res, 201))
     .catch(handleError(res));
+}
+
+// Creates a new Transaction in the DB and increments the customer points in accordance
+export async function newTransaction(req, res) {
+  if (!req.body||!req.body.userId) return res.status(500).json('Can`t create transaction');
+  try {
+    let transaction = await Transaction.create(req.body);
+    let increment = req.body.points; //negative increment for redeem
+    let string='"currentPoints" - ' + increment;
+    if (req.body.awardRedeem==='award') string='"currentPoints" + ' + increment;
+    return Customer.update(
+      {
+        lastTransaction : transaction._id,
+        currentPoints : sequelize.literal(string)
+      },
+        {
+          where:{userId:req.body.userId}
+        }
+      )
+      .then(respondWithResult(res, 201))
+      .catch(handleError(res));
+  }
+  catch(err){
+    console.log(err);
+    return res.status(500).json('Sequelize Error while creating transaction');
+  }
 }
 
 // Updates an existing Transaction in the DB
