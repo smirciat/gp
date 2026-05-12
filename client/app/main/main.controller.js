@@ -198,7 +198,7 @@
                 let html="You have a new transaction related to your Bering Air Gold Points Membership User ID# " + customer.userId + ".<br>";
                 html+="We have " + awardRedeem + " you " + transaction.points + " points for an updated balance of " + customer.currentPoints + ".<br>";
                 html+="If you have any questions, please contact Bering Air.";
-                if (false&&customer.email) this.http.post('/api/things/email',{to:customer.email,html:html}).then(res=>{}).catch(err=>{console.log(err)});
+                if (customer.email) this.http.post('/api/things/email',{to:customer.email,html:html}).then(res=>{}).catch(err=>{console.log(err)});
               })
               .catch(err=>{console.log(err)});
           }
