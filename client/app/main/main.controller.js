@@ -69,7 +69,7 @@
         }
       }
       //primary
-      this.http.post('/api/customers/one',{userId:this.existing.primary}).then(res=>{
+      this.http.post('/api/customers/one',{userId:this.existing.primary}).then(async res=>{
         if (!res.data||!res.data.userId) return;
         let primary=JSON.parse(JSON.stringify(res.data));
         primary.associatedAccounts=primary.associatedAccounts||[];
@@ -78,18 +78,55 @@
         });
         //remove duplicates
         primary.associatedAccounts = [...new Set(primary.associatedAccounts.filter(str => str !== ""))];
-        //update the customer
-        this.http.patch('/api/customers/'+primary._id,{gpType:"Primary",associatedAccounts:primary.associatedAccounts,primaryUserId:''}).then(res=>{
-          this.existing={associates:['','','','']};
-          //find each associate and update them
-          associates.forEach(ass=>{
-            this.http.post('/api/customers/one',{userId:ass}).then(res=>{
-              if (!res.data||!res.data.userId) return;
-              this.http.patch('/api/customers/'+res.data._id,{gpType:"Associate",primaryUserId:primary.userId,associatedAccounts:[]}).then(res=>{}).catch(err=>{console.log(err)});
-            }).catch(err=>{console.log(err)});
+        console.log(primary.associatedAccounts)
+        let fail=false;
+        let str='';
+        let assObjects=[]
+        for (const [index,ass] of primary.associatedAccounts.entries()) {
+          try {
+            let r= await this.http.post('/api/customers/one',{userId:ass});
+            assObjects.push(r.data);
+            if (index>0) str+='", & ';
+            str+='"'+r.data.fullName;
+          }
+          catch (err){
+            fail=true;
+            console.log(err);
+            this.toaster.error('Error','Associate User ID ' + ass + ' is not Found!');
+          }
+        }
+        
+        if (!fail) this.finalizeExisting(primary,associates,assObjects,str);
+        
+      }).catch(err=>{
+        console.log(err);
+        this.toaster.error('Error','Primary User ID is not Found!');
+      });
+    }
+    
+    finalizeExisting(primary,associates,assObjects,str){
+      
+        //confirm info prior to updating
+        if (confirm('DOUBLE CHECK NAMES! Please Confirm assigning "' + primary.fullName + '" as Primary Member with ' + str + '" as Associate Members')) {
+          //update the customer
+          this.http.patch('/api/customers/'+primary._id,{gpType:"Primary",associatedAccounts:primary.associatedAccounts,primaryUserId:''}).then(res=>{
+            this.existing={associates:['','','','']};
+            //find each associate and update them
+            assObjects.forEach(obj=>{
+              if (!obj||!obj.userId) return;
+              this.http.patch('/api/customers/'+obj._id,{gpType:"Associate",primaryUserId:primary.userId,associatedAccounts:[]}).then(res=>{
+                
+              }).catch(err=>{
+                this.toaster.error('Error','Failed to Update Associate Customer #' + obj.userId);
+                console.log(err);
+              });
+              
+            });
+          }).catch(err=>{
+            console.log(err);
+            this.toaster.error('Error','Failed to Update Primary Customer #' + primary.userId);
           });
-        }).catch(err=>{console.log(err)});
-      }).catch(err=>{console.log(err)});
+        }
     }
     
     changePrimary(){
