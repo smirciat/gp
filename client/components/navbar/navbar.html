@@ -14,6 +14,7 @@
         <li ng-repeat="item in nav.menu" ui-sref-active="active">
             <a ui-sref="{{item.state}}">{{item.title}}</a>
         </li>
+        <li ng-show="nav.hasRole('user')" ui-sref-active="active"><a ui-sref="adminGuests" uib-tooltip="Find the online account tied to a Member's email, and reset the password to 'test'" tooltip-placement="bottom">Guests</a></li>
         <li ng-show="nav.hasRole('superadmin')" ui-sref-active="active"><a ui-sref="admin">Admin</a></li>
       </ul>
 

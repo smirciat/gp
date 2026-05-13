@@ -23,6 +23,13 @@
         params: {
           id: 'me'
         }
+      },
+      company:{
+        method: 'GET',
+        isArray:true,
+        params: {
+          id: 'company'
+        }
       }
     });
   }

@@ -1,15 +1,13 @@
 'use strict';
 
-(function() {
+(function(){
 
-  class AdminController {
-    constructor(User,Auth,appConfig,$http) {
-      // Use the User $resource to fetch all users
-      this.users = User.company((res)=>{
-        this.users=res;
+class AdminGuestsComponent {
+  constructor(User,Auth,appConfig,$http) {
+      $http.get('/api/users/company/guests').then(res=>{
+        this.users=res.data;
         this.filteredUsers=JSON.parse(JSON.stringify(this.users));
       });
-      //$http.get('/api/users/company',{guests:true}).then(res=>{});
       this.Auth=Auth;
       this.roles=appConfig.userRoles;
       this.http=$http;
@@ -71,8 +69,13 @@
         });
       }
     }
-  }
+}
 
-  angular.module('goldPointsApp.admin')
-    .controller('AdminController', AdminController);
+angular.module('goldPointsApp')
+  .component('adminGuests', {
+    templateUrl: 'app/adminGuests/adminGuests.html',
+    controller: AdminGuestsComponent,
+    controllerAs: 'guests'
+  });
+
 })();

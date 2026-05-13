@@ -37,6 +37,8 @@ module.exports = function(sequelize, DataTypes) {
       }
     },
     forcePasswordChange: DataTypes.BOOLEAN,
+    welcomeEmail: DataTypes.BOOLEAN,
+    tempPassword: DataTypes.STRING,
     provider: DataTypes.STRING,
     salt: DataTypes.STRING,
     job: DataTypes.STRING

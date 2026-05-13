@@ -1,6 +1,7 @@
 'use strict';
 
-import {User} from '../../sqldb';
+import {User,sequelize} from '../../sqldb';
+const { Op } = require('sequelize');
 import localEnv from '../../config/local.env.js';
 import passport from 'passport';
 import config from '../../config/environment';
@@ -51,6 +52,38 @@ function handleError(res, statusCode) {
     console.log(err);
     return res.status(statusCode).send(err);
   };
+}
+
+export function company(req, res) {
+  let where={role: 'guest' };
+  let order=[
+    [sequelize.literal('"name" COLLATE "en_US"'), 'ASC']
+    //['email', 'DESC']
+  ];
+  if (!req.params||!req.params.id) {
+    where={
+        [Op.or]: [
+          {role:{ [Op.ne]: 'guest' }},
+          {_id:{ [Op.gt]: 10512 }}
+        ]
+    };
+  }
+  return User.findAll({
+    attributes: [
+      '_id',
+      'name',
+      'email',
+      'role',
+      'provider',
+      'forcePasswordChange'
+    ],
+    where:where,order:order
+  }
+  )
+    .then(users => {
+      res.status(200).json(users);
+    })
+    .catch(handleError(res));
 }
 
 /**
