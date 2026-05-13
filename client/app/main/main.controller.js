@@ -181,6 +181,8 @@
         }
         transaction.date=new Date();
         if (!transaction.dateFlown) transaction.dateFlown=new Date().toLocaleDateString();
+        else if (transaction.dateFlown.split('/').length===2) transaction.dateFlown+='/'+new Date().getFullYear();
+        else if (transaction.dateFlown.split('/').length<2) transaction.dateFlown=transaction.date.toLocaleDateString();
         transaction.lastUpdatedBy=this.user._id;
         this.http.post('/api/transactions/new',transaction).then(res=>{
             
@@ -230,7 +232,19 @@
          this.http.post('/api/transactions/query',{userId:cust.userId}).then(res=>{
            cust.selected=undefined;
            this.customerTransactions=res.data.sort((a,b)=>{
-             return a._id-b._id;
+             let arrA=a.dateFlown.split('/');
+             if (arrA.length===2) {
+               if (a.date instanceof Date) a.dateFlown+='/'+a.date.getFullYear();
+               else a.dateFlown+='/2026';
+             }
+             if (arrA.length<2) a.dateFlown=new Date(a.date).toLocaleDateString();
+             let arrB=b.dateFlown.split('/');
+             if (arrB.length===2) {
+               if (b.date instanceof Date) b.dateFlown+='/'+b.date.getFullYear();
+               else b.dateFlown+='/2026';
+             }
+             if (arrB.length<2) b.dateFlown=new Date(b.date).toLocaleDateString();
+             return new Date(a.dateFlown) - new Date(b.dateFlown);
            });
            this.customerTransactions.forEach(tran=>{
              if (tran.date) tran.dateString=new Date(tran.date).toLocaleString();

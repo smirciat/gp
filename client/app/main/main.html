@@ -246,13 +246,21 @@
       <h4>No Transactions yet for that member!</h4>
     </div>
     <table class="table table-bordered table-striped">
+      <thead><tr style="background-color:black;">
+          <td style="color:white;font-weight:bold">User ID</td>
+          <td style="color:white;font-weight:bold">Date Flown</td>
+          <td style="color:white;font-weight:bold">Type</td>
+          <td style="color:white;font-weight:bold">Points</td>
+          <td style="color:white;font-weight:bold">Description</td>
+          <td style="color:white;font-weight:bold">Agent ID</td>
+          <td style="color:white;font-weight:bold"></td>
+        </tr></thead>
       <tbody><tr ng-repeat="tran in main.customerTransactions track by $index">
         <td>{{tran.userId}}</td>
         <td>{{tran.dateFlown}}</td>
         <td>{{tran.awardRedeem}}</td>
         <td>{{tran.points}}</td>
         <td>{{tran.description}}</td>
-        <td>{{tran.status}}</td>
         <td>{{tran.lastUpdatedBy}}</td>
         <td ng-if="main.hasRole('superadmin')"><a ng-click="main.deleteTransaction(tran,$index)" class="trash">
             <span class="fa fa-trash fa-2x" uib-tooltip="Delete Transaction"></span></a></td>
