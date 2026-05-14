@@ -69,36 +69,49 @@
         }
       }
       //primary
-      this.http.post('/api/customers/one',{userId:this.existing.primary}).then(async res=>{
-        if (!res.data||!res.data.userId) return;
-        let primary=JSON.parse(JSON.stringify(res.data));
-        primary.associatedAccounts=primary.associatedAccounts||[];
-        associates.forEach(ass=>{
+      this.http.post('/api/customers/one', { userId: this.existing.primary }).then(res => {
+        if (!res.data || !res.data.userId) return;
+        let primary = JSON.parse(JSON.stringify(res.data));
+        primary.associatedAccounts = primary.associatedAccounts || [];
+        associates.forEach(ass => {
           primary.associatedAccounts.push(ass);
+          // remove duplicates and blanks
+          primary.associatedAccounts = [...new Set(primary.associatedAccounts.filter(str => str !== ""))];
         });
-        //remove duplicates
-        primary.associatedAccounts = [...new Set(primary.associatedAccounts.filter(str => str !== ""))];
-        console.log(primary.associatedAccounts)
-        let fail=false;
-        let str='';
-        let assObjects=[]
-        for (const [index,ass] of primary.associatedAccounts.entries()) {
-          try {
-            let r= await this.http.post('/api/customers/one',{userId:ass});
-            assObjects.push(r.data);
-            if (index>0) str+='", & ';
-            str+='"'+r.data.fullName;
-          }
-          catch (err){
-            fail=true;
+        console.log(primary.associatedAccounts);
+        let fail = false;
+        // create array of promises
+        let promises = primary.associatedAccounts.map(ass => {
+          return this.http.post('/api/customers/one', { userId: ass })
+          .then(r => {
+              return {ass: ass,data: r.data};
+          })
+          .catch(err=>{
             console.log(err);
             this.toaster.error('Error','Associate User ID ' + ass + ' is not Found!');
+            return {error:true};
+          });
+        });
+        return Promise.all(promises).then(results => {
+          let assObjects = [];
+          let names = [];
+          results.forEach(result => {
+              if (!result) return;
+              if (result.error) {
+                fail=true;
+                return;
+              }
+              assObjects.push(result.data);
+              names.push('"' + result.data.fullName + '"');
+          });
+          let str = names.join(', & ');
+          if (!fail) {
+            this.finalizeExisting(primary,associates,assObjects,str);
           }
-        }
-        
-        if (!fail) this.finalizeExisting(primary,associates,assObjects,str);
-        
-      }).catch(err=>{
+        })
+        .catch(err=>{console.log(err)});
+      })
+      .catch(err => {
         console.log(err);
         this.toaster.error('Error','Primary User ID is not Found!');
       });
