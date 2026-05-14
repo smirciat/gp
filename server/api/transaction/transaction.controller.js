@@ -11,6 +11,7 @@
 
 import _ from 'lodash';
 import {Transaction,Customer,sequelize} from '../../sqldb';
+const { Op } = require('sequelize');
 
 function respondWithResult(res, statusCode) {
   statusCode = statusCode || 200;
@@ -64,8 +65,9 @@ function handleError(res, statusCode) {
 
 // Gets a list of Transactions from a query
 export function query(req, res) {
-  let userId=req.body.userId||'';
-  let q={where:{userId:userId}};
+  let queryUsers=req.body.queryUsers||[];
+  if (req.body.userId&&!req.body.queryUsers) queryUsers=[req.body.userId];
+  let q={where:{userId: { [Op.in]: queryUsers } } };
   return Transaction.findAll(q)
     .then(respondWithResult(res))
     .catch(handleError(res));

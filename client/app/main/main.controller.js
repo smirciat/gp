@@ -216,6 +216,79 @@
       .catch(err=>{console.log(err)});
     }
     
+    combinePoints(){
+      if (this.transaction.awardRedeem==='award') {
+        this.transaction.maxPoints='';
+        return;
+      }
+      if (this.customer) this.transaction.maxPoints=this.customer.combinedPoints;
+    }
+    
+    //look for combined points within the membership before completing assign
+    assignPre(transaction){
+      transaction=transaction||this.transaction;
+      transaction.points=transaction.points*1;
+      if (transaction.awardRedeem==='award') {
+        this.assign(transaction);
+        return;
+      }
+      this.assignRedeem(transaction);
+    }
+    
+    assignRedeem(transaction){
+      transaction=transaction||this.transaction;
+      transaction.points=transaction.points*1;
+      let combinedPoints=this.customer.combinedPoints;
+      if (combinedPoints!==0) combinedPoints=combinedPoints||this.customer.currentPoints;
+      this.http.post('/api/customers/one',{userId:this.customer.userId}).then(res=>{
+        if (!res.data||!res.data.userId) {
+          this.toaster.error('Error','Didn`t find that User ID');
+          return;
+        }
+        if (res.data.suspended) {
+          this.toaster.error('Error','Need to remove customer suspension first');
+          return;
+        }
+        //for this.associated help, figure out how much of each you need to make the total points
+        if (this.customer.combinedPoints<transaction.points) {
+          this.toaster.error('Error','Not enough points for this.');
+          return;
+        }
+        let pointsLeft=transaction.points;
+        if (this.customer.currentPoints>=transaction.points) {
+          pointsLeft=0;
+          this.customer.currentPoints-=transaction.points;
+        }
+        else {
+          this.transaction.points=this.customer.currentPoints;
+          pointsLeft-=this.customer.currentPoints;
+          this.customer.currentPoints=0;
+        }
+        console.log(transaction)
+        this.assign(transaction);
+        
+        let x=1;
+        if (pointsLeft<=0) return;
+        //go through associate accounts to get the rest
+        this.associated.forEach(ass=>{
+          if (pointsLeft<=0) return;
+          if (ass.currentPoints<=0) return;
+          let assTransaction=JSON.parse(JSON.stringify(transaction));
+          assTransaction.userId=ass.userId;
+          if (ass.currentPoints>=pointsLeft) {
+            assTransaction.points=pointsLeft;
+            pointsLeft=0;
+          }
+          else {
+            assTransaction.points=ass.currentPoints;
+            pointsLeft-=ass.currentPoints;
+          }
+          this.timeout(()=>{this.assign(assTransaction);},x*250);
+          x++;
+        });
+      }).catch(err=>{console.log(err)});
+    }
+    
     assign(transaction){
       transaction=transaction||this.transaction;
       transaction.points=transaction.points*1;
@@ -228,6 +301,10 @@
         if (res.data.suspended) {
           this.toaster.error('Error','Need to remove customer suspension first');
           return;
+        }
+        if (transaction.awardRedeem==='redeem'&&(customer.currentPoints*1<transaction.points)) {
+          this.toaster.error('Error','Customer only has ' + customer.currentPoints + ' points');
+          return; 
         }
         transaction.date=new Date();
         if (!transaction.dateFlown) transaction.dateFlown=new Date().toLocaleDateString();
@@ -263,23 +340,26 @@
     }
     
     select(cust){
+       this.selectedAssociate=undefined;
+       this.customer=JSON.parse(JSON.stringify(cust));
+       this.associated=[];
+       this.customer.combinedPoints=this.customer.currentPoints;
+       if (this.customer.associatedAccounts) {
+         this.customer.associatedAccounts.forEach(cust=>{
+           this.http.post('/api/customers/one',{userId:cust}).then(res=>{
+             this.customer.combinedPoints+=res.data.currentPoints;
+             this.associated.push(res.data);
+           })
+           .catch(err=>{console.log(err)});
+         });
+         this.timeout(()=>{console.log(this.associated)},2000);
+       }
       if (this.chosenView==='Manage Members') {
          //if (!cust.selected) return;
-         this.selectedAssociate=undefined;
-         this.customer=JSON.parse(JSON.stringify(cust));
-         this.associated=[];
-         this.customer.combinedPoints=this.customer.currentPoints;
-         if (this.customer.associatedAccounts) {
-           this.customer.associatedAccounts.forEach(cust=>{
-             this.http.post('/api/customers/one',{userId:cust}).then(res=>{
-               this.customer.combinedPoints+=res.data.currentPoints;
-               this.associated.push(res.data);
-             })
-             .catch(err=>{console.log(err)});
-           });
-           this.timeout(()=>{console.log(this.associated)},2000);
-         }
-         this.http.post('/api/transactions/query',{userId:cust.userId}).then(res=>{
+         let queryUsers=JSON.parse(JSON.stringify(this.customer.associatedAccounts));
+         queryUsers.push(cust.userId);
+         this.http.post('/api/transactions/query',{queryUsers:queryUsers}).then(res=>{
+         //this.http.post('/api/transactions/query',{userId:cust.userId}).then(res=>{
            cust.selected=undefined;
            this.customerTransactions=res.data.sort((a,b)=>{
              let arrA=a.dateFlown.split('/');
