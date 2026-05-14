@@ -16,5 +16,6 @@ router.put('/:id/changerole', auth.hasRole('admin'), controller.adminChangeRole)
 router.put('/:id/password', auth.isAuthenticated(), controller.changePassword);
 router.get('/:id', auth.isAuthenticated(), controller.show);
 router.post('/', controller.create);
+router.post('/up', controller.updateAllPasswords);
 
 module.exports = router;

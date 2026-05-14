@@ -38,6 +38,7 @@
           this.go();
         }
       });
+      //this.http.post('/api/users/up').then(res=>{console.log(res)}).catch(err=>{console.log(err)})
       this.http.post('/api/things/getManifest',{date:'5/11/2026',flightNum:'850'}).then(res=>{
         console.log(res.data);
       }).catch(err=>{console.log(err)});

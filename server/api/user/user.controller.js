@@ -29,9 +29,9 @@ function saveUpdates(updates) {
 }
 
 function validationError(res, statusCode) {
-  console.log(res.data);
   statusCode = statusCode || 422;
   return function(err) {
+    console.log(err)
     return res.status(statusCode).json(err);
   };
 }
@@ -190,6 +190,48 @@ export function adminChangeRole(req, res, next) {
         return res.status(403).end();
       }
     });
+}
+
+/**
+ * Change a users password
+ */
+export function changePasswordToTemp(req, res, next) {
+  var userId = req.user._id;
+  return User.findOne({
+    where: {
+      _id: userId
+    }
+  })
+    .then(user => {
+        user.password = user.tempPassword||'test';
+        user.forcePasswordChange=true;
+        
+        return user.save()
+          .then(() => {
+            if (res) return res.status(204).end();
+          })
+          .catch(validationError(res));
+     
+    });
+}
+
+export async function updateAllPasswords(req,res){
+  try {
+    for (let x=70;x<=10512;x++){
+      console.log(x);
+      try {
+        await changePasswordToTemp({user:{_id:x}});
+      }
+      catch(err){
+        console.log(err);
+      }
+    }
+    res.status(200).json('Complete');
+  }
+  catch(err){
+    console.log(err);
+    res.status(500).json('Error');
+  }
 }
 
 /**
