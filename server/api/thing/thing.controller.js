@@ -11,7 +11,7 @@
 
 import _ from 'lodash';
 const axios = require("axios");
-import {Thing} from '../../sqldb';
+import {Thing,User} from '../../sqldb';
 import localEnv from '../../config/local.env';
 let bearer='';
 let client = require('twilio')(
@@ -138,6 +138,30 @@ export function destroy(req, res) {
     .then(handleEntityNotFound(res))
     .then(removeEntity(res))
     .catch(handleError(res));
+}
+
+export async function welcomeEmail(req,res){
+  if (!req.body.to) return res.status(500).json('No User Email!');
+  //find the user by the email provided, and lookup tempPassword
+  try { 
+    let user=await User.findOne({where:{email:req.body.to}});
+    req.body.html+="<br><br>Your temporary password is: " + user.tempPassword;
+  }
+  catch(err) {
+    return res.status(500).json('User Email not found');
+  }
+  //... The rest of the email you want to send
+  let options=JSON.parse(JSON.stringify(mailOptions));
+  options.html+= req.body.html;
+  options.to=req.body.to;
+  //Here is where the email gets sent
+  try {
+    const info = await transporter.sendMail(options);
+    return res.status(200).json('Email Sent Successfully');
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json('Failed to Send Email');
+  }
 }
 
 export async function email(req,res){

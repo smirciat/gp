@@ -25,8 +25,8 @@
       this.start=0;
       this.end=50;
       this.views=['Manage Members','Approve Points','Add User','Assign Points','Create Member','List By Points','All Transactions'];
-      this.welcomeEmail="Congratulations! <br> You have just created a Bering Air Gold Points Membership!<br>";
-      this.welcomeEmail+="Please head over to gp.beringair.com to complete your sign up process. Once you have loaded gp.beringair.com on an internet browser, click the 'Register' button.  Make sure you use the same email address there that you used when you signed up for the Gold Points Membership.  You can use any password you like.  Once registered, you will be able to see any future Gold Points transactions that are attached to this account.  Please let us know if you have any questions or difficulties.  Thanks for flying with Bering Air!";
+      this.welcomeEmail="Congratulations! <br><br>You have just created a Bering Air Gold Points Membership!<br><br>";
+      this.welcomeEmail+="Please head over to gp.beringair.com to complete your sign in and access your account data. Your username is the same email address there that you used when you signed up for the Gold Points Membership.  Your temporary passwrd is shown at the bottom of this email.  Once signed in, you will be able to see any future Gold Points transactions that are attached to this account.  Please let us know if you have any questions or difficulties. <br><br>Thank you for flying with Bering Air!";
     }
 
     $onInit() {
@@ -182,7 +182,8 @@
         this.http.post('/api/customers',nm).then(res=>{
           nm=res.data;
           //send a welcome email
-          if (nm.email) this.http.post('/api/things/email',{to:nm.email,html:this.welcomeEmail}).then(res=>{}).catch(err=>{console.log(err)});
+          if (nm.email) this.sendWelcomeEmail(nm.email);
+          //if (nm.email) this.http.post('/api/things/welcomeEmail',{to:nm.email,html:this.welcomeEmail}).then(res=>{}).catch(err=>{console.log(err)});
           //set up initial transaction for new Member
           let transaction=res.data;
           delete transaction._id;
@@ -215,6 +216,15 @@
         }).catch(err=>{console.log(err)});
       })
       .catch(err=>{console.log(err)});
+    }
+    
+    sendWelcomeEmail(email){
+      this.http.post('/api/things/welcomeEmail',{to:email,html:this.welcomeEmail}).then(res=>{
+        this.toaster.success('Success','Email Sent Successfully');
+      }).catch(err=>{
+        console.log(err);
+        this.toaster.error('Error','Welcome Email Failed to Send');
+      });
     }
     
     combinePoints(){
@@ -477,7 +487,7 @@
         if (index>-1) {
           if (!this.customers[index].email&&this.customer.email){
             //new email entered, send them one!
-            this.http.post('/api/things/email',{to:this.customer.email,html:this.welcomeEmail}).then(res=>{}).catch(err=>{console.log(err)});
+            this.sendWelcomeEmail(this.customer.email);
           }
           this.customers[index]=res.data;
         }

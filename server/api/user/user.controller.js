@@ -250,7 +250,7 @@ export function changePassword(req, res, next) {
       if (user.authenticate(oldPass,user.salt)) {
         user.password = newPass;
         user.forcePasswordChange=false;
-        
+        user.tempPassword=null;
         return user.save()
           .then(() => {
             res.status(204).end();
