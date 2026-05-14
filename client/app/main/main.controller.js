@@ -367,7 +367,8 @@
        }
       if (this.chosenView==='Manage Members') {
          //if (!cust.selected) return;
-         let queryUsers=JSON.parse(JSON.stringify(this.customer.associatedAccounts));
+         let queryUsers=[];
+         if (this.customer.associatedAccounts&&Array.isArray(this.customer.associatedAccounts)) queryUsers=JSON.parse(JSON.stringify(this.customer.associatedAccounts));
          queryUsers.push(cust.userId);
          this.http.post('/api/transactions/query',{queryUsers:queryUsers}).then(res=>{
          //this.http.post('/api/transactions/query',{userId:cust.userId}).then(res=>{
