@@ -31,7 +31,7 @@ function saveUpdates(updates) {
 function validationError(res, statusCode) {
   statusCode = statusCode || 422;
   return function(err) {
-    console.log(err)
+    console.log(err);
     return res.status(statusCode).json(err);
   };
 }
