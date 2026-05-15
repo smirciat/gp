@@ -205,10 +205,10 @@ export async function setBearer(){
   try {
     //set up webhooks now
     let data = JSON.stringify({
-      "name": "beringair-all-webhooks-handler-v18",
+      "name": "beringair-webhooks-handler",
       "url": "https://gp.beringair.com/webhooks",
       "events": [
-        "*"//"Takeflite.Operations.AircraftControl.FlightStatusChanged"//or "*"
+        "*",//"Takeflite.Operations.AircraftControl.FlightStatusChanged"//or "*"
       ],
       "deliveryAttributeMapping": [
         {
@@ -220,7 +220,7 @@ export async function setBearer(){
     });
     config = {
       method: 'put',
-      url: 'https://api.tflite.com/webhooks/beringair-all-webhooks-handler-v18',
+      url: 'https://api.tflite.com/webhooks/beringair-webhooks-handler',
       headers: { 
         'Content-Type': 'application/json', 
         'Accept': 'application/json',
@@ -231,6 +231,7 @@ export async function setBearer(){
     };
     if (!localEnv.STOP_WEBHOOKS) {
       info = await axios(config);
+      console.log('Axios Completed Successfully');
       console.log(info.data);
     }
     return "TF Bearer Token Set Successfully";

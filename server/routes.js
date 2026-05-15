@@ -37,17 +37,10 @@ export default function(app) {
           console.log('Error: ' + err.message);
         });
       }
-      res.set({
-        'Allow': 'POST, OPTIONS',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, X-Webhook-Secret'
-      });
-    
-      return res.sendStatus(204);
+      return res.sendStatus(200);
     }
     else {
-      console.log(req);
+      console.log(req.body);
     //const secret = req.headers['x-webhook-secret'];
   
     //if (secret !== localEnv.takefliteWebhookSecret) {
