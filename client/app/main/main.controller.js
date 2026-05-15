@@ -347,6 +347,7 @@
     altSelect(cust,fieldName){
       if (this.chosenView==='Manage Members'&&(fieldName==='account'||fieldName==='userId')) return;
       cust.selected=!cust.selected;
+      if (fieldName==='account') this.chosenView="Manage Members";
       this.select(cust);
     }
     
