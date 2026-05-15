@@ -160,8 +160,7 @@
         <!--<tbody><tr ng-repeat="cust in main.customers | limitTo: main.showLength : main.start">-->
         <tbody><tr ng-repeat="cust in main.customers" ng-class="main.suspensionClass(cust)">
           <td>&nbsp&nbsp<input type="checkbox" style="transform:scale(3);margin:10px;" ng-model="cust.selected" ng-click="main.select(cust)"></td>
-          <td ng-click="main.altSelect(cust,'account')" ng-if="main.chosenView==='Manage Members'">{{cust.account}}</td>
-          <td ng-click="main.altSelect(cust,'account')" ng-if="main.chosenView!=='Manage Members'"><a href="#">{{cust.account}}</a></td>
+          <td ng-click="main.altSelect(cust,'account')"><a href="#">{{cust.account}}</a></td>
           <td ng-click="main.altSelect(cust,'userId')">{{cust.userId}}</td>
           <td ng-click="main.altSelect(cust)">{{cust.userName}}</td>
           <td ng-click="main.altSelect(cust)">{{cust.fullName}}</td>

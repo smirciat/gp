@@ -345,9 +345,12 @@
     }
     
     altSelect(cust,fieldName){
-      if (this.chosenView==='Manage Members'&&(fieldName==='account'||fieldName==='userId')) return;
+      if (this.chosenView==='Manage Members'&&fieldName==='userId') return;
+      if (fieldName==='account') {
+        if (this.chosenView==='Manage Members') this.chosenView="Assign Points";
+        else if (this.chosenView==='Assign Points') this.chosenView="Manage Members";
+      }
       cust.selected=!cust.selected;
-      if (fieldName==='account') this.chosenView="Manage Members";
       this.select(cust);
     }
     
