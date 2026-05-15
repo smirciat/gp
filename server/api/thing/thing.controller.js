@@ -211,7 +211,7 @@ export async function setBearer(){
       ],
       "deliveryAttributeMapping": [
         {
-          "name": "api-key",
+          "name": "beringair-api-key",
           "value": "123456",
           "isSecret": true
         }
@@ -232,7 +232,7 @@ export async function setBearer(){
     return "TF Bearer Token Set Successfully";
   }
   catch(err){
-    console.log(err);
+    console.log(err.response.data);
     return err;
   }
 }
