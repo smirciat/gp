@@ -6,6 +6,7 @@
 
 import errors from './components/errors';
 import localEnv from './config/local.env';
+import https from'https';
 import path from 'path';
 import lusca from 'lusca';
 import bodyParser from 'body-parser';
@@ -16,15 +17,34 @@ export default function(app) {
   app.use(bodyParser.json({ type: '*/*' }));
   
   app.options('/webhooks', (req, res) => {
-  res.set({
-    'Allow': 'POST, OPTIONS',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, X-Webhook-Secret'
+    //console.log(req.headers)
+    if (req.headers&&req.headers['webhook-request-callback']&&req.headers['beringair-api-key']==='123456') {
+      https.get(req.headers['webhook-request-callback'],(res) => {
+        let data = '';
+      
+        // A chunk of data has been received
+        res.on('data', (chunk) => {
+          data += chunk;
+        });
+      
+        // The whole response has been received
+        res.on('end', () => {
+          console.log(JSON.parse(data));
+        });
+      
+      }).on('error', (err) => {
+        console.log('Error: ' + err.message);
+      });
+    }
+    res.set({
+      'Allow': 'POST, OPTIONS',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, X-Webhook-Secret'
+    });
+  
+    res.sendStatus(204);
   });
-
-  res.sendStatus(204);
-});
 
 app.post('/webhooks', (req, res) => {
   console.log(req.headers);
