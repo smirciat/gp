@@ -24,6 +24,9 @@
           id: 'me'
         }
       },
+      update:{
+        method: 'PATCH'
+      },
       company:{
         method: 'GET',
         isArray:true,

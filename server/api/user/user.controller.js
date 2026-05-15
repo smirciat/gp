@@ -31,7 +31,7 @@ function saveUpdates(updates) {
 function validationError(res, statusCode) {
   statusCode = statusCode || 422;
   return function(err) {
-    console.log(err);
+    console.log(err.name);
     return res.status(statusCode).json(err);
   };
 }
@@ -50,6 +50,7 @@ function handleError(res, statusCode) {
   statusCode = statusCode || 500;
   return function(err) {
     console.log(err);
+    console.log(err.data)
     return res.status(statusCode).send(err);
   };
 }
@@ -125,8 +126,7 @@ export function create(req, res, next) {
     })
     .catch(err=>{
       console.log(err);
-      validationError(res);
-      
+      res.status(500).json(err.name||err);
     });
 }
 
@@ -148,6 +148,20 @@ export function show(req, res, next) {
       res.json(user.profile);
     })
     .catch(err => next(err));
+}
+
+// Updates an existing User in the DB, limited parameters
+export function update(req, res) {
+  let user={name:req.body.name};
+  return User.findOne({
+    where: {
+      _id: req.params.id
+    }
+  })
+    .then(handleEntityNotFound(res))
+    .then(saveUpdates(user))
+    .then(respondWithResult(res))
+    .catch(handleError(res));
 }
 
 /**

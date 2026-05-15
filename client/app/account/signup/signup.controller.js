@@ -26,6 +26,8 @@ class SignupController {
           this.$state.go('main');
         })
         .catch(err => {
+          console.log(err);
+          if (err.data==="SequelizeUniqueConstraintError") alert('There is already a user with this email, please contat Bering Air for help with logging in.');
           err = err.data;
           this.errors = {};
 
