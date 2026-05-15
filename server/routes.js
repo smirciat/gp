@@ -27,7 +27,7 @@ export default function(app) {
 });
 
 app.post('/webhooks', (req, res) => {
-  
+  console.log(req.headers);
   //const secret = req.headers['x-webhook-secret'];
 
   //if (secret !== localEnv.takefliteWebhookSecret) {
@@ -39,9 +39,9 @@ app.post('/webhooks', (req, res) => {
 
     // Basic validation
     if (!event.specversion || !event.type || !event.id) {
-      return res.status(400).json({
-        error: 'Invalid CloudEvent'
-      });
+      //return res.status(400).json({
+        //error: 'Invalid CloudEvent'
+      //});
     }
 
     console.log('CloudEvent received');
@@ -66,6 +66,12 @@ app.post('/webhooks', (req, res) => {
       case 'Takeflite.Operations.AircraftControl.FlightCompleted':
         handleFlightCompleted(flight);
         break;
+        
+      case 'SubscriptionValidationEvent':
+        console.log(event.data);
+        return res.status(200);
+        break;
+        
 
       default:
         console.log('Unhandled event type:', event.type);

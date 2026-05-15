@@ -180,6 +180,7 @@ export async function sms(req,res){
 }
 
 export async function setBearer(){
+  let info;
   let data = JSON.stringify({
     "client_id": localEnv.TF_ID,
     "client_secret": localEnv.TF_SECRET
@@ -204,15 +205,15 @@ export async function setBearer(){
   try {
     //set up webhooks now
     let data = JSON.stringify({
-      "name": "all-webhooks-handler",
+      "name": "beringair-all-webhooks-handler-v1",
       "url": "https://gp.beringair.com/webhooks",
       "events": [
         "Takeflite.Scheduling.FlightLegChanged"//or "*"
       ],
       "deliveryAttributeMapping": [
         {
-          "name": "beringair-api-key",
-          "value": "123456",
+          "name": localEnv.WEBHOOK_KEY,
+          "value": localEnv.WEBHOOK_VALUE,
           "isSecret": true
         }
       ]
@@ -228,7 +229,8 @@ export async function setBearer(){
       },
       data : data
     };
-    if (!localEnv.STOP_WEBHOOKS) await axios(config);
+    if (!localEnv.STOP_WEBHOOKS) info = await axios(config);
+    console.log(info.data)
     return "TF Bearer Token Set Successfully";
   }
   catch(err){
