@@ -8,6 +8,7 @@ import express from 'express';
 import sqldb from './sqldb';
 import localEnv from './config/local.env';
 import config from './config/environment';
+import {setBearer} from './api/thing/thing.controller.js';
 import http from 'http';
 // Populate databases with sample data
 if (config.seedDB) { require('./config/seed'); }
@@ -27,6 +28,7 @@ require('./routes').default(app);
 function startServer() {
   app.angularFullstack = server.listen(config.port, config.ip, function() {
     console.log('Express server listening on %d, in %s mode', config.port, app.get('env'));
+    setBearer();
   });
 }
 

@@ -26,7 +26,7 @@
       this.end=50;
       this.views=['Manage Members','Approve Points','Add User','Assign Points','Create Member','List By Points','All Transactions'];
       this.welcomeEmail="Congratulations! <br><br>You have just created a Bering Air Gold Points Membership!<br><br>";
-      this.welcomeEmail+="Please head over to gp.beringair.com to complete your sign in and access your account data. Your username is the same email address there that you used when you signed up for the Gold Points Membership.  Your temporary passwrd is shown at the bottom of this email.  Once signed in, you will be able to see any future Gold Points transactions that are attached to this account.  Please let us know if you have any questions or difficulties. <br><br>Thank you for flying with Bering Air!";
+      this.welcomeEmail+="Please head over to gp.beringair.com to complete your sign in and access your account data. Your username is the same email address there that you used when you signed up for the Gold Points Membership.  Your temporary password is shown at the bottom of this email.  Once signed in, you will be able to see any future Gold Points transactions that are attached to this account.  Please let us know if you have any questions or difficulties. <br><br>Thank you for flying with Bering Air!";
     }
 
     $onInit() {
