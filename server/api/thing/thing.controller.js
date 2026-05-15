@@ -9,7 +9,8 @@
 
 'use strict';
 
-import _ from 'lodash';
+import FormData from "form-data";
+import Mailgun from "mailgun.js";
 const axios = require("axios");
 import {Thing,User} from '../../sqldb';
 import localEnv from '../../config/local.env';
@@ -18,21 +19,15 @@ let client = require('twilio')(
   localEnv.TWILIO_ACCOUNT_SID,
   localEnv.TWILIO_AUTH_TOKEN
 );
-import nodemailer from 'nodemailer';
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false, // use false for STARTTLS; true for SSL on port 465
-  auth: {
-    user: localEnv.GMAIL_ADDRESS,
-    pass: localEnv.GMAIL_APP_PASS,
-  }
+const mailgun = new Mailgun(FormData);
+const mg = mailgun.client({
+  username: "api",
+  key: localEnv.MAILGUN_API_KEY,
+  url: 'https://api.mailgun.net'
 });
-
 // Configure the mailoptions object
 const mailOptions = {
-  from: localEnv.GMAIL_ADDRESS,
-  to: localEnv.GMAIL_AMBLER_ADDRESS,
+  from: "Bering Air <postmaster@" + localEnv.MAILGUN_DOMAIN + ">",
   subject: 'Bering Air Gold Points',
   html: 'This is an automatically generated email, please do not reply to this address<br><br>'
 };
@@ -156,23 +151,8 @@ export async function welcomeEmail(req,res){
   options.to=req.body.to;
   //Here is where the email gets sent
   try {
-    const info = await transporter.sendMail(options);
-    return res.status(200).json('Email Sent Successfully');
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json('Failed to Send Email');
-  }
-}
-
-export async function email(req,res){
-  //... The rest of the email you want to send
-  let options=JSON.parse(JSON.stringify(mailOptions));
-  options.html+= req.body.html;
-  options.to=req.body.to;
-  //Here is where the email gets sent
-  try {
-    const info = await transporter.sendMail(options);
-    return res.status(200).json('Email Sent Successfully');
+    const info = await mg.messages.create(localEnv.MAILGUN_DOMAIN,options);
+    return res.status(200).json(info);
   } catch (error) {
     console.log(error);
     return res.status(500).json('Failed to Send Email');
@@ -263,5 +243,20 @@ export async function getManifest(req,res){
     }
     if (res) return res.status(500).json(err.response.data);
     return err.response||err;
+  }
+}
+
+export async function email(req,res){
+  //... The rest of the email you want to send
+  let options=JSON.parse(JSON.stringify(mailOptions));
+  options.html+= req.body.html;
+  options.to=req.body.to;
+  //Here is where the email gets sent
+  try {
+    const info = await mg.messages.create(localEnv.MAILGUN_DOMAIN,options);
+    return res.status(200).json(info);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json('Failed to Send Email');
   }
 }
