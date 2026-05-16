@@ -19,7 +19,7 @@ export default function(app) {
   app.all('/webhooks', (req, res) => {
     if (req.method==='OPTIONS') {
       //console.log(req.headers)
-      if (req.headers&&req.headers['webhook-request-callback']&&req.headers['beringair-api-key']==='123456') {
+      if (req.headers&&req.headers['webhook-request-callback']&&req.headers['beringair-api-key']===localEnv.WEBHOOK_VALUE) {
         https.get(req.headers['webhook-request-callback'],(res) => {
           let data = '';
         
@@ -42,57 +42,50 @@ export default function(app) {
     else {
       console.log(req.body);
       console.log(req.headers);
-    //const secret = req.headers['x-webhook-secret'];
+      const secret = req.headers['beringair-api-key'];
   
-    //if (secret !== localEnv.takefliteWebhookSecret) {
-      //return res.status(401).send('Unauthorized');
-    //}
-    
-    try {
-      const event = req.body;
-  
-      // Basic validation
-      if (!event.specversion || !event.type || !event.id) {
-        //return res.status(400).json({
-          //error: 'Invalid CloudEvent'
-        //});
+      if (secret !== localEnv.WEBHOOK_VALUE) {
+        return res.status(401).send('Unauthorized');
       }
-  
-      console.log('CloudEvent received');
-      console.log('ID:', event.id);
-      console.log('Type:', event.type);
-      console.log('Source:', event.source);
-      console.log('Tenant:', event.tenantid);
-      console.log('Subject:', event.subject);
-      console.log('Time:', event.time);
-  
-      // Event payload
-      const flight = event.data;
-  
-      console.log('Flight ID:', flight.id);
-      console.log('Flight Number:', flight.flightNumber);
-      console.log('Departure:', flight.scheduledDepartureTime);
-      console.log('Arrival:', flight.scheduledArrivalTime);
-  
-      // Route by event type
-      switch (event.type) {
-  
+      
+      try {
+        const event = req.body;
+    
+        // Basic validation
+        if (!event.specversion || !event.type || !event.id) {
+          return res.status(400).json({
+            error: 'Invalid CloudEvent'
+          });
+        }
+    
+        console.log('CloudEvent received');
+        console.log('ID:', event.id);
+        console.log('Type:', event.type);
+        console.log('Source:', event.source);
+        console.log('Tenant:', event.tenantid);
+        console.log('Subject:', event.subject);
+        console.log('Time:', event.time);
+    
+        // Event payload
+        const flight = event.data;
+    
+        console.log('Flight ID:', flight.id);
+        console.log('Flight Number:', flight.flightNumber);
+        console.log('Departure:', flight.scheduledDepartureTime);
+        console.log('Arrival:', flight.scheduledArrivalTime);
+    
+        // Route by event type
+        switch (event.type) {
           case 'Takeflite.Operations.AircraftControl.FlightCompleted':
             handleFlightCompleted(flight);
             break;
             
-          case 'SubscriptionValidationEvent':
-            console.log(event.data);
-            return res.status(200);
-            break;
-            
-    
           default:
             console.log('Unhandled event type:', event.type);
         }
     
         res.status(204).send();
-    
+      
       } catch (err) {
         console.error('Webhook processing failed:', err);
         res.status(500).send();

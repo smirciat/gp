@@ -205,7 +205,7 @@ export async function setBearer(){
   try {
     //set up webhooks now
     let data = JSON.stringify({
-      "name": "beringair-webhooks-handler",
+      "name": "beringair-webhooks-handler1",
       "url": "https://gp.beringair.com/webhooks",
       "events": [
         "*",//"Takeflite.Operations.AircraftControl.FlightStatusChanged"//or "*"
@@ -220,7 +220,7 @@ export async function setBearer(){
     });
     config = {
       method: 'put',
-      url: 'https://api.tflite.com/webhooks/beringair-webhooks-handler',
+      url: 'https://api.tflite.com/webhooks/beringair-webhooks-handler1',
       headers: { 
         'Content-Type': 'application/json', 
         'Accept': 'application/json',
