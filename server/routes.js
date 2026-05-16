@@ -41,6 +41,7 @@ export default function(app) {
     }
     else {
       console.log(req.body);
+      console.log(req.headers);
     //const secret = req.headers['x-webhook-secret'];
   
     //if (secret !== localEnv.takefliteWebhookSecret) {
