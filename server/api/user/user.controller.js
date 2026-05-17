@@ -312,6 +312,27 @@ export function authCallback(req, res, next) {
   res.redirect('/');
 }
 
+export function query(req,res){
+  if (!req.body||!req.body.email) return res.status(400).json('Bad Request');
+  return User.findOne({
+    where: {
+      email:req.body.email
+    },
+    attributes: [
+      '_id',
+      'name',
+      'email',
+      'role',
+      'provider',
+      'job',
+      'forcePasswordChange'
+    ]
+  })
+    .then(handleEntityNotFound(res))
+    .then(respondWithResult(res))
+    .catch(handleError(res));
+}
+
 // Resets Password to default for a User
 export function reset(req, res) {
   let id=0;

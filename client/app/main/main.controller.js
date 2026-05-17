@@ -344,6 +344,21 @@
       }).catch(err=>{console.log(err)});
     }
     
+    reset(user){
+      this.http.post('/api/users/query',user).then(res=>{
+        this.http.post('/api/users/reset',res.data).then(res=>{
+          this.toaster.success('Success','Password reset to default');
+        })
+        .catch(err=>{
+          console.log(err);
+        this.toaster.error('Error','Unable to reset this password!');
+        });
+      }).catch(err=>{
+        console.log(err);
+        this.toaster.error('Error','No user created with an email that matches this member`s email!');
+      });
+    }
+    
     altSelect(cust,fieldName){
       if (this.chosenView==='Manage Members'&&fieldName==='userId') return;
       if (fieldName==='account') {

@@ -156,6 +156,7 @@
           <th style="color:white;font-weight:bold">Points</th>
           <th style="color:white;font-weight:bold"></th>
           <th style="color:white;font-weight:bold"></th>
+          <th style="color:white;font-weight:bold"></th>
         </tr></thead>
         <!--<tbody><tr ng-repeat="cust in main.customers | limitTo: main.showLength : main.start">-->
         <tbody><tr ng-repeat="cust in main.customers" ng-class="main.suspensionClass(cust)">
@@ -169,12 +170,15 @@
           <td ng-click="main.altSelect(cust)">{{cust.phone}}</td>
           <td ng-click="main.altSelect(cust)">{{cust.currentPoints}}</td>
           <td ng-if="main.hasRole('user')"><a ng-click="main.sendWelcomeEmail(cust.email)">
-            <span class="fa-solid fa-envelope fa-2x" uib-tooltip="Send Welcome Email"></span></a>
+            <span class="fa-solid fa-envelope fa-2x" uib-tooltip="Send Welcome Email" tooltip-placement="bottom"></span></a>
+          </td>
+          <td ng-if="main.hasRole('user')"><a ng-click="main.reset(cust)" class="trash">
+            <span class="fa fa-key fa-2x" uib-tooltip="Reset User Password to Default" tooltip-placement="bottom"></span></a>
           </td>
           <td ng-if="main.hasRole('superadmin')"><a ng-click="main.suspendMember(cust)" class="trash" ng-if="!cust.suspended">
-            <span class="fa-solid fa-circle-pause fa-2x" uib-tooltip="Suspend Member"></span></a>
+            <span class="fa-solid fa-circle-pause fa-2x" uib-tooltip="Suspend Member" tooltip-placement="bottom"></span></a>
             <a ng-click="main.suspendMember(cust)" ng-if="cust.suspended">
-            <span class="fa-solid fa-circle-play fa-2x" uib-tooltip="Remove Suspension From Member"></span></a>
+            <span class="fa-solid fa-circle-play fa-2x" uib-tooltip="Remove Suspension From Member" tooltip-placement="bottom"></span></a>
           </td>
         </tr></tbody>
       </table>

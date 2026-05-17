@@ -219,8 +219,8 @@ export async function setBearer(){
       ]
     });
     config = {
-      method: 'delete',//get with no data to list, post with no handler to create a new one, delete with a handler and no data to delete one
-      url: 'https://api.tflite.com/webhooks/'+localEnv.WEBHOOK_HANDLER,
+      method: 'get',//get with no data to list, post with no handler to create a new one, delete with a handler and no data to delete one
+      url: 'https://api.tflite.com/webhooks',//'+localEnv.WEBHOOK_HANDLER,
       headers: { 
         'Content-Type': 'application/json', 
         'Accept': 'application/json',
