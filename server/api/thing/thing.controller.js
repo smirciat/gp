@@ -205,8 +205,8 @@ export async function setBearer(){
   try {
     //set up webhooks now
     let data = JSON.stringify({
-      "name": "beringair-webhooks-handler1",
-      "url": "https://gp.beringair.com/webhooks",
+      "name": localEnv.WEBHOOK_HANDLER,
+      "url": localEnv.WEBHOOK_URL,
       "events": [
         "*",//"Takeflite.Operations.AircraftControl.FlightStatusChanged"//or "*"
       ],
@@ -219,15 +219,15 @@ export async function setBearer(){
       ]
     });
     config = {
-      method: 'put',
-      url: 'https://api.tflite.com/webhooks/beringair-webhooks-handler1',
+      method: 'delete',//get with no data to list, post with no handler to create a new one, delete with a handler and no data to delete one
+      url: 'https://api.tflite.com/webhooks/'+localEnv.WEBHOOK_HANDLER,
       headers: { 
         'Content-Type': 'application/json', 
         'Accept': 'application/json',
         'api-version': 'v1', 
         'Authorization': bearer
       },
-      data:data
+      
     };
     if (!localEnv.STOP_WEBHOOKS) {
       info = await axios(config);

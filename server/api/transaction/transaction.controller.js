@@ -10,8 +10,10 @@
 'use strict';
 
 import _ from 'lodash';
+import localEnv from '../../config/local.env';
 import {Transaction,Customer,sequelize} from '../../sqldb';
 const { Op } = require('sequelize');
+import https from 'https';
 
 function respondWithResult(res, statusCode) {
   statusCode = statusCode || 200;
@@ -153,4 +155,79 @@ export function destroy(req, res) {
     .then(handleEntityNotFound(res))
     .then(removeEntity(res))
     .catch(handleError(res));
+}
+
+export function webhookOptions(req,res){
+  if (req.headers&&req.headers['webhook-request-callback']&&req.headers[localEnv.WEBHOOK_KEY]===localEnv.WEBHOOK_VALUE) {
+    console.log(req.headers);
+    https.get(req.headers['webhook-request-callback'],(resp) => {
+      let data = '';
+    
+      // A chunk of data has been received
+      resp.on('data', (chunk) => {
+        data += chunk;
+      });
+    
+      // The whole response has been received
+      resp.on('end', () => {
+        console.log(data);
+      });
+    
+    }).on('error', (err) => {
+      console.log('Error: ' + err.message);
+      return res.status(500);
+    });
+    return res.sendStatus(200);
+  }
+  else return res.status(401);
+}
+
+export function webhooks(req,res) {
+  if (!req.headers||req.headers[localEnv.WEBHOOK_KEY] !== localEnv.WEBHOOK_VALUE) {
+    return res.status(401).send('Unauthorized');
+  }
+  
+  try {
+    const event = req.body;
+
+    // Basic validation
+    if (!event.specversion || !event.type || !event.id) {
+      return res.status(400).json({
+        error: 'Invalid CloudEvent'
+      });
+    }
+
+    console.log('CloudEvent received');
+    console.log('ID:', event.id);
+    console.log('Type:', event.type);
+    console.log('Source:', event.source);
+    console.log('Tenant:', event.tenantid);
+    console.log('Subject:', event.subject);
+    console.log('Time:', event.time);
+
+    // Event payload
+    const flight = event.data;
+
+    console.log('Flight ID:', flight.id);
+    console.log('Flight Number:', flight.flightNumber);
+    console.log('Departure:', flight.scheduledDepartureTime);
+    console.log('Arrival:', flight.scheduledArrivalTime);
+
+    // Route by event type
+    switch (event.type) {
+      case 'Takeflite.Operations.AircraftControl.FlightCompleted':
+        console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Takeflite.Operations.AircraftControl.FlightCompleted');
+        console.log(flight);
+        break;
+        
+      default:
+        console.log('Unhandled event type:', event.type);
+    }
+
+    res.status(204).send();
+  
+  } catch (err) {
+    console.error('Webhook processing failed:', err);
+    res.status(500).send();
+  }
 }

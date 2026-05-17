@@ -16,10 +16,10 @@ export default function(app) {
   
   app.use(bodyParser.json({ type: '*/*' }));
 
-  app.all('/webhooks', (req, res) => {
+  app.all('/webhooks', async (req, res) => {
     if (req.method==='OPTIONS') {
-      //console.log(req.headers)
-      if (req.headers&&req.headers['webhook-request-callback']&&req.headers['beringair-api-key']===localEnv.WEBHOOK_VALUE) {
+      if (req.headers&&req.headers['webhook-request-callback']&&req.headers[localEnv.WEBHOOK_KEY]===localEnv.WEBHOOK_VALUE) {
+        console.log(req.headers);
         https.get(req.headers['webhook-request-callback'],(res) => {
           let data = '';
         
@@ -40,11 +40,7 @@ export default function(app) {
       return res.sendStatus(200);
     }
     else {
-      console.log(req.body);
-      console.log(req.headers);
-      const secret = req.headers['beringair-api-key'];
-  
-      if (secret !== localEnv.WEBHOOK_VALUE) {
+      if (!req.headers||req.headers[localEnv.WEBHOOK_KEY] !== localEnv.WEBHOOK_VALUE) {
         return res.status(401).send('Unauthorized');
       }
       
@@ -92,7 +88,7 @@ export default function(app) {
       }
     }
   });
-  
+  app.use('/api/transactions/webhooks', require('./api/transaction/indexWebhooks'));
   app.use(lusca.csrf({angular:true}));
   // Insert routes below
   app.use('/api/flights', require('./api/flight'));
@@ -106,12 +102,6 @@ export default function(app) {
   // All undefined asset or api routes should return a 404
   app.route('/:url(api|auth|components|app|bower_components|assets)/*')
    .get(errors[404]);
-
-  // All other routes should redirect to the index.html
-  //app.route('/*')
-  //  .get((req, res) => {
-  //    res.sendFile(path.resolve(app.get('appPath') + '/index.html'));
-  //  });
       
   app.get(/^\/(?!api|auth).*$/, function(req, res, next) {
 
