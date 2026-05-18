@@ -242,7 +242,7 @@
       //update description
       if (!transaction.description) transaction.description='';
       if (transaction.dateFlown||transaction.booking||transaction.route||transaction.flight) {
-        transaction.description+=transaction.dateFlown+ ' '+transaction.booking+' '+transaction.route+' '+transaction.flight+' Agent ID: '+transaction.lastUpdatedBy;
+        transaction.description+=transaction.dateFlown+ ' '+transaction.booking+' '+transaction.route+' '+transaction.flight+' Agent ID: '+this.user._id;
       }
       //send it
       if (transaction.awardRedeem==='award') {
