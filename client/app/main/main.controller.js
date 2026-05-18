@@ -369,25 +369,33 @@
       this.select(cust);
     }
     
-    async select(cust){
+    select(cust){
        this.selectedAssociate=undefined;
        this.customer=JSON.parse(JSON.stringify(cust));
        this.associated=[];
        this.customer.combinedPoints=this.customer.currentPoints;
        if (this.customer.associatedAccounts) {
-         for (let cust of this.customer.associatedAccounts) {
-           try {
-            let res=await this.http.post('/api/customers/one',{userId:cust});
-             this.customer.combinedPoints+=res.data.currentPoints;
-             this.associated.push(res.data);
-           }
-           catch(err){
-             this.toaster.error('Error','Could not find associate user id '+cust);
-             console.log(err);
-           }
-         }
-         let i=this.customers.map(e=>e.userId).indexOf(this.customer.userId);
-         if (i>-1) this.customers[i].combinedPoints=this.customer.combinedPoints;
+         let fail=false;
+         let promises = this.customer.associatedAccounts.map(ass => {
+          return this.http.post('/api/customers/one', { userId: ass })
+          .then(res => {
+            this.customer.combinedPoints+=res.data.currentPoints;
+            this.associated.push(res.data);
+            return 'success';
+          })
+          .catch(err=>{
+            console.log(err);
+            fail=true;
+            this.toaster.error('Error','Associate User ID ' + ass + ' is not Found!');
+            return null;
+          });
+        });
+        Promise.all(promises).then(results => {
+          if (!fail) {
+            let i=this.customers.map(e=>e.userId).indexOf(this.customer.userId);
+            if (i>-1) this.customers[i].combinedPoints=this.customer.combinedPoints;
+          }
+        }).catch(err=>{console.log(err)})
        }
        
       if (this.chosenView==='Manage Members') {
