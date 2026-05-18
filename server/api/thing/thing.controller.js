@@ -12,7 +12,7 @@
 import FormData from "form-data";
 import Mailgun from "mailgun.js";
 const axios = require("axios");
-import {Thing,User} from '../../sqldb';
+import {Thing,User,Transaction,Customer} from '../../sqldb';
 import localEnv from '../../config/local.env';
 let bearer='';
 let client = require('twilio')(
@@ -31,6 +31,9 @@ const mailOptions = {
   subject: 'Bering Air Gold Points',
   html: 'This is an automatically generated email, please do not reply to this address<br><br>'
 };
+let welcomeHtml="Congratulations! <br><br>You have just created a Bering Air Gold Points Membership!<br><br>";
+welcomeHtml+="Please head over to gp.beringair.com to complete your sign in and access your account data. Your username is the same email address there that you used when you signed up for the Gold Points Membership.  Your temporary password is shown at the bottom of this email.  Once signed in, you will be able to see any future Gold Points transactions that are attached to this account.  Please let us know if you have any questions or difficulties. <br><br>Thank you for flying with Bering Air!";
+    
 
 function respondWithResult(res, statusCode) {
   statusCode = statusCode || 200;
@@ -136,26 +139,38 @@ export function destroy(req, res) {
 }
 
 export async function welcomeEmail(req,res){
-  if (!req.body.to) return res.status(500).json('No User Email!');
+  if (!req.body.to) {
+    if (res) return res.status(500).json('No User Email!');
+    return 'No User Email!';
+  }
   //find the user by the email provided, and lookup tempPassword
+  let user={};
+  let html=welcomeHtml;
   try { 
-    let user=await User.findOne({where:{email:req.body.to}});
-    req.body.html+="<br><br>Your temporary password is: " + user.tempPassword;
+    user=await User.findOne({where:{email:req.body.to}});
+    html+="<br><br>Your temporary password is: " + user.tempPassword;
   }
   catch(err) {
-    return res.status(500).json('User Email not found');
+    if (res) return res.status(500).json('User Email not found');
+    return 'User Email not found';
+  }
+  if (req.body.skipIfNull&&!user.tempPassword) {
+    if (res) return res.status(500).json('User does not have tempPassword');
+    return 'User does not have tempPassword';
   }
   //... The rest of the email you want to send
   let options=JSON.parse(JSON.stringify(mailOptions));
-  options.html+= req.body.html;
+  options.html+= html;
   options.to=req.body.to;
   //Here is where the email gets sent
   try {
     const info = await mg.messages.create(localEnv.MAILGUN_DOMAIN,options);
-    return res.status(200).json(info);
+    if (res) return res.status(200).json(info);
+    return info;
   } catch (error) {
     console.log(error);
-    return res.status(500).json('Failed to Send Email');
+    if (res) return res.status(500).json('Failed to Send Email');
+    return 'Failed to Send Email';
   }
 }
 
@@ -295,4 +310,38 @@ export async function email(req,res){
     console.log(error);
     return res.status(500).json('Failed to Send Email');
   }
+}
+
+export async function massEmail(req,res){
+  let transactions=[];
+  let users=[];
+  try {
+    transactions=await Transaction.findAll({ raw: true });
+  }
+  catch(err){
+    console.log(err);
+    return res.status(500).json('Failed to find all transactions');
+  }
+  transactions=transactions.filter(t=>t.awardRedeem!=='beginning');
+  users=transactions.map(e=>e.userId);
+  users=[...new Set(users)];
+  for (const user of users){
+    let customer={};
+    try {
+      customer=await Customer.findOne({
+        where:{userId:user},
+        raw:true
+      });
+    }
+    catch(err){
+      console.log('Didn`t find User ID ' + user);
+    }
+    try {
+      await welcomeEmail({to:customer.email,skipIfNull:true});
+    }
+    catch(err){
+      console.log('Couldn`t send welcome email for ID ' + user);
+    }
+  }
+  res.send(200).json('Sent as many as possible!');
 }

@@ -239,6 +239,12 @@
     assignPre(transaction){
       transaction=transaction||this.transaction;
       transaction.points=transaction.points*1;
+      //update description
+      if (!transaction.description) transaction.description='';
+      if (transaction.dateFlown||transaction.booking||transaction.route||transaction.flight) {
+        transaction.description+=transaction.dateFlown+ ' '+transaction.booking+' '+transaction.route+' '+transaction.flight+' Agent ID: '+transaction.lastUpdatedBy;
+      }
+      //send it
       if (transaction.awardRedeem==='award') {
         this.assign(transaction);
         return;
