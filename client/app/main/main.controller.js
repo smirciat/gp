@@ -478,7 +478,11 @@
         return;
       }
       // eslint-disable-next-line no-undef
-      navigator.clipboard.writeText(str).then(()=>{this.toaster.success('Success','Copied ' + str + ' to your clipboard')});
+      navigator.clipboard.writeText(str).then(()=>{
+        this.timeout(()=>{
+          this.toaster.success('Success','Copied ' + str + ' to your clipboard');
+        },0);
+      });
     }
     
     backToHub(){
