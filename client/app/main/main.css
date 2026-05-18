@@ -61,3 +61,25 @@
 textarea {
   text-align: center;
 }
+.points-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+}
+.grid-parent {
+    display: grid;
+    place-items:center;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 8px;
+    width:60%;
+}
+.grid-parent3 {
+    display: grid;
+    place-items:center;
+    grid-template-columns: 2fr 2fr 3fr;
+    grid-template-rows: repeat(2, 1fr);
+    gap: 8px;
+    width:60%;
+}
