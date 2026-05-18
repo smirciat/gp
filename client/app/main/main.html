@@ -147,10 +147,9 @@
         <thead><tr style="background-color:black;">
           <th style="color:white;font-weight:bold">Select</th>
           <th style="color:white;font-weight:bold">Account</th>
-          <th style="color:white;font-weight:bold">User ID</th>
-          <th style="color:white;font-weight:bold">Username</th>
+          <th style="color:white;font-weight:bold;min-width:9em;">User ID</th>
           <th style="color:white;font-weight:bold">Full Name</th>
-          <th style="color:white;font-weight:bold">Date of Birth</th>
+          <th style="color:white;font-weight:bold">DOB</th>
           <th style="color:white;font-weight:bold">Email</th>
           <th style="color:white;font-weight:bold">Phone</th>
           <th style="color:white;font-weight:bold">Points</th>
@@ -162,13 +161,16 @@
         <tbody><tr ng-repeat="cust in main.customers" ng-class="main.suspensionClass(cust)">
           <td>&nbsp&nbsp<input type="checkbox" style="transform:scale(3);margin:10px;" ng-model="cust.selected" ng-click="main.select(cust)"></td>
           <td ng-click="main.altSelect(cust,'account')"><a href="#">{{cust.account}}</a></td>
-          <td ng-click="main.altSelect(cust,'userId')">{{cust.userId}}</td>
-          <td ng-click="main.altSelect(cust)">{{cust.userName}}</td>
+          <td ng-click="main.altSelect(cust,'userId')">
+            <span style="vertical-align:top;">{{cust.userId}}&nbsp</span>
+            <a style="display:inline-block;vertical-align:top;"><span class="fa-solid fa-copy fa-2x" uib-tooltip="Copy to Clipboard" 
+                tooltip-placement="bottom" style="vertical-align:top;" ng-click="main.copyToClipboard(cust.userId)"></span></a>
+          </td>
           <td ng-click="main.altSelect(cust)">{{cust.fullName}}</td>
           <td ng-click="main.altSelect(cust)">{{cust.dob}}</td>
           <td ng-click="main.altSelect(cust)">{{cust.email}}</td>
           <td ng-click="main.altSelect(cust)">{{cust.phone}}</td>
-          <td ng-click="main.altSelect(cust)">{{cust.currentPoints}}</td>
+          <td ng-click="main.altSelect(cust)">{{cust.currentPoints}}<span ng-if="cust.combinedPoints">&nbsp({{cust.combinedPoints}})</span></td>
           <td ng-if="main.hasRole('user')"><a ng-click="main.sendWelcomeEmail(cust.email)">
             <span class="fa-solid fa-envelope fa-2x" uib-tooltip="Send Welcome Email" tooltip-placement="bottom"></span></a>
           </td>
@@ -237,6 +239,9 @@
         <button class="btn btn-secondary" ng-click="main.changePrimary()"
             uib-tooltip="To change the person who is the primary on this membership, select from the list below then click this button.">
             Click to Change Primary</button>
+      </div>
+      <div class="single-centered" ng-if="main.associated.length>0">
+        Associates are: &nbsp<span ng-repeat="ass in main.associated">{{ass.fullName}}&nbsp({{ass.currentPoints}}&nbsp points),&nbsp</span>
       </div>
     </div>
     <div ng-if="main.customer.gpType==='Associate'" class="single-centered">

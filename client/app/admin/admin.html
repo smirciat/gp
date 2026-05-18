@@ -4,7 +4,7 @@
       <label>Filter Results by Role</label>
       <ui-select class="adminselect" ng-model="admin.role.selected" theme="selectize" ng-disabled="disabled" ng-change="admin.filterResults()">
         <ui-select-match placeholder="Choose a Role">{{$select.selected}}</ui-select-match>
-        <ui-select-choices repeat="role in admin.roles" >
+        <ui-select-choices repeat="role in admin.roles track by $index" >
           <div ng-bind-html="role | highlight: $select.search"></div>
         </ui-select-choices>
       </ui-select>
@@ -13,7 +13,7 @@
       <label>Users sorted by:</label>
       <ui-select class="adminselect" ng-model="admin.sort.selected" theme="selectize" ng-disabled="disabled" ng-change="admin.newSort()">
         <ui-select-match placeholder="Choose a Sort Order">{{$select.selected}}</ui-select-match>
-        <ui-select-choices repeat="sort in admin.sortBy" >
+        <ui-select-choices repeat="sort in admin.sortBy track by $index" >
           <div ng-bind-html="sort | highlight: $select.search"></div>
         </ui-select-choices>
       </ui-select>

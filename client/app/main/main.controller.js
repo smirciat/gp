@@ -347,7 +347,7 @@
     reset(user){
       this.http.post('/api/users/query',user).then(res=>{
         this.http.post('/api/users/reset',res.data).then(res=>{
-          this.toaster.success('Success','Password reset to default');
+          this.toaster.success('Success','Password reset to `test`');
         })
         .catch(err=>{
           console.log(err);
@@ -369,21 +369,27 @@
       this.select(cust);
     }
     
-    select(cust){
+    async select(cust){
        this.selectedAssociate=undefined;
        this.customer=JSON.parse(JSON.stringify(cust));
        this.associated=[];
        this.customer.combinedPoints=this.customer.currentPoints;
        if (this.customer.associatedAccounts) {
-         this.customer.associatedAccounts.forEach(cust=>{
-           this.http.post('/api/customers/one',{userId:cust}).then(res=>{
+         for (let cust of this.customer.associatedAccounts) {
+           try {
+            let res=await this.http.post('/api/customers/one',{userId:cust});
              this.customer.combinedPoints+=res.data.currentPoints;
              this.associated.push(res.data);
-           })
-           .catch(err=>{console.log(err)});
-         });
-         this.timeout(()=>{console.log(this.associated)},2000);
+           }
+           catch(err){
+             this.toaster.error('Error','Could not find associate user id '+cust);
+             console.log(err);
+           }
+         }
+         let i=this.customers.map(e=>e.userId).indexOf(this.customer.userId);
+         if (i>-1) this.customers[i].combinedPoints=this.customer.combinedPoints;
        }
+       
       if (this.chosenView==='Manage Members') {
          //if (!cust.selected) return;
          let queryUsers=[];
@@ -449,6 +455,16 @@
             
         }).catch(err=>{console.log(err)});
       }
+    }
+    
+    copyToClipboard(str){
+      // eslint-disable-next-line no-undef
+      if (!navigator.clipboard) {
+        this.toaster.error('Error','Could not copy to clipboard, use CTRL-C instead');
+        return;
+      }
+      // eslint-disable-next-line no-undef
+      navigator.clipboard.writeText(str).then(()=>{this.toaster.success('Success','Copied ' + str + ' to your clipboard')});
     }
     
     backToHub(){
