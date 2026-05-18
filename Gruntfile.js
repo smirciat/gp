@@ -763,4 +763,10 @@ module.exports = function(grunt) {
     'test',
     'build'
   ]);
+  
+  process.on('SIGINT', function() {
+    // Custom cleanup logic here
+    console.log("Shutting down gracefully...");
+    process.exit();
+  });
 };

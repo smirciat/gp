@@ -38,5 +38,21 @@ sqldb.sequelize.sync()
     console.log('Server failed to start due to error: %s', err);
   });
   
+// Listen for termination signals
+process.on('SIGTERM', () => {
+  console.log('SIGTERM signal received: closing HTTP server');
+  server.close(() => {
+    console.log('HTTP server closed');
+    // Close DB connections here if needed
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT (Ctrl+C) received');
+  process.exit(0);
+});  
+
+  
 // Expose app
 exports = module.exports = app;
