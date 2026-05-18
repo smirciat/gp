@@ -395,7 +395,7 @@
             let i=this.customers.map(e=>e.userId).indexOf(this.customer.userId);
             if (i>-1) this.customers[i].combinedPoints=this.customer.combinedPoints;
           }
-        }).catch(err=>{console.log(err)})
+        }).catch(err=>{console.log(err)});
        }
        
       if (this.chosenView==='Manage Members') {
@@ -435,7 +435,7 @@
         this.transaction={status:'Approved',awardRedeem:'award',points:0};
         return;
       }
-      this.timeout(()=>{cust.selected=undefined},5000);
+      this.timeout(()=>{cust.selected=undefined},1000);
       this.transaction.account=cust.account;
       this.transaction.userId=cust.userId;
     }
