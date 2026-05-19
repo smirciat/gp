@@ -11,6 +11,7 @@
 
 import FormData from "form-data";
 import Mailgun from "mailgun.js";
+const crypto = require('crypto');
 const axios = require("axios");
 import {Thing,User,Transaction,Customer} from '../../sqldb';
 import localEnv from '../../config/local.env';
@@ -33,7 +34,7 @@ const mailOptions = {
 };
 let welcomeHtml="Congratulations! <br><br>You have just created a Bering Air Gold Points Membership!<br><br>";
 welcomeHtml+="Please head over to gp.beringair.com to complete your sign in and access your account data. Your username is the same email address there that you used when you signed up for the Gold Points Membership.  Your temporary password is shown at the bottom of this email.  Once signed in, you will be able to see any future Gold Points transactions that are attached to this account.  Please let us know if you have any questions or difficulties. <br><br>Thank you for flying with Bering Air!";
-    
+let randomNumbers=[{userId:'',randomNumber:null}];
 
 function respondWithResult(res, statusCode) {
   statusCode = statusCode || 200;
@@ -138,6 +139,55 @@ export function destroy(req, res) {
     .catch(handleError(res));
 }
 
+export async function email(req,res){
+  //... The rest of the email you want to send
+  let options=JSON.parse(JSON.stringify(mailOptions));
+  options.html+= req.body.html;
+  options.to=req.body.to;
+  //Here is where the email gets sent
+  try {
+    const info = await mg.messages.create(localEnv.MAILGUN_DOMAIN,options);
+    return res.status(200).json(info);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json('Failed to Send Email');
+  }
+}
+
+export async function massEmail(req,res){
+  let transactions=[];
+  let users=[];
+  try {
+    transactions=await Transaction.findAll({ raw: true });
+  }
+  catch(err){
+    console.log(err);
+    return res.status(500).json('Failed to find all transactions');
+  }
+  transactions=transactions.filter(t=>t.awardRedeem!=='beginning');
+  users=transactions.map(e=>e.userId);
+  users=[...new Set(users)];
+  for (const user of users){
+    let customer={};
+    try {
+      customer=await Customer.findOne({
+        where:{userId:user},
+        raw:true
+      });
+    }
+    catch(err){
+      console.log('Didn`t find User ID ' + user);
+    }
+    try {
+      await welcomeEmail({to:customer.email,skipIfNull:true});
+    }
+    catch(err){
+      console.log('Couldn`t send welcome email for ID ' + user);
+    }
+  }
+  res.send(200).json('Sent as many as possible!');
+}
+
 export async function welcomeEmail(req,res){
   if (!req.body.to) {
     if (res) return res.status(500).json('No User Email!');
@@ -174,6 +224,45 @@ export async function welcomeEmail(req,res){
   }
 }
 
+export async function verify(req,res) {
+  if (!req.body.customer||!req.body.randomNumber) {
+    return res.status(500).json('No customer or randomNumber included with req');
+  }
+  const index=randomNumbers.map(e=>e.userId).indexOf(req.body.customer.userId);
+  if (index>-1) {
+    if (req.body.randomNumber*1===randomNumbers[index].randomNumber*1) {
+      randomNumbers.splice(index,1);
+      return res.status(200).json('Verification Passed');
+    }
+    else {
+      return res.status(500).json('Verification Failed');
+    }
+    
+  }
+  else return res.status(500).json('No random number available for this customer');
+}
+
+export async function twoFA(req,res) {
+  if (!req.body.customer) {
+    return res.status(500).json('No customer included with req');
+  }
+  const randomNumber = crypto.randomInt(100000, 1000000);
+  const msg="NOREPLY: Bering Air Gold Points Authentication token is " + randomNumber + " Enter it in the browser to confirm your transfer.";
+  //remove duplicates
+  randomNumbers = [...new Map(randomNumbers.map(item => [item.userId, item])).values()];
+  const index=randomNumbers.map(e=>e.userId).indexOf(req.body.customer.userId);
+  if (index>-1) randomNumbers[index]={userId:req.body.customer.userId,randomNumber:randomNumber};
+  else randomNumbers.push({userId:req.body.customer.userId,randomNumber:randomNumber});
+  try {
+    await sms({body:{to:req.body.customer.phone,body:msg}});
+    res.status(200).json('Success');
+  }
+  catch(err){
+    console.log(err);
+    return res.status(500).json('SMS message failed to send');
+  }
+}
+
 export async function sms(req,res){
   var params = {
     from: localEnv.TWILIO_PHONE_NUMBER,
@@ -185,12 +274,14 @@ export async function sms(req,res){
   .create(params)
   .then(message => {
     console.log('Twilio message sent successfully');
-    return res.sendStatus(200);
+    if (res) return res.sendStatus(200);
+    return;
   })
   .catch((error) => {
     // You can implement your fallback code here
     console.log(error);
-    return res.status(500);
+    if (res) return res.status(500);
+    return;
   });
 }
 
@@ -297,51 +388,3 @@ export async function getManifest(req,res){
   }
 }
 
-export async function email(req,res){
-  //... The rest of the email you want to send
-  let options=JSON.parse(JSON.stringify(mailOptions));
-  options.html+= req.body.html;
-  options.to=req.body.to;
-  //Here is where the email gets sent
-  try {
-    const info = await mg.messages.create(localEnv.MAILGUN_DOMAIN,options);
-    return res.status(200).json(info);
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json('Failed to Send Email');
-  }
-}
-
-export async function massEmail(req,res){
-  let transactions=[];
-  let users=[];
-  try {
-    transactions=await Transaction.findAll({ raw: true });
-  }
-  catch(err){
-    console.log(err);
-    return res.status(500).json('Failed to find all transactions');
-  }
-  transactions=transactions.filter(t=>t.awardRedeem!=='beginning');
-  users=transactions.map(e=>e.userId);
-  users=[...new Set(users)];
-  for (const user of users){
-    let customer={};
-    try {
-      customer=await Customer.findOne({
-        where:{userId:user},
-        raw:true
-      });
-    }
-    catch(err){
-      console.log('Didn`t find User ID ' + user);
-    }
-    try {
-      await welcomeEmail({to:customer.email,skipIfNull:true});
-    }
-    catch(err){
-      console.log('Couldn`t send welcome email for ID ' + user);
-    }
-  }
-  res.send(200).json('Sent as many as possible!');
-}

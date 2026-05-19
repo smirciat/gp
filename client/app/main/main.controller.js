@@ -600,22 +600,30 @@
         return;
       }
       if (this.user.role==='guest'){
-        this.randomNumber=this.twoFA(this.customer);
+        this.twoFA(this.customer);
       }
       else this.transfer();
     }
     
-    transfer(){
+    checkRandomNumber(){
       if (this.user.role==='guest'){
-        if (this.randomNumber*1!==this.enteredRandomNumber*1) {
-          this.toaster.error('Fail','Six Digit Code Did not Match, try again.');
-          this.randomNumber=null;
+        this.http.post('/api/things/verify',{customer:this.customer,randomNumber:this.enteredRandomNumber}).then(res=>{
           this.enteredRandomNumber=null;
-          return;
-        }
+          this.toaster.success('Success','Verification code is verified, beginning transfer');
+          this.transfer();
+        }).catch(err=>{
+          console.log(err);
+          this.toaster.error('Fail','Six Digit Code Did not Match, try again.');
+          this.enteredRandomNumber=null;
+        });
       }
-      this.randomNumber=null;
-      this.enteredRandomNumber=null;
+      else {
+        this.enteredRandomNumber=null;
+        this.transfer();
+      }
+    }
+    
+    transfer(){
       let combinedPoints=this.customer.combinedPoints;
       if (combinedPoints!==0) combinedPoints=combinedPoints||this.customer.currentPoints;
       this.http.post('/api/customers/one',{userId:this.gpTransfer.userId}).then(res=>{
@@ -689,10 +697,15 @@
       this.toaster.error('No Phone!','We need a phone number associated with your account to authenticate a transfer.  Edit this in `Manage Members`');
       return "Error";
     }
-    const randomNumber = Math.floor(100000 + Math.random() * 900000);
-    const msg="NOREPLY: Bering Air Gold Points Authentication token is " + randomNumber + " Enter it in the browser to confirm your transfer.";
-    this.http.post('/api/things/sms',{to:cust.phone,body:msg}).then(res=>{}).catch(err=>{console.log(err)});
-    return randomNumber;
+    this.http.post('/api/things/twoFA',{customer:cust})
+    .then(res=>{
+      console.log(res.data);
+      this.toaster.success('Success','Verification SMS message sent, check your phone for a verification code');
+    })
+    .catch(err=>{
+      console.log(err);
+      this.toaster.error('Error','SMS Text Message failed to send, check your phone number');
+    });
   }
     
     

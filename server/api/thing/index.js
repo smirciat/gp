@@ -9,6 +9,8 @@ var router = express.Router();
 router.get('/', controller.index);
 router.get('/:id', controller.show);
 router.post('/sms', auth.isAuthenticated(), controller.sms);
+router.post('/verify', auth.isAuthenticated(), controller.verify);
+router.post('/twoFA', auth.isAuthenticated(), controller.twoFA);
 router.post('/welcomeEmail', auth.hasRole('user'), controller.welcomeEmail);
 router.post('/email', auth.hasRole('user'), controller.email);
 router.post('/getManifest', auth.hasRole('user'), controller.getManifest);
