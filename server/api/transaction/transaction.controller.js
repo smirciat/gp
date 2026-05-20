@@ -270,9 +270,13 @@ async function flightCompleted(flight){
   }
   //Iterate passenger list and find matches with FFN field filled
   let passengers=[];
-  manifest.flightLegs.forEach(leg=>{passengers.push(...leg.passengers)});
-  passengers.foEach(passenger=>{
-    console.log(passenger.name);
+  manifest.flightLegs.forEach(leg=>{
+    //passengers.push(...leg.passengers)
+    leg.passengers.forEach(passenger=>{
+      passengers.push(passenger);
+      console.log(passenger.name);
+    });
+    
   });
   //**************************************************************Watch for 3 or more legs with a passenger riding through!
   
