@@ -713,6 +713,7 @@
             
           });
         }
+        this.timeout(()=>{window.location.reload()},20*250);
       }).catch(err=>{console.log(err)});
     }
     
