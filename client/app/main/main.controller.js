@@ -350,11 +350,11 @@
           this.http.post('/api/customers/one',{userId:customer.userId})
             .then(res=>{
               customer=res.data;
-              let index=this.customers.map(e=>e.userId).indexOf(customer.userId);
-              if (index>-1) this.customers[index]=customer;
+              //let index=this.customers.map(e=>e.userId).indexOf(customer.userId);
+              //if (index>-1) this.customers[index]=customer;
               //email receipt
               let awardRedeem="awarded";
-              if (transaction.awardRedeem==="redeem") awardRedeem="withdrawn from";
+              if (transaction.awardRedeem==="redeem") awardRedeem="debited";
               let html="You have a new transaction related to your Bering Air Gold Points Membership User ID# " + customer.userId + ".<br>";
               html+="We have " + awardRedeem + " you " + transaction.points + " points for an updated balance of " + customer.currentPoints + ".<br>";
               html+="If you have any questions, please contact Bering Air.";
