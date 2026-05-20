@@ -259,7 +259,7 @@
       //update description
       if (!transaction.description) transaction.description='';
       if (transaction.dateFlown||transaction.booking||transaction.route||transaction.flight) {
-        transaction.description+=transaction.dateFlown+ ' '+transaction.booking+' '+transaction.route+' '+transaction.flight+' Agent ID: '+this.user._id;
+        transaction.description+='=>' +transaction.dateFlown+ ' '+transaction.booking+' '+transaction.route+' '+transaction.flight+' Agent ID: '+this.user._id;
       }
       //send it
       if (transaction.awardRedeem==='award') {
@@ -541,8 +541,18 @@
       if (index===6){
         this.http.get('/api/transactions').then(res=>{
           this.manyTransactions=res.data;
+          this.offset=0;
         }).catch(err=>{console.log(err)});
       }
+    }
+    
+    nextGroup(){
+      this.offset++;
+      this.manyTransactions=[];
+      this.http.post('/api/transactions/many',{offset:this.offset}).then(res=>{
+        this.manyTransactions=res.data;
+        
+      }).catch(err=>{console.log(err)});
     }
     
     testView(view,otherView){
@@ -710,10 +720,8 @@
             assAwardTransaction.description=assTransaction.description;
             this.timeout(()=>{this.assign(assAwardTransaction);},x*250);
             x++;
-            
           });
         }
-        this.timeout(()=>{window.location.reload()},20*250);
       }).catch(err=>{console.log(err)});
     }
     

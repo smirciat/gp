@@ -388,6 +388,10 @@
   </div>
   <!--All Transactions-->
   <div style="margin-left:10%;margin-right:10%;" ng-if="main.testView('All Transactions')&&main.hasRole('user')">
+      <div class="single-centered">
+        <h5>Transactions {{main.offset*1000+1}} through {{main.offset*1000+1000}}</h5>&nbsp
+        <button class="btn btn-primary" style="display:inline-block" ng-click="main.nextGroup()">Next 1000 Transactions</button>
+      </div>
       <table class="table table-bordered table-striped">
         <thead><tr style="background-color:black;">
           <td style="color:white;font-weight:bold">Tran ID</td>
@@ -412,5 +416,8 @@
             <span class="fa fa-trash fa-2x" uib-tooltip="Delete Transaction"></span></a></td>
         </tr></tbody>
       </table>
+      <div class="single-centered">
+        <button class="btn btn-primary" ng-click="main.nextGroup()">Next 1000 Transactions</button>
+      </div>
   </div>
 </div>

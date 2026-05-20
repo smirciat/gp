@@ -77,9 +77,12 @@ export function query(req, res) {
 
 // Gets a list of Transactions
 export function index(req, res) {
+  let offset=0;
+  if (req.body&&req.body.offset) offset=req.body.offset;
   return Transaction.findAll({
     order: [['_id', 'DESC']],
-    limit:3000
+    limit:1000,
+    offset:offset*1000
   })
     .then(respondWithResult(res))
     .catch(handleError(res));
