@@ -475,7 +475,8 @@
     deleteTransaction(tran,index,all){
       if (confirm('Are you sure you want to delete this transaction?')){
         this.http.delete('/api/transactions/'+tran._id).then(res=>{
-          if (all) this.allTransactions.splice(index,1);
+          if (all==='all') this.allTransactions.splice(index,1);
+          else if (all==='many') this.manyTransactions.splice(index,1);
           else this.customerTransactions.splice(index,1);
           this.http.post('/api/customers/one',{userId:tran.userId}).then(res=>{
             if (!res.data||!res.data.userId) return;

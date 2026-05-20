@@ -408,7 +408,7 @@
           <td>{{tran.description}}</td>
           <td>{{tran.status}}</td>
           <td>{{tran.lastUpdatedBy}}</td>
-          <td ng-if="main.hasRole('superadmin')"><a ng-click="main.deleteTransaction(tran,$index,'all')" class="trash">
+          <td ng-if="main.hasRole('superadmin')"><a ng-click="main.deleteTransaction(tran,$index,'many')" class="trash">
             <span class="fa fa-trash fa-2x" uib-tooltip="Delete Transaction"></span></a></td>
         </tr></tbody>
       </table>
