@@ -504,6 +504,10 @@
     }
     
     backToHub(){
+      if (this.user.role==='guest') {
+        window.location.reload();
+        return;
+      }
       this.transaction={status:'Approved',awardRedeem:'award',points:0};
       this.query={};
       this.newMember={gpType:'Primary',associates:[{},{},{},{}]};
