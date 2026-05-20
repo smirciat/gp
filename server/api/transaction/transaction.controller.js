@@ -224,6 +224,7 @@ export function webhooks(req,res) {
       case 'Takeflite.Operations.AircraftControl.FlightCompleted':
         console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Takeflite.Operations.AircraftControl.FlightCompleted');
         console.log(flight);
+        flightCompleted(flight);
         break;
         
       default:
@@ -236,4 +237,16 @@ export function webhooks(req,res) {
     console.error('Webhook processing failed:', err);
     res.status(500).send();
   }
+}
+
+async function flightCompleted(flight){
+  //test if flight has previously been completed by querying Flight
+  
+  //if Flight instance does not exist, make a new one, otherwise stop right here
+  
+  //Grab corresponding getManifest
+  
+  //Iterate passenger list and find matches with FFN field filled
+  
+  //try to match FFN with Customer record, if match generate new transaction
 }

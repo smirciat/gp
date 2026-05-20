@@ -208,7 +208,7 @@
           }
         }).catch(err=>{
           console.log(err);
-          
+          if (err.status===404) window.location.reload();
         });
           
       })
@@ -367,8 +367,11 @@
           this.http.post('/api/customers/one',{userId:customer.userId})
             .then(res=>{
               customer=res.data;
-              //let index=this.customers.map(e=>e.userId).indexOf(customer.userId);
-              //if (index>-1) this.customers[index]=customer;
+              if (this.user.role==='guest') this.customer=customer;
+              else {
+                let index=this.customers.map(e=>e.userId).indexOf(customer.userId);
+                if (index>-1) this.customers[index]=customer;
+              }
               //email receipt
               let awardRedeem="awarded";
               if (transaction.awardRedeem==="redeem") awardRedeem="debited";
