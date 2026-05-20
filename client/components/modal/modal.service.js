@@ -31,6 +31,46 @@ angular.module('goldPointsApp')
          * @param  {Function} del - callback, ran when delete is confirmed
          * @return {Function}     - the function to open the modal (ex. myModalFn)
          */
+        transaction: function(cb) {
+          cb = cb || angular.noop;
+          return function() {
+            var args = Array.prototype.slice.call(arguments),
+               transaction = args.shift(),
+                quickModal;
+
+            quickModal = openModal({
+              modal: {
+                dismissable: true,
+                transactionModal:true,
+                transaction: transaction,
+                title: 'Edit Transaction',
+                buttons: [ {
+                  classes: 'btn-success',
+                  text: 'OK',
+                  click: function(event) {
+                    quickModal.close(event);
+                  }
+                }, {
+                  classes: 'btn-danger',
+                  text: 'Cancel',
+                  click: function(event) {
+                    quickModal.dismiss(event);
+                  }
+                }]
+              }
+            }, 'modal-success');
+
+            quickModal.result.then(function(event) {
+              document.documentElement.style.setProperty('--modal-dialog-width', '505%');
+              cb.apply(event, [{transaction:transaction}]); //this is where all callback is actually called
+            }).catch(err=>{
+              console.log(err);
+              document.documentElement.style.setProperty('--modal-dialog-width', '505%');
+            });
+          };
+        } ,
+        
+        
         delete(del = angular.noop) {
           /**
            * Open a delete confirmation modal

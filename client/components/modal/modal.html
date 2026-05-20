@@ -5,6 +5,44 @@
 <div class="modal-body">
   <p ng-if="modal.text" ng-bind="modal.text"></p>
   <div ng-if="modal.html" ng-bind-html="modal.html"></div>
+  <div ng-if="modal.transactionModal">
+    <div class="single-centered">
+      <div style="background-color:#ffffcc;width:70%;margin:50px 0 50px 0;padding:25px 0 25px 0;border:4px solid black;">
+        <div class="grid-parent3">
+          <div>Account</div>
+          <div>ID</div>
+          <div>Points</div>
+          <div><textarea rows="1" ng-model="modal.transaction.account"></textarea></div>
+          <div><textarea rows="1" ng-model="modal.transaction.userId"></textarea></div>
+          <div class="points-row">
+            <span><ui-select ng-model="modal.transaction.awardRedeem" theme="selectize">
+              <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
+              <ui-select-choices repeat="choice in ['award','redeem']" >
+                <div ng-bind-html="choice | highlight: $select.search"></div>
+              </ui-select-choices>
+            </ui-select></span>&nbsp&nbsp&nbsp&nbsp
+            <span><textarea rows="1" ng-model="modal.transaction.points" class="short-textarea"ng-focus="modal.transaction.points=''"></textarea></span>
+          </div>
+        </div>
+        <br>
+        <div class="grid-parent">
+          <div>Date Flown</div>
+          <div>Booking&#35</div>
+          <div>Route</div>
+          <div>Flight&#35</div>
+          <div><textarea rows="1" ng-model="modal.transaction.dateFlown"></textarea></div>
+          <div><textarea rows="1" ng-model="modal.transaction.booking"></textarea></div>
+          <div><textarea rows="1" ng-model="modal.transaction.route"></textarea></div>
+          <div><textarea rows="1" ng-model="modal.transaction.flight"></textarea></div>
+        </div>
+        <br>
+        <div class="single-centered">
+          <strong>Description &nbsp</strong>
+          <textarea rows="3" ng-model="modal.transaction.description" class="long-textarea"></textarea>&nbsp
+        </div>
+      </div>
+    </div>  
+  </div>
 </div>
 <div class="modal-footer">
   <button ng-repeat="button in modal.buttons" ng-class="button.classes" ng-click="button.click($event)" ng-bind="button.text" class="btn"></button>

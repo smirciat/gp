@@ -4,7 +4,7 @@
 
   class MainController {
 
-    constructor($http, $scope, socket,Auth,User,$timeout,toaster) {
+    constructor($http, $scope, socket,Auth,User,$timeout,toaster,Modal) {
       this.isLoggedIn=Auth.isLoggedIn;
       this.hasRole=Auth.hasRole;
       this.isAdmin=Auth.isAdmin;
@@ -13,6 +13,7 @@
       this.socket = socket;
       this.timeout=$timeout;
       this.toaster=toaster;
+      this.Modal=Modal;
       this.query={};
       this.gpTransfer={};
       this.newMember={gpType:'Primary',associates:[{},{},{},{}]};
@@ -42,6 +43,19 @@
       this.http.post('/api/things/getManifest',{date:'5/11/2026',flightNum:'850'}).then(res=>{
         console.log(res.data);
       }).catch(err=>{console.log(err)});
+      this.transactionModal=this.Modal.confirm.transaction(response=>{
+        console.log(response);
+        if (!response.transaction.description) response.transaction.description='';
+        if (response.transaction.description.length<=5&&(response.transaction.dateFlown||response.transaction.booking||response.transaction.route||response.transaction.flight)) {
+          response.transaction.description+='=>' +response.transaction.dateFlown+ ' '+response.transaction.booking+' '+response.transaction.route+' '+response.transaction.flight+' Agent ID: '+this.user._id;
+        }
+        this.http.patch('/api/transactions/'+response.transaction._id,response.transaction).then(res=>{
+          this.editableTransaction=res.data;
+        }).catch(err=>{
+          console.log(err);
+        });
+        
+      });
     }
     
     handle(event,source) {
@@ -470,6 +484,12 @@
     
     suspensionClass(cust){
       if (cust.suspended) return "suspended";
+    }
+    
+    editTransaction(tran,index,all){
+      document.documentElement.style.setProperty('--modal-dialog-width', '95%');
+      this.editableTransaction=tran;
+      this.transactionModal(tran);
     }
     
     deleteTransaction(tran,index,all){

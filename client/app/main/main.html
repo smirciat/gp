@@ -258,6 +258,7 @@
           <td style="color:white;font-weight:bold">Description</td>
           <td style="color:white;font-weight:bold">Agent ID</td>
           <td style="color:white;font-weight:bold"></td>
+          <td style="color:white;font-weight:bold"></td>
         </tr></thead>
       <tbody><tr ng-repeat="tran in main.customerTransactions track by $index">
         <td>{{tran.userId}}</td>
@@ -266,6 +267,8 @@
         <td>{{tran.points}}</td>
         <td>{{tran.description}}</td>
         <td>{{tran.lastUpdatedBy}}</td>
+        <td ng-if="main.hasRole('superadmin')"><a ng-click="main.editTransaction(tran,$index,'many')">
+            <span class="fa-solid fa-pen-to-square fa-2x" uib-tooltip="Edit Transaction"></span></a></td>
         <td ng-if="main.hasRole('superadmin')"><a ng-click="main.deleteTransaction(tran,$index)" class="trash">
             <span class="fa fa-trash fa-2x" uib-tooltip="Delete Transaction"></span></a></td>
       </tr></tbody>
@@ -402,6 +405,7 @@
           <td style="color:white;font-weight:bold">Desription</td>
           <td style="color:white;font-weight:bold">Agent ID</td>
           <td></td>
+          <td></td>
         </tr></thead>
         <tbody><tr ng-repeat="tran in main.manyTransactions">
           <td>{{tran._id}}</td>
@@ -412,6 +416,8 @@
           <td>{{tran.description}}</td>
           <td>{{tran.status}}</td>
           <td>{{tran.lastUpdatedBy}}</td>
+          <td ng-if="main.hasRole('superadmin')"><a ng-click="main.editTransaction(tran,$index,'many')">
+            <span class="fa-solid fa-pen-to-square fa-2x" uib-tooltip="Edit Transaction"></span></a></td>
           <td ng-if="main.hasRole('superadmin')"><a ng-click="main.deleteTransaction(tran,$index,'many')" class="trash">
             <span class="fa fa-trash fa-2x" uib-tooltip="Delete Transaction"></span></a></td>
         </tr></tbody>
