@@ -202,23 +202,8 @@ export function webhooks(req,res) {
         error: 'Invalid CloudEvent'
       });
     }
-
-    console.log('CloudEvent received');
-    console.log('ID:', event.id);
-    console.log('Type:', event.type);
-    console.log('Source:', event.source);
-    console.log('Tenant:', event.tenantid);
-    console.log('Subject:', event.subject);
-    console.log('Time:', event.time);
-
     // Event payload
     const flight = event.data;
-
-    console.log('Flight ID:', flight.id);
-    console.log('Flight Number:', flight.flightNumber);
-    console.log('Departure:', flight.scheduledDepartureTime);
-    console.log('Arrival:', flight.scheduledArrivalTime);
-
     // Route by event type
     switch (event.type) {
       case 'Takeflite.Operations.AircraftControl.FlightCompleted':
@@ -229,6 +214,7 @@ export function webhooks(req,res) {
         
       default:
         console.log('Unhandled event type:', event.type);
+        break;
     }
 
     res.status(204).send();
@@ -260,22 +246,14 @@ async function flightCompleted(flight){
       },
       raw:true
     });
+    if (flightArray.length>0) return;
   }
   catch(err){
     console.log(err);
     return;
   }
   //if Flight instance does not exist, make a new one, otherwise stop right here
-  try {
-    if (flightArray.length===0) {
-      newFlight=await Flight.create(f);
-    }
-    else return;
-  }
-  catch(err){
-    console.log(err);
-    return;
-  }
+  
   //Grab corresponding getManifest
   try {
     manifest=await getManifest({
@@ -284,12 +262,29 @@ async function flightCompleted(flight){
         flightNumber:flight.flightNumber
       }
     });
+    manifest=manifest.flight;
   }
   catch(err){
     console.log(err);
     return;
   }
   //Iterate passenger list and find matches with FFN field filled
-  console.log(manifest.flightLegs[0].passwgers);
+  let passengers=[];
+  manifest.flightLegs.forEach(leg=>{passengers.push(...leg.passengers)});
+  passengers.foEach(passenger=>{
+    console.log(passenger.name);
+  });
+  //**************************************************************Watch for 3 or more legs with a passenger riding through!
+  
+  
+  
+  f.flight=manifest;
+  try {
+    newFlight=await Flight.create(f);
+  }
+  catch(err){
+    console.log(err);
+    return;
+  }
   //try to match FFN with Customer record, if match generate new transaction
 }
