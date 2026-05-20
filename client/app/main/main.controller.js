@@ -652,9 +652,9 @@
           this.toaster.error('Error','Need to remove customer suspension first');
           return;
         }
-        if (confirm('Confirm transferring ' + this.gpTransfer.points + ' to ' + res.data.fullName + ' with user ID of ' + this.gpTransfer.userId)) {
-          let i=this.customers.map(e=>e.userId).indexOf(res.data.userId);
-          if (i<0) this.customers.push(res.data);
+        if (confirm('Confirm transferring ' + this.gpTransfer.points + ' points to ' + res.data.fullName + ' with user ID of ' + this.gpTransfer.userId)) {
+          //let i=this.customers.map(e=>e.userId).indexOf(res.data.userId);
+          //if (i<0) this.customers.push(res.data);
           let transaction={userId:this.customer.userId,awardRedeem:'redeem',points:this.gpTransfer.points,
               description:'GP Transfer from '+ this.customer.fullName+', User ID: '  + this.customer.userId +' to ' + res.data.fullName + ', User ID: ' + this.gpTransfer.userId,
               status:'Approved'
@@ -681,7 +681,7 @@
           this.timeout(()=>{this.assign(awardTransaction);},x*250);
           x++;
           this.gpTransfer={};
-          this.customer.combinedPoints=null;
+          this.customer.combinedPoints=this.customer.currentPoints;
           if (pointsLeft<=0) return;
           //go through associate accounts to get the rest
           this.associated.forEach(ass=>{
