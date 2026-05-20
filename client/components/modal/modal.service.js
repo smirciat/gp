@@ -46,7 +46,7 @@ angular.module('goldPointsApp')
                 title: 'Edit Transaction',
                 buttons: [ {
                   classes: 'btn-success',
-                  text: 'OK',
+                  text: 'Save Update',
                   click: function(event) {
                     quickModal.close(event);
                   }

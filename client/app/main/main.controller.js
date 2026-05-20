@@ -194,7 +194,7 @@
         }
         let nm=JSON.parse(JSON.stringify(this.newMember));
         //before we create a new customer, we should check to see if one already existes with the same email
-        this.http.post('/api/customers/query1',{query:{email:nm.email},exact:true}).then(res=>{
+        this.http.post('/api/customers/query',{query:{email:nm.email},exact:true}).then(res=>{
           if (res.data.length===0){
             //no match, good to go
             this.postNewMember(nm);
@@ -206,7 +206,10 @@
             }
             else this.toaster.info('Info','Save cancelled, update and try again, or go back to hub');
           }
-        }).catch(err=>{console.log(err)});
+        }).catch(err=>{
+          console.log(err);
+          
+        });
           
       })
       .catch(err=>{console.log(err)});
@@ -611,7 +614,7 @@
     }
     
     go(){
-      this.http.post('/api/customers/query1',{query:this.query})
+      this.http.post('/api/customers/query',{query:this.query})
         .then(res=>{
           if (this.user.role==='guest'&&res.data.length>0) {
             let found=false;
@@ -637,7 +640,10 @@
           this.end=this.customers.length-1;
           this.queryGo='go';
         })
-        .catch(err=>{console.log(err)});
+        .catch(err=>{
+          console.log(err);
+          if (err.status===404) window.location.reload();
+        });
     }
     
     preTransfer(){
