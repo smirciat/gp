@@ -591,7 +591,7 @@
     }
     
     go(){
-      this.http.post('/api/customers/query',{query:this.query})
+      this.http.post('/api/customers/query1',{query:this.query})
         .then(res=>{
           if (this.user.role==='guest'&&res.data.length>0) {
             let found=false;
