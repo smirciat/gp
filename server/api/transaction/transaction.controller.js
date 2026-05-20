@@ -9,9 +9,9 @@
 
 'use strict';
 
-import _ from 'lodash';
 import localEnv from '../../config/local.env';
-import {Transaction,Customer,sequelize} from '../../sqldb';
+import {Transaction,Customer,Flight,sequelize} from '../../sqldb';
+import { getManifest } from '../thing/thing.controller.js';
 const { Op } = require('sequelize');
 import https from 'https';
 
@@ -240,13 +240,56 @@ export function webhooks(req,res) {
 }
 
 async function flightCompleted(flight){
+  let date = new Date(flight.departureDate);
+  let dateString=date.toLocaleDateString();
+  let newFlight={};
+  let manifest={};
+  let flightArray=[];
+  let f={
+    dateString:dateString,
+    data:date,
+    flight:flight,
+    flightNumber:flight.flightNumber
+  };
   //test if flight has previously been completed by querying Flight
-  
+  try {
+    flightArray = await Flight.findAll({
+      where: {
+        dateString:dateString,
+        flightNumber:flight.flightNumber
+      },
+      raw:true
+    });
+  }
+  catch(err){
+    console.log(err);
+    return;
+  }
   //if Flight instance does not exist, make a new one, otherwise stop right here
-  
+  try {
+    if (flightArray.length===0) {
+      newFlight=await Flight.create(f);
+    }
+    else return;
+  }
+  catch(err){
+    console.log(err);
+    return;
+  }
   //Grab corresponding getManifest
-  
+  try {
+    manifest=await getManifest({
+      body:{
+        date:dateString,
+        flightNumber:flight.flightNumber
+      }
+    });
+  }
+  catch(err){
+    console.log(err);
+    return;
+  }
   //Iterate passenger list and find matches with FFN field filled
-  
+  console.log(manifest.flightLegs[0].passwgers);
   //try to match FFN with Customer record, if match generate new transaction
 }
