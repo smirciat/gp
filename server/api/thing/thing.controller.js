@@ -13,6 +13,7 @@ import FormData from "form-data";
 import Mailgun from "mailgun.js";
 const crypto = require('crypto');
 const axios = require("axios");
+import {createUser} from '../user/user.controller.js';
 import {Thing,User,Transaction,Customer} from '../../sqldb';
 import localEnv from '../../config/local.env';
 let bearer='';
@@ -196,13 +197,33 @@ export async function welcomeEmail(req,res){
   //find the user by the email provided, and lookup tempPassword
   let user={};
   let html=welcomeHtml;
-  try { 
-    user=await User.findOne({where:{email:req.body.to}});
-    html+="<br><br>Your temporary password is: " + user.tempPassword;
+  let attachPassword=true;
+  //if true, this is a new customer and we need to create a User for them
+  if (req.body.customer){
+    attachPassword=false;
+    let customer=req.body.customer;
+    user = {name:customer.fullName,email:customer.email,forcePasswordChange:true};
+    user.password = crypto.randomBytes(5).toString('hex');
+    user.tempPassword=user.password;
+    try {
+      console.log('Creating New User')
+      let resp = await createUser({body:user});
+      console.log(resp);
+      attachPassword=true;
+    }
+    catch(err) {
+      console.log(err);
+    }
   }
-  catch(err) {
-    if (res) return res.status(500).json('User Email not found');
-    return 'User Email not found';
+  if (attachPassword) {
+    try {
+      if (!user.email) user=await User.findOne({where:{email:req.body.to}});
+      if (user.tempPassword) html+="<br><br>Your temporary password is: " + user.tempPassword;
+    }
+    catch(err) {
+      console.log(err);
+      console.log('User Email Not Found');
+    }
   }
   if (req.body.skipIfNull&&!user.tempPassword) {
     if (res) return res.status(500).json('User does not have tempPassword');
@@ -214,6 +235,7 @@ export async function welcomeEmail(req,res){
   options.to=req.body.to;
   //Here is where the email gets sent
   try {
+    console.log(options.html)
     const info = await mg.messages.create(localEnv.MAILGUN_DOMAIN,options);
     if (res) return res.status(200).json(info);
     return info;

@@ -179,47 +179,64 @@
           return;
         }
         let nm=JSON.parse(JSON.stringify(this.newMember));
-        this.http.post('/api/customers',nm).then(res=>{
-          nm=res.data;
-          //send a welcome email
-          if (nm.email) this.sendWelcomeEmail(nm.email);
-          //if (nm.email) this.http.post('/api/things/welcomeEmail',{to:nm.email,html:this.welcomeEmail}).then(res=>{}).catch(err=>{console.log(err)});
-          //set up initial transaction for new Member
-          let transaction=res.data;
-          delete transaction._id;
-          transaction.awardRedeem='award';
-          transaction.description="New GP Member Account Sign Up";
-          transaction.date=new Date();
-          transaction.dateFlown=new Date().toLocaleDateString();
-          transaction.status="Approved";
-          transaction.lastUpdatedBy=this.user._id;
-          this.http.post('/api/transactions',transaction).then(res=>{
-            //navigate to Manage Members with this nm selected
-            nm.selected=true;
-            if (nm.currentPoints!==0) nm.currentPoints=nm.currentPoints||nm.points;
-            this.chosenView="Manage Members";
-            this.select(nm);
-          }).catch(err=>{console.log(err)});
-          if (nm==='Associate'){
-            this.http.post('/api/customers/one',{userId:nm.primaryUserId}).then(res=>{
-              if (!res.data||!res.data.userId) return;
-              let accounts=res.data.associatedAccounts||[];
-              if (!Array.isArray(accounts)) return;
-              if (accounts.indexOf(nm.userId)>-1) return;
-              accounts.push(nm.userId);
-              this.http.patch('/api/customers/'+res.data._id,{associatedAccounts:accounts}).then(res=>{}).catch(err=>{console.log(err)});
-             })
-             .catch(err=>{console.log(err)});
+        //before we create a new customer, we should check to see if one already existes with the same email
+        this.http.post('/api/customers/query',{query:{email:nm.email},exact:true}).then(res=>{
+          if (res.data.length===0){
+            //no match, good to go
+            this.postNewMember(nm);
           }
-          this.newMember={gpType:'Primary',associates:[{},{},{},{}]};
-          this.existing={associates:['','','','']};
+          else {
+            //already exists, do you want to continue?
+            if (confirm('There is already at least one Gold Points Member using that email address.  Continue to create a new Member with this information?')) {
+              this.postNewMember(nm,true);
+            }
+            else this.toaster.info('Info','Save cancelled, update and try again, or go back to hub');
+          }
         }).catch(err=>{console.log(err)});
+          
       })
       .catch(err=>{console.log(err)});
     }
     
-    sendWelcomeEmail(email){
-      this.http.post('/api/things/welcomeEmail',{to:email,html:this.welcomeEmail}).then(res=>{
+    postNewMember(nm,duplicate){
+      this.http.post('/api/customers',nm).then(res=>{
+        nm=res.data;
+        //send a welcome email
+        if (nm.email&&!duplicate) this.sendWelcomeEmail(nm.email,nm);
+        //set up initial transaction for new Member
+        let transaction=res.data;
+        delete transaction._id;
+        transaction.awardRedeem='award';
+        transaction.description="New GP Member Account Sign Up";
+        transaction.date=new Date();
+        transaction.dateFlown=new Date().toLocaleDateString();
+        transaction.status="Approved";
+        transaction.lastUpdatedBy=this.user._id;
+        this.http.post('/api/transactions',transaction).then(res=>{
+          //navigate to Manage Members with this nm selected
+          nm.selected=true;
+          if (nm.currentPoints!==0) nm.currentPoints=nm.currentPoints||nm.points;
+          this.chosenView="Manage Members";
+          this.select(nm);
+        }).catch(err=>{console.log(err)});
+        if (nm==='Associate'){
+          this.http.post('/api/customers/one',{userId:nm.primaryUserId}).then(res=>{
+            if (!res.data||!res.data.userId) return;
+            let accounts=res.data.associatedAccounts||[];
+            if (!Array.isArray(accounts)) return;
+            if (accounts.indexOf(nm.userId)>-1) return;
+            accounts.push(nm.userId);
+            this.http.patch('/api/customers/'+res.data._id,{associatedAccounts:accounts}).then(res=>{}).catch(err=>{console.log(err)});
+           })
+           .catch(err=>{console.log(err)});
+        }
+        this.newMember={gpType:'Primary',associates:[{},{},{},{}]};
+        this.existing={associates:['','','','']};
+      }).catch(err=>{console.log(err)});
+    }
+    
+    sendWelcomeEmail(email,customer){
+      this.http.post('/api/things/welcomeEmail',{to:email,customer:customer}).then(res=>{
         this.toaster.success('Success','Email Sent Successfully');
       }).catch(err=>{
         console.log(err);
@@ -664,6 +681,7 @@
           this.timeout(()=>{this.assign(awardTransaction);},x*250);
           x++;
           this.gpTransfer={};
+          this.customer.combinedPoints=null;
           if (pointsLeft<=0) return;
           //go through associate accounts to get the rest
           this.associated.forEach(ass=>{
@@ -687,6 +705,7 @@
             assAwardTransaction.description=assTransaction.description;
             this.timeout(()=>{this.assign(assAwardTransaction);},x*250);
             x++;
+            
           });
         }
       }).catch(err=>{console.log(err)});
@@ -700,10 +719,12 @@
     this.http.post('/api/things/twoFA',{customer:cust})
     .then(res=>{
       console.log(res.data);
+      this.randomNumber=res.data;
       this.toaster.success('Success','Verification SMS message sent, check your phone for a verification code');
     })
     .catch(err=>{
       console.log(err);
+      this.randomNumber='Error';
       this.toaster.error('Error','SMS Text Message failed to send, check your phone number');
     });
   }

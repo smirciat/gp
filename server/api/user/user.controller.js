@@ -111,23 +111,38 @@ export function index(req, res) {
 /**
  * Creates a new user
  */
-export function create(req, res, next) {
-  if (!req.body.email) return validationError(res);
+export function createUser(req, res, next) {
+  if (!req.body.email) {
+    if (res) return validationError(res);
+    else return 'no email!';
+  }
   req.body.email=req.body.email.toLowerCase();
   var newUser = User.build(req.body);
   newUser.setDataValue('provider', 'local');
   newUser.setDataValue('role', 'guest');
-  return newUser.save()
-    .then(function(user) {
-      var token = jwt.sign({ _id: user._id }, config.secrets.session, {
-        expiresIn: 60 * 60 * 5
+  if (res) {
+    return newUser.save()
+      .then(function(user) {
+        var token = jwt.sign({ _id: user._id }, config.secrets.session, {
+          expiresIn: 60 * 60 * 5
+        });
+        res.json({ token });
+      })
+      .catch(err=>{
+        console.log(err);
+        res.status(500).json(err.name||err);
       });
-      res.json({ token });
-    })
-    .catch(err=>{
-      console.log(err);
-      res.status(500).json(err.name||err);
-    });
+  }
+  else {
+    return newUser.save()
+      .then(user=>{
+        return ('success');
+      })
+      .catch(err=>{
+        console.log(err);
+        return err;
+      });
+  }
 }
 
 /**

@@ -104,7 +104,10 @@ export function query(req, res) {
     }
     else if (q.firstName) newQ.where.fullName={[Op.iLike]:'%'+q.firstName+'%'};
     else if (q.lastName) newQ.where.fullName={[Op.iLike]:'%'+q.lastName+'%'};
-    if (q.email) newQ.where.email={[Op.iLike]:'%'+q.email+'%'};
+    if (q.email) {
+      newQ.where.email={[Op.iLike]:'%'+q.email+'%'};
+      if (req.body.exact) newQ.where.email=q.email;
+    }
     if (q.ca) newQ.where.ca=q.ca;
   }
   return Customer.findAll(newQ)
