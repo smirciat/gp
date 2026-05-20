@@ -77,7 +77,10 @@ export function query(req, res) {
 
 // Gets a list of Transactions
 export function index(req, res) {
-  return Transaction.findAll({order: [['_id', 'DESC']]})
+  return Transaction.findAll({
+    order: [['_id', 'DESC']],
+    limit:3000
+  })
     .then(respondWithResult(res))
     .catch(handleError(res));
 }
