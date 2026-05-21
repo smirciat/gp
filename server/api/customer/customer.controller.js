@@ -180,3 +180,54 @@ export function destroy(req, res) {
     .then(removeEntity(res))
     .catch(handleError(res));
 }
+
+export async function combine(){
+  let customers=await Customer.findAll({raw:true});
+  let accounts = customers.map(e=>e.account);
+  let seenAccounts=[];
+  let commonAccounts = [];
+  accounts.forEach(account=>{
+    if (seenAccounts.indexOf(account)>-1) {
+      commonAccounts.push(account);
+    }
+    seenAccounts.push(account);
+  });
+  for (const account of commonAccounts) {
+    let custs=customers.filter(c=>c.account===account);
+    let primaryExists=false;
+    custs.forEach(cust=>{
+      if (cust.gpType) primaryExists=true;
+    });
+    if (!primaryExists) {
+      let primary = await Customer.findOne({where:{userId:custs[0].userId}});
+      primary.gpType="Primary";
+      primary.associatedAccounts=[];
+      for (let i=1;i<custs.length;i++){
+        let cust = await Customer.findOne({where:{userId:custs[i].userId}});
+        primary.associatedAccounts.push(custs[i].userId);
+        cust.primaryUserId=primary.userId;
+        cust.email=null;
+        console.log('saving ' + cust.userId + ' and '+ cust.account);
+        await cust.save();
+      }
+      console.log('saving ' + primary.userId + ' and '+ primary.account);
+      await primary.save();
+    }
+  }
+}
+
+export async function fixEmail(){
+  let customers=await Customer.findAll({raw:true});
+  customers=customers.filter(cust=>cust.gpType==="Associate");
+  for (let cust of customers) {
+    if (!cust.email){
+      let primary = await Customer.findOne({where:{userId:cust.primaryUserId}})
+      let customer = await Customer.findOne({where:{userId:cust.userId}})
+      if (primary.email) {
+        customer.email=primary.email;
+        console.log('saving ' + customer.userId + ' ' + customer.email)
+        await customer.save(); 
+      }
+    }
+  }
+}

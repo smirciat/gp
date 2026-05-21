@@ -193,7 +193,10 @@
     <div class="single-centered">
       <h3>Details for GP Member</h3>
     </div>
-    <div class="single-centered">
+    <div class="single-centered" ng-if="!main.hasRole('user')">
+      Member Name: &nbsp {{main.customer.fullName}}
+    </div>
+    <div class="single-centered" ng-if="main.hasRole('user')">
       Member Name: &nbsp <textarea rows="1" ng-model="main.customer.fullName"></textarea>
     </div>
     <div class="single-centered">
