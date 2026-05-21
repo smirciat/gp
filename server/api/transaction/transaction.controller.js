@@ -209,6 +209,11 @@ export function webhooks(req,res) {
       case 'Takeflite.Operations.AircraftControl.FlightCompleted':
         console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Takeflite.Operations.AircraftControl.FlightCompleted');
         console.log(flight);
+        //flightCompleted(flight);
+        break;
+        
+      case 'Takeflite.Operations.AircraftControl.FlightStatusChanged':
+        console.log(flight);
         flightCompleted(flight);
         break;
         
@@ -226,23 +231,25 @@ export function webhooks(req,res) {
 }
 
 async function flightCompleted(flight){
-  let date = new Date(flight.departureDate);
+  let date = new Date(flight.scheduledDepartureTime);//departureDate);
   let dateString=date.toLocaleDateString();
   let newFlight={};
   let manifest={};
   let flightArray=[];
+  if (!flight.flightNumber||flight.flightNumber.length<2) return;
+  if (flight.status!=="Completed") return;
   let f={
     dateString:dateString,
     data:date,
     flight:flight,
-    flightNumber:flight.flightNumber
+    flightNumber:flight.flightNumber.split('.')[0]
   };
   //test if flight has previously been completed by querying Flight
   try {
     flightArray = await Flight.findAll({
       where: {
         dateString:dateString,
-        flightNumber:flight.flightNumber
+        flightNumber:f.flightNumber
       },
       raw:true
     });
@@ -253,13 +260,14 @@ async function flightCompleted(flight){
     return;
   }
   //if Flight instance does not exist, make a new one, otherwise stop right here
-  
+  console.log(dateString);
+  console.log(f.flightNumber)
   //Grab corresponding getManifest
   try {
     manifest=await getManifest({
       body:{
         date:dateString,
-        flightNumber:flight.flightNumber
+        flightNum:f.flightNumber
       }
     });
     manifest=manifest.flight;
