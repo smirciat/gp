@@ -65,7 +65,48 @@
           if (source===2) this.go();
           if (source===3) this.assign();
           if (source===4) this.processExisting();
+          if (source===5) this.processAssociate();
       }
+    }
+    
+    processAssociate(){
+      this.http.post('/api/customers/one', { userId: this.changingAssociate }).then(res => {
+        let customer=res.data;
+        if (confirm('Are you sure you want to promote associate member ' + customer.fullName + '?')) {
+          let primaryUserId=customer.primaryUserId;
+          customer.gpType="Primary";
+          customer.associatedAccounts=[];
+          customer.primaryUserId=null;
+          customer.account=Number(new Date().toISOString().split('T')[0].replace(/-/g, ''))+customer.userId;
+          this.http.post('/api/customers/one', { userId: primaryUserId }).then(res => {
+            let primary=res.data;
+            primary.associatedAccounts=primary.associatedAccounts.filter(id=>id!==customer.userId);
+            this.http.patch('/api/customers/'+primary._id, { associatedAccounts: primary.associatedAccounts }).then(res => {
+              this.http.patch('/api/customers/'+customer._id,customer).then(res => {
+                this.customer=undefined;
+                this.changingAssociate=undefined;
+                this.toaster.success('Success','Successfully promoted Member to Primary, and updated ' + primary.fullName + '`s list of Associates');
+              })
+              .catch(err=>{
+                console.log(err);
+              this.toaster.error('Error','Failed to Update, try again');
+              });
+            })
+            .catch(err=>{
+              console.log(err);
+              this.toaster.error('Error','Failed to Update, try again');
+            });
+          })
+            .catch(err=>{
+              console.log(err);
+              this.toaster.error('Error','Can`t find that member`s primary ID');
+            });
+        }
+      })
+      .catch(err=>{
+        console.log(err);
+        this.toaster.error('Error','Can`t find that Member ID');
+      });
     }
     
     processExisting(swap){

@@ -370,6 +370,19 @@
     <div class="single-centered">
       <button class="btn btn-info" ng-click="main.processExisting()">Attach Associate Members</button>
     </div>
+    <hr>
+    <div class="single-centered">
+      <h3>Change Associate Member into a Primary</h3>
+    </div>
+    <div class="single-centered">
+      <strong>Associate Member User Id</strong>
+    </div>
+    <div class="single-centered">
+      <textarea rows="1" ng-model="main.changingAssociate" class="short-textarea" ng-keydown="main.handle($event,5)"></textarea>
+    </div>
+    <div class="single-centered">
+      <button class="btn btn-info" ng-click="main.processAssociate()">Promote Associate Member</button>
+    </div>
   </div>
   <!--List By Points-->
   <div style="margin-left:10%;margin-right:10%;" ng-if="main.testView('List By Points')&&main.hasRole('user')">
