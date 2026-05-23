@@ -38,7 +38,7 @@
     }
     
     reset(user){
-      this.http.post('/api/users/reset',user).then(res=>{alert('Password Reset to `test`')}).catch(err=>{console.log(err)});
+      this.http.post('/api/users/reset',user).then(res=>{alert('Password Reset to temporary')}).catch(err=>{console.log(err)});
     }
 
     delete(user) {

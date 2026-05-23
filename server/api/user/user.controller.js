@@ -2,10 +2,12 @@
 
 import {User,sequelize} from '../../sqldb';
 const { Op } = require('sequelize');
+import { welcomeEmail } from '../thing/thing.controller.js';
 import localEnv from '../../config/local.env.js';
 import passport from 'passport';
 import config from '../../config/environment';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 
 function respondWithResult(res, statusCode) {
   statusCode = statusCode || 200;
@@ -349,22 +351,33 @@ export function query(req,res){
 }
 
 // Resets Password to default for a User
-export function reset(req, res) {
-  let id=0;
-  if (req.body._id) {
-    id=req.body._id;
-    delete req.body._id;
+export async function reset(req, res) {
+  let user = {};
+  let email="";
+  try {
+    user = await User.findOne({
+      where: {
+        _id: req.body._id
+      }
+    });
+    email=user.email;
+    user.password = crypto.randomBytes(5).toString('hex');
+    user.tempPassword=user.password;
+    user.forcePasswordChange=true;
+    await user.save();
+    console.log('User saved with new temp password');
   }
-  req.body.password=localEnv.DEFAULT_PASSWORD;
-  req.body.salt=localEnv.DEFAULT_SALT;
-  req.body.forcePasswordChange=true;
-  return User.findOne({
-    where: {
-      _id: id
-    }
-  })
-    .then(handleEntityNotFound(res))
-    .then(saveUpdates(req.body))
-    .then(respondWithResult(res))
-    .catch(handleError(res));
+  catch(err){
+    console.log(err);
+    return res.status(500).json('Could not find that user id');
+  }
+  try {
+    await welcomeEmail({body:{to:email,skipIfNull:true}});
+    return res.status(200).json('User saved with temp password, and welcome email sent successfully');
+  }
+  catch(err){
+    console.log(err);
+    return res.status(500).json('Failed to send email');
+  }
+
 }

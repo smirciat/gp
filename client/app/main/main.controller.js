@@ -431,7 +431,7 @@
     reset(user){
       this.http.post('/api/users/query',user).then(res=>{
         this.http.post('/api/users/reset',res.data).then(res=>{
-          this.toaster.success('Success','Password reset to `test`');
+          this.toaster.success('Success','Password reset to temporary, email has been sent to provide it.');
         })
         .catch(err=>{
           console.log(err);

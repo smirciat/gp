@@ -35,7 +35,7 @@ const mailOptions = {
 };
 let welcomeHtml="Congratulations! <br><br>You have just created a Bering Air Gold Points Membership!<br><br>";
 welcomeHtml+="Please head over to gp.beringair.com to complete your sign in and access your account data. Your username is the same email address there that you used when you signed up for the Gold Points Membership.  Your temporary password is shown at the bottom of this email.  Once signed in, you will be able to see any future Gold Points transactions that are attached to this account.  Please let us know if you have any questions or difficulties. <br><br>Thank you for flying with Bering Air!";
-welcomeHtml+="<br><br>If this email does not contain a temporary password, you`ll need to contact Bering Air and have us perform a password reset for you.";
+
 let randomNumbers=[{userId:'',randomNumber:null}];
 
 function respondWithResult(res, statusCode) {
@@ -181,7 +181,7 @@ export async function massEmail(req,res){
       console.log('Didn`t find User ID ' + user);
     }
     try {
-      await welcomeEmail({to:customer.email,skipIfNull:true});
+      await welcomeEmail({body:{to:customer.email,skipIfNull:true}});
     }
     catch(err){
       console.log('Couldn`t send welcome email for ID ' + user);
@@ -220,6 +220,7 @@ export async function welcomeEmail(req,res){
     try {
       if (!user.email) user=await User.findOne({where:{email:req.body.to}});
       if (user.tempPassword) html+="<br><br>Your temporary password is: " + user.tempPassword;
+      else html+="<br><br>Your User profile does not contain a temporary password, you`ll need to contact Bering Air and have us perform a password reset for you.";
     }
     catch(err) {
       console.log(err);
