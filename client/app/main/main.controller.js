@@ -304,8 +304,8 @@
     
     combinePoints(){
       if (this.transaction.awardRedeem==='award') {
-        this.transaction.maxPoints='';
-        return;
+        //this.transaction.maxPoints='';
+        //return;
       }
       if (this.customer) this.transaction.maxPoints=this.customer.combinedPoints;
     }
@@ -478,6 +478,7 @@
           if (!fail) {
             let i=this.customers.map(e=>e.userId).indexOf(this.customer.userId);
             if (i>-1) this.customers[i].combinedPoints=this.customer.combinedPoints;
+            this.combinePoints();
           }
         }).catch(err=>{console.log(err)});
        }

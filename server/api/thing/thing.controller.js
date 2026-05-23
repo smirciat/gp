@@ -393,7 +393,6 @@ export async function getManifest(req,res){
   };
   try {
     let response=await axios(config);
-    console.log(response.data);
     if (res) res.status(200).json(response.data);
     else return response.data;
   }

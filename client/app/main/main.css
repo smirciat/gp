@@ -52,6 +52,10 @@
 .short-textarea{
   width:5em;
 }
+.flexible-text{
+  width:100%;
+  min-width:30px;
+}
 .suspended{
   background-color: lightpink;
 }

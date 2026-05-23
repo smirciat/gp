@@ -206,14 +206,10 @@ export function webhooks(req,res) {
     const flight = event.data;
     // Route by event type
     switch (event.type) {
-      case 'Takeflite.Operations.AircraftControl.FlightCompleted':
-        console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Takeflite.Operations.AircraftControl.FlightCompleted');
-        console.log(flight);
-        //flightCompleted(flight);
-        break;
         
       case 'Takeflite.Operations.AircraftControl.FlightStatusChanged':
-        console.log(flight);
+        //console.log(flight);
+        console.log('Event Takeflite.Operations.AircraftControl.FlightStatusChanged has fired');
         flightCompleted(flight);
         break;
         
