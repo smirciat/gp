@@ -53,8 +53,10 @@
   width:5em;
 }
 .flexible-text{
+  max-width: none !important;
   width:100%;
   min-width:30px;
+  box-sizing: border-box;
 }
 .suspended{
   background-color: lightpink;
@@ -86,7 +88,7 @@ textarea {
 .grid-parent {
     display: grid;
     place-items:center;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     grid-template-rows: repeat(2, 1fr);
     gap: 1px 8px;
     width:70%;

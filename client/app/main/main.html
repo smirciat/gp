@@ -81,10 +81,10 @@
           <div>Account</div>
           <div>ID</div>
           <div>Points</div>
-          <div><textarea class="flexible-text" rows="1" ng-model="main.transaction.account" 
-              ng-keydown="main.handle($event,3)"></textarea></div>
-          <div><textarea class="flexible-text" rows="1" ng-model="main.transaction.userId" 
-              ng-keydown="main.handle($event,3)"></textarea></div>
+          <textarea class="flexible-text" rows="1" ng-model="main.transaction.account" 
+              ng-keydown="main.handle($event,3)"></textarea>
+          <textarea class="flexible-text" rows="1" ng-model="main.transaction.userId" 
+              ng-keydown="main.handle($event,3)"></textarea>
           <div class="points-row">
             <span><ui-select ng-model="main.transaction.awardRedeem" theme="selectize"><!-- on-select="main.combinePoints()">-->
               <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
@@ -103,14 +103,14 @@
           <div>Booking&#35</div>
           <div>Route</div>
           <div>Flight&#35</div>
-          <div><textarea class="flexible-text" rows="1" ng-model="main.transaction.dateFlown" 
-              ng-keydown="main.handle($event,3)"></textarea></div>
-          <div><textarea class="flexible-text" rows="1" ng-model="main.transaction.booking" 
-              ng-keydown="main.handle($event,3)"></textarea></div>
-          <div><textarea class="flexible-text" rows="1" ng-model="main.transaction.route" 
-              ng-keydown="main.handle($event,3)"></textarea></div>
-          <div><textarea class="flexible-text" rows="1" ng-model="main.transaction.flight" 
-              ng-keydown="main.handle($event,3)"></textarea></div>
+          <textarea class="flexible-text" rows="1" ng-model="main.transaction.dateFlown" 
+              ng-keydown="main.handle($event,3)"></textarea>
+          <textarea class="flexible-text" rows="1" ng-model="main.transaction.booking" 
+              ng-keydown="main.handle($event,3)"></textarea>
+          <textarea class="flexible-text" rows="1" ng-model="main.transaction.route" 
+              ng-keydown="main.handle($event,3)"></textarea>
+          <textarea class="flexible-text" rows="1" ng-model="main.transaction.flight" 
+              ng-keydown="main.handle($event,3)"></textarea>
         </div>
         <br>
         <div class="single-centered">
