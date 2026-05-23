@@ -1,5 +1,6 @@
 <toaster-container></toaster-container>
-<div ng-if="main.hasRole('guest')">
+<div ng-if="main.hasRole('guest')" class="fill-remaining" style="background-color:#ffffcc;">
+  <br>
   <!--main hub-->
   <div ng-if="!main.chosenView">
     <div class="container">
@@ -75,7 +76,7 @@
   </div>
     <!--Assign Points Area-->
     <div class="single-centered">
-      <div ng-if="main.chosenView==='Assign Points'&&main.hasRole('user')" style="background-color:#ffffcc;width:70%;margin:50px 0 50px 0;padding:25px 0 25px 0;border:4px solid black;">
+      <div ng-if="main.chosenView==='Assign Points'&&main.hasRole('user')" style="background-color:#fff080;width:70%;margin:50px 0 50px 0;padding:25px 0 25px 0;border:4px solid black;">
         
         <div class="grid-parent3">
           <div>Account</div>
