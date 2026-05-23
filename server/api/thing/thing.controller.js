@@ -201,7 +201,7 @@ export async function welcomeEmail(req,res){
   let attachPassword=true;
   //if true, this is a new customer and we need to create a User for them
   if (req.body.customer){
-    attachPassword=false;
+    //attachPassword=false;
     let customer=req.body.customer;
     user = {name:customer.fullName,email:customer.email,forcePasswordChange:true};
     user.password = crypto.randomBytes(5).toString('hex');

@@ -640,7 +640,7 @@
         if (index>-1) {
           if (!this.customers[index].email&&this.customer.email){
             //new email entered, send them one!
-            this.sendWelcomeEmail(this.customer.email);
+            this.sendWelcomeEmail(this.customer.email,this.customer);
           }
           this.customers[index]=res.data;
         }
