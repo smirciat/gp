@@ -56,8 +56,10 @@
         }
         this.http.patch('/api/transactions/'+response.transaction._id,response.transaction).then(res=>{
           this.editableTransaction=res.data;
+          this.toaster.success('Error','Successfully edited transaction');
         }).catch(err=>{
           console.log(err);
+          this.toaster.error('Error','Failed to edit transaction');
         });
         
       });
@@ -262,10 +264,14 @@
         }).catch(err=>{
           console.log(err);
           if (err.status===404) window.location.reload();
+          else this.toaster.error('Error','Query to find similar users failed, new member not created');
         });
           
       })
-      .catch(err=>{console.log(err)});
+      .catch(err=>{
+        console.log(err);
+        this.toaster.error('Error','Failed to get a list of user id`s, new member not created');
+      });
     }
     
     postNewMember(nm,duplicate){
@@ -296,13 +302,24 @@
             if (!Array.isArray(accounts)) return;
             if (accounts.indexOf(nm.userId)>-1) return;
             accounts.push(nm.userId);
-            this.http.patch('/api/customers/'+res.data._id,{associatedAccounts:accounts}).then(res=>{}).catch(err=>{console.log(err)});
+            this.http.patch('/api/customers/'+res.data._id,{associatedAccounts:accounts}).then(res=>{
+              this.toaster.success('Success','Successfully updated new member`s primary to include it');
+            }).catch(err=>{
+              console.log(err);
+              this.toaster.error('Error','Failed to update Primary Member');
+            });
            })
-           .catch(err=>{console.log(err)});
+           .catch(err=>{
+             console.log(err);
+             this.toaster.error('Error','Failed to find User ID');
+           });
         }
         this.newMember={gpType:'Primary',associates:[{},{},{},{}]};
         this.existing={associates:['','','','']};
-      }).catch(err=>{console.log(err)});
+      }).catch(err=>{
+        console.log(err);
+        this.toaster.error('Error','Failed to create new member');
+      });
     }
     
     sendWelcomeEmail(email,customer){
@@ -391,7 +408,10 @@
           this.timeout(()=>{this.assign(assTransaction);},x*250);
           x++;
         });
-      }).catch(err=>{console.log(err)});
+      }).catch(err=>{
+        console.log(err);
+        this.toaster.error('Error','Failed to retrieve Customer');
+      });
     }
     
     assign(transaction,associatedIndex){
@@ -417,7 +437,7 @@
         else if (transaction.dateFlown.split('/').length<2) transaction.dateFlown=transaction.date.toLocaleDateString();
         transaction.lastUpdatedBy=this.user._id;
         this.http.post('/api/transactions/new',transaction).then(res=>{
-            
+          //refresh customer after new transaction may have updated it  
           this.http.post('/api/customers/one',{userId:customer.userId})
             .then(res=>{
               customer=res.data;
@@ -438,13 +458,25 @@
               let html="You have a new transaction related to your Bering Air Gold Points Membership User ID# " + customer.userId + ".<br>";
               html+="We have " + awardRedeem + " you " + transaction.points + " points for an updated balance of " + customer.currentPoints + ".<br>";
               html+="If you have any questions, please contact Bering Air.";
-              if (customer.email) this.http.post('/api/things/email',{to:customer.email,html:html}).then(res=>{}).catch(err=>{console.log(err)});
+              if (customer.email) this.http.post('/api/things/email',{to:customer.email,html:html}).then(res=>{}).catch(err=>{
+                console.log(err);
+                this.toaster.info('Error','Confirmation Email failed to send, but Transaction went through OK');
+              });
             })
-            .catch(err=>{console.log(err)});
+            .catch(err=>{
+              console.log(err);
+              this.toaster.error('Error','Customer point total may be inaccurate, please check.');
+            });
             
           this.transaction={status:'Approved',awardRedeem:'award',points:0};
-        }).catch(err=>{console.log(err)});
-      }).catch(err=>{console.log(err)});
+        }).catch(err=>{
+          console.log(err)
+          this.toaster.error('Error','Failed to create new transaction.  Customer point total may be inaccurate, please check.');
+        });
+      }).catch(err=>{
+        console.log(err)
+        this.toaster.error('Error','Can`t find user id for the primary member');
+      });
     }
     
     reset(user){
@@ -531,7 +563,10 @@
            this.queryGo=null;
            this.showTransactions=true;
          })
-          .catch(err=>{console.log(err)});
+          .catch(err=>{
+            console.log(err);
+            this.toaster.error('Error','Search Query Failed');
+          });
          return; 
       }
       this.toaster.pop('info','Member Selected!','Check to see that Account and Member ID have been filled with this Member`s information!');
@@ -546,7 +581,10 @@
     
     suspendMember(cust){
       cust.suspended=!cust.suspended;
-      this.http.patch('/api/customers/'+cust._id,{suspended:cust.suspended}).then(res=>{}).catch(err=>{console.log(err)});
+      this.http.patch('/api/customers/'+cust._id,{suspended:cust.suspended}).then(res=>{
+        if (cust.suspended) this.toaster.warning('Warning','Customer has been suspended');
+        else this.toaster.warning('Warning','Customer has been restored to active status');
+      }).catch(err=>{console.log(err)});
     }
     
     suspensionClass(cust){
@@ -569,10 +607,20 @@
             if (!res.data||!res.data.userId) return;
             if (tran.awardRedeem==="award") res.data.currentPoints-=tran.points;
             else res.data.currentPoints+=tran.points;
-            this.http.patch('/api/customers/'+res.data._id,{currentPoints:res.data.currentPoints}).then(res=>{}).catch(err=>{console.log(err)});
-          }).catch(err=>{console.log(err)});
+            this.http.patch('/api/customers/'+res.data._id,{currentPoints:res.data.currentPoints}).then(res=>{
+              this.toaster.success('Success','Deleted transaction and updated customer point total accordingly');
+            }).catch(err=>{
+              console.log(err)});
+              this.toaster.error('Error','Failed to update customer point total after deletion');
+          }).catch(err=>{
+            console.log(err);
+            this.toaster.error('Error','Failed to find customer after deletion so point total is not updated');
+          });
             
-        }).catch(err=>{console.log(err)});
+        }).catch(err=>{
+          console.log(err);
+          this.toaster.error('Error','Failed to delete transaction');
+        });
       }
     }
     

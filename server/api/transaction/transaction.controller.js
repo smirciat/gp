@@ -109,30 +109,40 @@ export function create(req, res) {
 
 // Creates a new Transaction in the DB and increments the customer points in accordance
 export async function newTransaction(req, res) {
-  if (!req.body||!req.body.userId) return res.status(500).json('Can`t create transaction');
+  if (!req.body||!req.body.userId) {
+    if (res) return res.status(500).json('Can`t create transaction');
+    return 'Can`t create transaction';
+  }
   let transaction;
   try {
     transaction = await Transaction.create(req.body);
   }
   catch(err){
     console.log(err);
-    return res.status(500).json('Sequelize Error while creating transaction');
+    if (res) return res.status(500).json('Sequelize Error while creating transaction');
+    return 'Sequelize Error while creating transaction';
   }
   let increment = req.body.points; //negative increment for redeem
   let string='COALESCE("currentPoints",0) - ' + increment;
   if (req.body.awardRedeem==='award') string='COALESCE("currentPoints",0) + ' + increment;
-  return Customer.update(
-    {
-      lastTransaction : transaction._id,
-      currentPoints : sequelize.literal(string)
-    },
+  try {
+    await Customer.update(
       {
-        where:{userId:req.body.userId}
-      }
-    )
-    .then(respondWithResult(res, 201))
-    .catch(handleError(res));
-  
+        lastTransaction : transaction._id,
+        currentPoints : sequelize.literal(string)
+      },
+        {
+          where:{userId:req.body.userId}
+        }
+    );
+    if (res) return res.status(200).json('New Transaction Successful');
+    return 'New Transaction Successful';
+  }
+  catch(err){
+    console.log(err);
+    if (res) return res.status(500).json('Sequelize Error while updating customer');
+    return 'Sequelize Error while updating customer';
+  }
 }
 
 // Updates an existing Transaction in the DB
@@ -229,7 +239,6 @@ export function webhooks(req,res) {
 async function flightCompleted(flight){
   let date = new Date(flight.scheduledDepartureTime);//departureDate);
   let dateString=date.toLocaleDateString();
-  let newFlight={};
   let manifest={};
   let flightArray=[];
   if (!flight.flightNumber||flight.flightNumber.length<2) return;
@@ -279,19 +288,21 @@ async function flightCompleted(flight){
     leg.passengers.forEach(passenger=>{
       //**************************************************************Watch for 3 or more legs with a passenger riding through!
       if (passenger.boardPoint.name!==origin) return;
+      
+      console.log(passenger.name);
+      passenger.description = dateString + ' ' + passenger.bookingNumber + ' ' + passenger.boardPoint.name + '-' + passenger.offPoint.name;
+      passenger.description += ' ' + f.flightNumber + ' Assigned after Takeflite Webhook';
       passengers.push(passenger);
       //try to match FFN with Customer record, if match generate new transaction
-      console.log(passenger.name);
+      
+      //await gold point transaction here
     });
     manifest.passengers=passengers;
   });
   
-  
-  
-  
   f.flight=manifest;
   try {
-    newFlight=await Flight.create(f);
+    await Flight.create(f);
   }
   catch(err){
     console.log(err);
