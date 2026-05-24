@@ -275,14 +275,17 @@ async function flightCompleted(flight){
   //Iterate passenger list and find matches with FFN field filled
   let passengers=[];
   manifest.flightLegs.forEach(leg=>{
-    //passengers.push(...leg.passengers)
+    let origin = leg.origin.name;
     leg.passengers.forEach(passenger=>{
+      //**************************************************************Watch for 3 or more legs with a passenger riding through!
+      if (passenger.boardPoint.name!==origin) return;
       passengers.push(passenger);
+      //try to match FFN with Customer record, if match generate new transaction
       console.log(passenger.name);
     });
-    
+    manifest.passengers=passengers;
   });
-  //**************************************************************Watch for 3 or more legs with a passenger riding through!
+  
   
   
   
@@ -294,5 +297,5 @@ async function flightCompleted(flight){
     console.log(err);
     return;
   }
-  //try to match FFN with Customer record, if match generate new transaction
+  
 }

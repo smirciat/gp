@@ -45,7 +45,7 @@
         this.transferComplete=false;
       });
       //this.http.post('/api/things/ssm').then(res=>{console.log(res)}).catch(err=>{console.log(err)})
-      this.http.post('/api/things/getManifest',{date:'5/11/2026',flightNum:'850'}).then(res=>{
+      this.http.post('/api/things/getManifest',{date:'5/23/2026',flightNum:'860'}).then(res=>{
         console.log(res.data);
       }).catch(err=>{console.log(err)});
       this.transactionModal=this.Modal.confirm.transaction(response=>{
