@@ -291,10 +291,18 @@
       <div class="single-centered">
         <h3>Transfer Gold Points</h3>
       </div>
-      <div class="single-centered">
-        <button class="btn btn-primary" ng-click="main.preTransfer()">Transfer</button>&nbsp
-        (up to {{main.customer.combinedPoints}})&nbsp <textarea rows="1" ng-model="main.gpTransfer.points"></textarea>&nbsp
-        To User ID: &nbsp <textarea rows="1" ng-model="main.gpTransfer.userId"></textarea>&nbsp
+      <div class="grid-parent3">
+        <div>Transfer (from User ID: {{main.customer.userId}}) these Points:</div>
+        <div>To User ID: (verify with recipient)</div>
+        <div></div>
+        <div class="points-row">
+          (up to {{main.customer.combinedPoints}})&nbsp 
+          <textarea rows="1" ng-model="main.gpTransfer.points"
+              ng-disabled="main.randomNumberDisabler()"></textarea>
+        </div>
+        <textarea class="flexible-text" rows="1" ng-model="main.gpTransfer.userId"
+            ng-disabled="main.randomNumberDisabler()"></textarea>
+        <button class="btn btn-primary" style="justify-self: start; margin-left:2em;" ng-click="main.preTransfer()">Begin Transfer</button>
       </div>
       <div ng-if="main.randomNumber&&main.randomNumber!=='Error'">
         <div class="single-centered">
@@ -350,13 +358,14 @@
           class="short-textarea" ng-keydown="main.handle($event,1)"></textarea>&nbsp&nbsp&nbsp
       <span ng-if="main.newMember.gpType==='Associate'">Primary Member's ID</span>
     </div>
-    <div class="single-centered" ng-if="main.newMember.gpType==='Primary'">
+    <br>
+    <!--<div class="single-centered" ng-if="main.newMember.gpType==='Primary'">
       Associate Members (First and Last Name)
     </div>
     <div class="single-centered" ng-if="main.newMember.gpType==='Primary'" ng-repeat="ass in main.newMember.associates track by $index">
       <textarea rows="1" ng-model="ass.firstName" ng-keydown="main.handle($event,1)"></textarea>&nbsp
       <textarea rows="1" ng-model="ass.lastName" ng-keydown="main.handle($event,1)"></textarea>&nbsp
-    </div>
+    </div>-->
     <div class="single-centered">
       <button class="btn btn-info" ng-click="main.createNewMember()">Create New GP Member</button>
     </div>

@@ -10,6 +10,7 @@
       this.isAdmin=Auth.isAdmin;
       this.User=User;
       this.http = $http;
+      this.scope=$scope;
       this.socket = socket;
       this.timeout=$timeout;
       this.toaster=toaster;
@@ -38,6 +39,10 @@
           this.queryGo='go';
           this.go();
         }
+      });
+      this.scope.$watch('main.transferComplete',(newVal,oldVal)=>{
+        if (newVal===true&&this.user&&this.user.role==='guest') window.location.reload();
+        this.transferComplete=false;
       });
       //this.http.post('/api/things/ssm').then(res=>{console.log(res)}).catch(err=>{console.log(err)})
       this.http.post('/api/things/getManifest',{date:'5/11/2026',flightNum:'850'}).then(res=>{
@@ -114,20 +119,17 @@
       //up to 5 userId s find each one if the exist and update: primaryUserId for associate, associate array for primary
       if (!this.existing.primary||(!this.existing.associates[0]&&!this.existing.associates[1]&&!this.existing.associates[2]&&!this.existing.associates[3])) return;
       //if not swapping within an existing group, don't add current primary members as associates
-      let fail=false;
-      if (!swap){
-        this.existing.associates.forEach(ass=>{
-          if (ass.gpType==="Primary") fail=true;
-        });
-        if (fail){
-          this.toaster.error('Error','One of those associate User ID`s may belong to a primary member');
-          return;
-        }
-      }
+      let primaryFail=false;
+      let associateFail=false;
+      let fail = false;
       //primary
       this.http.post('/api/customers/one', { userId: this.existing.primary }).then(res => {
         if (!res.data || !res.data.userId) return;
         let primary = JSON.parse(JSON.stringify(res.data));
+        if (!swap&&(primary.gpType==="Associate"||primary.primaryUserId)){
+          this.toaster.error('Error','Suggested Primary is already someone`s associate, promote them to Primary first');
+          return;
+        }
         primary.associatedAccounts = primary.associatedAccounts || [];
         associates.forEach(ass => {
           primary.associatedAccounts.push(ass);
@@ -135,7 +137,6 @@
           primary.associatedAccounts = [...new Set(primary.associatedAccounts.filter(str => str !== ""))];
         });
         console.log(primary.associatedAccounts);
-        let fail = false;
         // create array of promises
         let promises = primary.associatedAccounts.map(ass => {
           return this.http.post('/api/customers/one', { userId: ass })
@@ -153,6 +154,9 @@
           let names = [];
           results.forEach(result => {
               if (!result) return;
+              if (result.data.gpType==="Primary") primaryFail=true;
+              if (Array.isArray(result.data.associatedAccounts)&&result.data.associatedAccounts.length>0) primaryFail=true;
+              if (result.data.primaryUserId) associateFail=true;
               if (result.error) {
                 fail=true;
                 return;
@@ -161,6 +165,14 @@
               names.push('"' + result.data.fullName + '"');
           });
           let str = names.join(', & ');
+          if (primaryFail&&!swap){
+            this.toaster.error('Error','One or more of the accounts you are trying to add as an associate may be a primary');
+            return;
+          }
+          if (associateFail&&!swap){
+            this.toaster.error('Error','One or more of the accounts you are trying to add as an associate already has a primary member');
+            return;
+          }
           if (!fail) {
             this.finalizeExisting(primary,associates,assObjects,str);
           }
@@ -181,10 +193,10 @@
           this.http.patch('/api/customers/'+primary._id,{gpType:"Primary",associatedAccounts:primary.associatedAccounts,primaryUserId:''}).then(res=>{
             this.existing={associates:['','','','']};
             //find each associate and update them
-            assObjects.forEach(obj=>{
+            assObjects.forEach((obj,index)=>{
               if (!obj||!obj.userId) return;
               this.http.patch('/api/customers/'+obj._id,{gpType:"Associate",primaryUserId:primary.userId,associatedAccounts:[]}).then(res=>{
-                
+                if (index>=assObjects.length-1) this.toaster.success('Success','Primary and Associate memers updated successfully');
               }).catch(err=>{
                 this.toaster.error('Error','Failed to Update Associate Customer #' + obj.userId);
                 console.log(err);
@@ -360,6 +372,7 @@
         this.assign(transaction);
         
         let x=1;
+        if (Array.isArray(this.associated)&&this.associated.length===0) this.transferComplete=true;
         if (pointsLeft<=0) return;
         //go through associate accounts to get the rest
         this.associated.forEach(ass=>{
@@ -381,7 +394,7 @@
       }).catch(err=>{console.log(err)});
     }
     
-    assign(transaction){
+    assign(transaction,associatedIndex){
       transaction=transaction||this.transaction;
       transaction.points=transaction.points*1;
       if (!Number.isInteger(transaction.points)||!transaction.userId||transaction.points<1) {
@@ -408,7 +421,13 @@
           this.http.post('/api/customers/one',{userId:customer.userId})
             .then(res=>{
               customer=res.data;
-              if (this.user.role==='guest') this.customer=customer;
+              if (this.user.role==='guest') {
+                this.customer=customer;
+                //check if it is the end of a transfer, if so reload
+                if (Array.isArray(this.associated)&&associatedIndex>=this.associated.length-1) {
+                  this.timeout(()=>{this.transferComplete=true},2000);
+                }
+              }
               else {
                 let index=this.customers.map(e=>e.userId).indexOf(customer.userId);
                 if (index>-1) this.customers[index]=customer;
@@ -692,6 +711,10 @@
     }
     
     preTransfer(){
+      if (!this.gpTransfer.points||!this.gpTransfer.userId) {
+        this.toaster.error('Error','Please enter the number of points to be transferred and a user ID to transfer to');
+        return;
+      }
       let combinedPoints=this.customer.combinedPoints;
       if (combinedPoints!==0) combinedPoints=combinedPoints||this.customer.currentPoints;
       if (this.gpTransfer.points>combinedPoints) {
@@ -727,6 +750,7 @@
     }
     
     transfer(){
+      this.transferComplete=false;
       let combinedPoints=this.customer.combinedPoints;
       if (combinedPoints!==0) combinedPoints=combinedPoints||this.customer.currentPoints;
       this.http.post('/api/customers/one',{userId:this.gpTransfer.userId}).then(res=>{
@@ -764,13 +788,15 @@
           this.assign(transaction);
           
           let x=1;
-          this.timeout(()=>{this.assign(awardTransaction);},x*250);
+          this.timeout(()=>{this.assign(awardTransaction,0);},x*250);
           x++;
           this.gpTransfer={};
           this.customer.combinedPoints=this.customer.currentPoints;
-          if (pointsLeft<=0) return;
+          if (pointsLeft<=0) {
+            return;
+          }
           //go through associate accounts to get the rest
-          this.associated.forEach(ass=>{
+          this.associated.forEach((ass,index)=>{
             if (pointsLeft<=0) return;
             if (ass.currentPoints<=0) return;
             let assTransaction=JSON.parse(JSON.stringify(transaction));
@@ -789,12 +815,16 @@
             let assAwardTransaction=JSON.parse(JSON.stringify(awardTransaction));
             assAwardTransaction.points=assTransaction.points;
             assAwardTransaction.description=assTransaction.description;
-            this.timeout(()=>{this.assign(assAwardTransaction);},x*250);
+            this.timeout(()=>{this.assign(assAwardTransaction,index);},x*250);
             x++;
           });
         }
       }).catch(err=>{console.log(err)});
     }
+    
+  randomNumberDisabler(){
+    if (this.randomNumber) return true;
+  }
     
   twoFA(cust){
     if (!cust||!cust.phone) {
