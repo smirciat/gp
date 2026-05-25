@@ -297,8 +297,8 @@
         <div></div>
         <div class="points-row">
           (up to {{main.customer.combinedPoints}})&nbsp 
-          <textarea rows="1" ng-model="main.gpTransfer.points"
-              ng-disabled="main.randomNumberDisabler()"></textarea>
+          <textarea rows="1" ng-model="main.gpTransfer.points" placeholder="Points to transfer (up to {{main.customer.combinedPoints}})"
+              ng-disabled="main.randomNumberDisabler()" style="width:20em;"></textarea>
         </div>
         <textarea class="flexible-text" rows="1" ng-model="main.gpTransfer.userId"
             ng-disabled="main.randomNumberDisabler()"></textarea>
