@@ -155,14 +155,13 @@
           let assObjects = [];
           let names = [];
           results.forEach(result => {
-              if (!result) return;
-              if (result.data.gpType==="Primary") primaryFail=true;
-              if (Array.isArray(result.data.associatedAccounts)&&result.data.associatedAccounts.length>0) primaryFail=true;
-              if (result.data.primaryUserId) associateFail=true;
-              if (result.error) {
+              if (!result||result.error) {
                 fail=true;
                 return;
               }
+              if (result.data.gpType==="Primary") primaryFail=true;
+              if (Array.isArray(result.data.associatedAccounts)&&result.data.associatedAccounts.length>0) primaryFail=true;
+              if (result.data.primaryUserId&&result.data.primaryUserId!==primary.userId) associateFail=true;
               assObjects.push(result.data);
               names.push('"' + result.data.fullName + '"');
           });
@@ -249,7 +248,7 @@
         }
         let nm=JSON.parse(JSON.stringify(this.newMember));
         //before we create a new customer, we should check to see if one already existes with the same email
-        this.http.post('/api/customers/query1',{query:{email:nm.email},exact:true}).then(res=>{
+        this.http.post('/api/customers/query',{query:{email:nm.email},exact:true}).then(res=>{
           if (res.data.length===0){
             //no match, good to go
             this.postNewMember(nm);
@@ -726,7 +725,7 @@
     }
     
     go(){
-      this.http.post('/api/customers/query1',{query:this.query})
+      this.http.post('/api/customers/query',{query:this.query})
         .then(res=>{
           if (this.user.role==='guest'&&res.data.length>0) {
             let found=false;
