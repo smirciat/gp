@@ -338,7 +338,9 @@ export async function setBearer(){
       "name": localEnv.WEBHOOK_HANDLER,
       "url": localEnv.WEBHOOK_URL,
       "events": [
-        "Takeflite.Operations.AircraftControl.FlightStatusChanged"//or "*"
+        "Takeflite.Operations.AircraftControl.FlightStatusChanged",
+        //"Takeflite.Reservations.FlightCancelled", 
+        //"Takeflite.Scheduling.ScheduleChanged"//or "*"
       ],
       "deliveryAttributeMapping": [
         {

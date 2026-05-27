@@ -295,11 +295,8 @@
         <div>Transfer (from User ID: {{main.customer.userId}}) these Points:</div>
         <div>To User ID: (verify with recipient)</div>
         <div></div>
-        <div class="points-row">
-          (up to {{main.customer.combinedPoints}})&nbsp 
-          <textarea rows="1" ng-model="main.gpTransfer.points" placeholder="Points to transfer (up to {{main.customer.combinedPoints}})"
-              ng-disabled="main.randomNumberDisabler()" style="width:20em;"></textarea>
-        </div>
+        <textarea rows="1" ng-model="main.gpTransfer.points" placeholder="Points to transfer (up to {{main.customer.combinedPoints}})"
+            ng-disabled="main.randomNumberDisabler()" style="width:20em;"></textarea>
         <textarea class="flexible-text" rows="1" ng-model="main.gpTransfer.userId"
             ng-disabled="main.randomNumberDisabler()"></textarea>
         <button class="btn btn-primary" style="justify-self: start; margin-left:2em;" ng-click="main.preTransfer()">Begin Transfer</button>
