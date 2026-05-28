@@ -159,7 +159,7 @@
                 fail=true;
                 return;
               }
-              if (result.data.gpType==="Primary") primaryFail=true;
+              //if (result.data.gpType==="Primary") primaryFail=true;
               if (Array.isArray(result.data.associatedAccounts)&&result.data.associatedAccounts.length>0) primaryFail=true;
               if (result.data.primaryUserId&&result.data.primaryUserId!==primary.userId) associateFail=true;
               assObjects.push(result.data);
