@@ -278,7 +278,7 @@
         <td>{{tran.points}}</td>
         <td>{{tran.description}}</td>
         <td>{{tran.lastUpdatedBy}}</td>
-        <td ng-if="main.hasRole('superadmin')"><a ng-click="main.editTransaction(tran,$index,'many')">
+        <td ng-if="main.hasRole('user')"><a ng-click="main.editTransaction(tran,$index,'many')">
             <span class="fa-solid fa-pen-to-square fa-2x" uib-tooltip="Edit Transaction"></span></a></td>
         <td ng-if="main.hasRole('superadmin')"><a ng-click="main.deleteTransaction(tran,$index)" class="trash">
             <span class="fa fa-trash fa-2x" uib-tooltip="Delete Transaction"></span></a></td>
@@ -397,6 +397,21 @@
     <div class="single-centered">
       <button class="btn btn-info" ng-click="main.processAssociate()">Promote Associate Member</button>
     </div>
+    <div ng-if="main.hasRole('superadmin')">
+      <hr>
+      <div class="single-centered">
+        <h3>Delete a User ID Entirely</h3>
+      </div>
+      <div class="single-centered">
+        <strong>Member User Id to Destroy</strong>
+      </div>
+      <div class="single-centered">
+        <textarea rows="1" ng-model="main.deletingMember" class="short-textarea"></textarea>
+      </div>
+      <div class="single-centered">
+        <button class="btn btn-danger" ng-click="main.deleteMember()">Delete Member</button>
+      </div>
+    </div>
   </div>
   <!--List By Points-->
   <div style="margin-left:10%;margin-right:10%;" ng-if="main.testView('List By Points')&&main.hasRole('user')">
@@ -445,7 +460,7 @@
           <td>{{tran.points}}</td>
           <td>{{tran.description}}</td>
           <td>{{tran.lastUpdatedBy}}</td>
-          <td ng-if="main.hasRole('superadmin')"><a ng-click="main.editTransaction(tran,$index,'many')">
+          <td ng-if="main.hasRole('user')"><a ng-click="main.editTransaction(tran,$index,'many')">
             <span class="fa-solid fa-pen-to-square fa-2x" uib-tooltip="Edit Transaction"></span></a></td>
           <td ng-if="main.hasRole('superadmin')"><a ng-click="main.deleteTransaction(tran,$index,'many')" class="trash">
             <span class="fa fa-trash fa-2x" uib-tooltip="Delete Transaction"></span></a></td>

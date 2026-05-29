@@ -116,6 +116,22 @@
       });
     }
     
+    deleteMember(){
+      this.http.post('/api/customers/one', { userId: this.deletingMember }).then(res => {
+        if (confirm('Are you sure you want to delete ' + res.data.fullName + '?')) {
+          this.http.delete('/api/customers/'+res.data._id).then(res => {
+            this.toaster.success('Success','Successfully deleted ' + this.deletingMember);
+          }).catch(err=>{
+            console.log(err);
+            this.toaster.error('Error','Failed to delete ' + this.deletingMember);
+          });
+        }
+      }).catch(err=>{
+        console.log(err);
+        this.toaster.error('Error','Failed to find ' + this.deletingMember + ' in the database');
+      });
+    }
+    
     processExisting(swap){
       let associates=JSON.parse(JSON.stringify(this.existing.associates));
       //up to 5 userId s find each one if the exist and update: primaryUserId for associate, associate array for primary
