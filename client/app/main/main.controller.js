@@ -45,7 +45,7 @@
         this.transferComplete=false;
       });
       //this.http.post('/api/things/ssm').then(res=>{console.log(res)}).catch(err=>{console.log(err)})
-      this.http.post('/api/things/getManifest',{date:'5/23/2026',flightNum:'860'}).then(res=>{
+      this.http.post('/api/things/getManifest',{date:'6/4/2026',flightNum:'644'}).then(res=>{
         console.log(res.data);
       }).catch(err=>{console.log(err)});
       this.transactionModal=this.Modal.confirm.transaction(response=>{
@@ -506,6 +506,13 @@
       }).catch(err=>{
         console.log(err);
         this.toaster.error('Error','No user created with an email that matches this member`s email!');
+        //create new user matching that email
+        this.http.post('/api/users',{email:user.email,name:user.fullName}).then(res=>{
+          this.toaster.success('Success','New User Created, try to reset password again');
+        }).catch(err=>{
+          console.log(err);
+          this.toaster.error('Error','Unable to create an new user with an email that matches this member`s email!');
+        });
       });
     }
     

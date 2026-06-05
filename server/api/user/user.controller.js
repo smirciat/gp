@@ -118,6 +118,11 @@ export function createUser(req, res, next) {
     if (res) return validationError(res);
     else return 'no email!';
   }
+  if (!req.body.password) {
+    req.body.password = crypto.randomBytes(5).toString('hex');
+    req.body.tempPassword=req.body.password;
+    req.body.forcePasswordChange=true;
+  }
   req.body.email=req.body.email.toLowerCase();
   var newUser = User.build(req.body);
   newUser.setDataValue('provider', 'local');
