@@ -229,7 +229,7 @@
       </ui-select>-->
     </div>
     <div class="single-centered">
-      <button class="btn btn-info" ng-click="main.updateCustomer()">Update Member Details</button>
+      <button class="btn btn-info" ng-click="main.updateCustomerPre()">Update Member Details</button>
     </div>
     <div class="single-centered">
       <h5>Current Points: {{main.customer.currentPoints}} ({{main.customer.combinedPoints||main.customer.currentPoints}}),  Member ID: {{main.customer.userId}}</h5>
@@ -250,11 +250,14 @@
             Click to Change Primary</button>
       </div>
       <div class="single-centered" ng-if="main.associated.length>0">
-        Associates are: &nbsp<span ng-repeat="ass in main.associated">{{ass.fullName}}&nbsp({{ass.currentPoints}}&nbsp points),&nbsp</span>
+        Associates are: &nbsp
+        <a ng-repeat="ass in main.associated" href="#" ng-click="main.altSelect(ass.userId)">
+          <span>{{ass.fullName}}&nbsp({{ass.currentPoints}}&nbsp points),&nbsp</span>
+        </a>
       </div>
     </div>
     <div ng-if="main.customer.gpType==='Associate'" class="single-centered">
-      Your Primary Member ID is {{main.customer.primaryUserId}}
+      Your Primary Member ID is &nbsp<a href="#" ng-click="main.altSelect(main.customer.primaryUserId)">{{main.customer.primaryUserId}}</a>
     </div>
     <div class="single-centered"><h4>Gold Points Transactions</h4></div>
     <div ng-if="main.customerTransactions.length===0">

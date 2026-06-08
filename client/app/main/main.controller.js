@@ -517,13 +517,23 @@
     }
     
     altSelect(cust,fieldName){
+      console.log(cust)
       if (this.chosenView==='Manage Members'&&fieldName==='userId') return;
-      if (fieldName==='account') {
-        if (this.chosenView==='Manage Members') this.chosenView="Assign Points";
-        else if (this.chosenView==='Assign Points') this.chosenView="Manage Members";
+      if (typeof cust==='string') {
+        this.http.post('/api/customers/one', { userId: cust }).then(res=>{
+          cust=res.data;
+          cust.selected=true;
+          this.select(cust);
+        });
       }
-      cust.selected=!cust.selected;
-      this.select(cust);
+      else {
+        if (fieldName==='account') {
+          if (this.chosenView==='Manage Members') this.chosenView="Assign Points";
+          else if (this.chosenView==='Assign Points') this.chosenView="Manage Members";
+        }
+        cust.selected=!cust.selected;
+        this.select(cust);
+      }
     }
     
     select(cust){
@@ -720,18 +730,45 @@
       return this.chosenView.toLowerCase()===view.toLowerCase()||this.chosenView.toLowerCase()===otherView.toLowerCase();
     }
     
-    updateCustomer(){
+    updateCustomerPre(){
+      console.log(this.customer)
       if (!this.customer) return;
+      let index=this.customers.map(e=>e.userId).indexOf(this.customer.userId);
+      console.log(index)
+      if (index>-1) {
+        if (this.customers[index].email!==this.customer.email){
+          //new email entered, send them one!
+          //
+          this.http.post('/api/users/query',{email:this.customer.email}).then(res=>{
+            this.toaster.warning('Warning','There is already a Gold Points User using that email address');
+            if (confirm('Are you sure you want to change this email address?  Email already exists.')) {
+              if (this.customers[index].email) {
+                this.http.post('/api/things/email',{to:this.customers[index].email,html:
+                    'There has been a change of email address on a Gold Points member account previously associated with this email address.  If you did not initiate this, please contact Bering Air to confirm your Gold Points Membership details'
+                }).then(res=>{});
+              }
+              this.sendWelcomeEmail(this.customer.email,this.customer);
+              this.updateCustomer(index);
+            }
+          })
+          .catch(err=>{
+            console.log(err);
+            if (err&&err.status===404) this.toaster.warning('Warning','There is no Gold Points User with this email, you will need to have the customer register at gp.beringair.com');
+            this.updateCustomer(index);
+          });
+        }
+        this.updateCustomer(index);
+      }
+      else this.updateCustomer(-1);
+    }
+    
+    updateCustomer(index){
+      
       if (this.customer.phone) this.customer.phone=this.customer.phone.replace(/\D/g, "");
       let obj={fullName:this.customer.fullName,email:this.customer.email,phone:this.customer.phone,dob:this.customer.dob,
           address:this.customer.address,city:this.customer.city,state:this.customer.state,zip:this.customer.zip};
       this.http.patch('/api/customers/'+this.customer._id,obj).then(res=>{
-        let index=this.customers.map(e=>e.userId).indexOf(this.customer.userId);
         if (index>-1) {
-          if (!this.customers[index].email&&this.customer.email){
-            //new email entered, send them one!
-            this.sendWelcomeEmail(this.customer.email,this.customer);
-          }
           this.customers[index]=res.data;
         }
         this.toaster.success('Success','Successfully Updated Member Details!');
