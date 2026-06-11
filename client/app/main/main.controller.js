@@ -105,7 +105,11 @@
       this.http.post('/api/flights/query',{dateString:this.flightDate,flightNumber:this.flightNumber}).then(res=>{
         this.flightObj=res.data;
         this.flightObj.flight.passengers.forEach(pass=>{
-          this.http.post('/api/customers/query',{query:{firstName:pass.name.firstName,lastName:pass.name.lastName}}).then(res=>{
+          let firstName;
+          if (pass.name.firstName) firstName=pass.name.firstName.split(' ')[0];
+          let lastName;
+          if (pass.name.lastName) lastName=pass.name.lastName.split(' ')[pass.name.lastName.split(' ').length-1];
+          this.http.post('/api/customers/query',{query:{firstName:firstName,lastName:lastName}}).then(res=>{
             pass.possibleIds=res.data;
           
           })
