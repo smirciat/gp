@@ -37,7 +37,7 @@
                 <td ng-click="main.setView(5)"><a href="#" ng-if="main.hasRole('user')">{{main.views[5]}}</a></td>
               </tr>
               <tr>
-                <td></td>
+                <td ng-click="main.setView(7)"><a href="#" ng-if="main.hasRole('user')">{{main.views[7]}}</a></td>
                 <td ng-click="main.setView(6)"><a href="#" ng-if="main.hasRole('user')">{{main.views[6]}}</a></td>
               </tr>
             </tbody>
@@ -196,6 +196,8 @@
   <div ng-if="main.showTransactions&&main.chosenView==='Manage Members'">
     <div class="single-centered" ng-if="main.hasRole('user')">
       <button class="btn btn-warning" ng-click="main.undoST()">Back to Query</button>
+      <span ng-if="main.flightObj">&nbsp&nbsp&nbsp</span>
+      <button class="btn btn-info" ng-click="main.chosenView='After Flight Completed'" ng-if="main.flightObj">Back to `After Flight Completed`</button>
     </div>
     <hr>
     <div class="single-centered">
@@ -471,6 +473,64 @@
       </table>
       <div class="single-centered">
         <button class="btn btn-primary" ng-click="main.nextGroup()">Next 1000 Transactions</button>
+      </div>
+  </div>
+  <!--After Flight Completed-->
+  <div style="margin-left:10%;margin-right:10%;" ng-if="main.testView('After Flight Completed')&&main.hasRole('user')">
+    <div class="points-row">
+        <h5>Enter Date:</h5>&nbsp
+        <div style="padding-left:0px;padding-top:0px" class="input-group">
+          <input style="height:35px;width:150px;" type="text" ng-model="main.flightDateStringFormatted" 
+              ng-blur="main.upDate('string')" ng-keydown="main.handleFlight($event)">
+          <span class="input-group-btn">
+            <button type="button" class="btn btn-primary" ng-click="main.isDatepickerOpen = !main.isDatepickerOpen">
+              <i class="glyphicon glyphicon-calendar"></i>
+            </button>
+          </span>
+          <input style="display:none" type="text" class="form-control" uib-datepicker-popup="EEEE MMM d, yyyy" ng-model="main.flightDate" ng-change="main.upDate()" 
+             is-open="main.isDatepickerOpen" datepicker-options="main.datepickerOptions" ng-required="true" close-text="Close" 
+             alt-input-formats="altInputFormats"/>
+        </div>&nbsp
+        <h5>Enter Flight Number:</h5>&nbsp
+        <textarea rows="1" ng-model="main.flightNumber" class="short-textarea" ng-keydown="main.handle($event,6)"></textarea>
+        <button class="btn btn-success" ng-click="main.showAllPassengers()">Show All Passengers</button>
+      </div>
+      <br>
+      <table class="table table-bordered table-striped">
+        <thead><tr style="background-color:black;">
+          <td style="color:white;font-weight:bold">First Name</td>
+          <td style="color:white;font-weight:bold">Last Name</td>
+          <td style="color:white;font-weight:bold">Booking Number</td>
+          <td style="color:white;font-weight:bold">Departure</td>
+          <td style="color:white;font-weight:bold">Destination</td>
+          <td style="color:white;font-weight:bold">Gold Points ID</td>
+          <td style="color:white;font-weight:bold">Possible Gold Points IDs</td>
+          <td style="color:white;font-weight:bold">Award Transaction ID</td>
+          <td></td>
+        </tr></thead>
+        <tbody><tr ng-repeat="pass in main.flightObj.flight.passengers track by $index">
+          <td>{{pass.name.firstName}}</td>
+          <td>{{pass.name.lastName}}</td>
+          <td>{{pass.bookingNumber}}</td>
+          <td>{{pass.boardPoint.name}}</td>
+          <td>{{pass.offPoint.name}}</td>
+          <td ng-if="pass.transactionId">{{pass.userId}}</td>
+          <td ng-if="!pass.transactionId">
+            <textarea rows="1" ng-model="pass.userId" class="short-textarea"></textarea>
+          </td>
+          <td>
+            <p ng-repeat="possible in pass.possibleIds track by $index">
+              <span ng-click="main.altSelect(possible.userId)"><a href="#">{{possible.userId}}</a></span>&nbsp
+              - {{possible.fullName}}, ({{possible.currentPoints}})&nbsp
+              <span ng-click="main.useId(possible,pass)"><a href="#">Use This ID</a></span>
+            </p>
+          </td>
+          <td>{{pass.transactionId}}</td>
+          <td></td>
+        </tr></tbody>
+      </table>
+      <div class="single-centered">
+        <button class="btn btn-primary" ng-click="main.awardFlight()">Award All Passengers</button>
       </div>
   </div>
 </div>

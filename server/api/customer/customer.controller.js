@@ -95,7 +95,7 @@ export function index(req, res) {
 // Gets a list of Customers from a query
 export function query(req, res) {
   let q=req.body.query||{};
-  let newQ={where:{}};
+  let newQ={where:{},limit:100};
   if (q) {
     if (q.account) newQ.where.account={[Op.iLike]:'%'+q.account+'%'};
     if (q.id) newQ.where.userId={[Op.iLike]:'%'+q.id+'%'};

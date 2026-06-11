@@ -26,12 +26,13 @@
       this.showLength=50;
       this.start=0;
       this.end=50;
-      this.views=['Manage Members','Approve Points','Add User','Assign Points','Create Member','List By Points','All Transactions'];
+      this.views=['Manage Members','Approve Points','Add User','Assign Points','Create Member','List By Points','All Transactions','After Flight Completed'];
       this.welcomeEmail="Congratulations! <br><br>You have just created a Bering Air Gold Points Membership!<br><br>";
       this.welcomeEmail+="Please head over to gp.beringair.com to complete your sign in and access your account data. Your username is the same email address there that you used when you signed up for the Gold Points Membership.  Your temporary password is shown at the bottom of this email.  Once signed in, you will be able to see any future Gold Points transactions that are attached to this account.  Please let us know if you have any questions or difficulties. <br><br>Thank you for flying with Bering Air!";
     }
 
     $onInit() {
+      this.flightDate=new Date();
       this.user=this.User.get(res=>{
         if (res.role==="guest"&&res.email){
           //setup public customers
@@ -45,7 +46,7 @@
         this.transferComplete=false;
       });
       //this.http.post('/api/things/ssm').then(res=>{console.log(res)}).catch(err=>{console.log(err)})
-      this.http.post('/api/things/getManifest',{date:'6/4/2026',flightNum:'644'}).then(res=>{
+      this.http.post('/api/flights/query',{dateString:'6/10/2026',flightNumber:'852'}).then(res=>{
         console.log(res.data);
       }).catch(err=>{console.log(err)});
       this.transactionModal=this.Modal.confirm.transaction(response=>{
@@ -63,7 +64,26 @@
         });
         
       });
+      this.upDate();
     }
+    
+    upDate(key){
+      if (key==='string') this.flightDate=new Date(this.flightDateStringFormatted);
+      this.flightDateString=this.flightDate.toLocaleDateString();
+      this.flightDateStringFormatted=this.flightDate.toLocaleDateString('en-US', { 
+          weekday: 'short', 
+          year: 'numeric', 
+          month: 'numeric',//''long', 
+          day: 'numeric' 
+      });
+    }
+    
+    handleFlight(event){
+    if (event.keyCode === 13 && !event.shiftKey) {
+      event.preventDefault(); 
+      this.upDate('string');
+    }
+  }
     
     handle(event,source) {
       if (event.keyCode === 13 && !event.shiftKey) {
@@ -73,7 +93,33 @@
           if (source===3) this.assign();
           if (source===4) this.processExisting();
           if (source===5) this.processAssociate();
+          if (source===6) this.showAllPassengers();
       }
+    }
+    
+    useId(possible,pass){
+      pass.userId=possible.userId;
+    }
+    
+    showAllPassengers(){
+      this.http.post('/api/flights/query',{dateString:this.flightDate,flightNumber:this.flightNumber}).then(res=>{
+        this.flightObj=res.data;
+        this.flightObj.flight.passengers.forEach(pass=>{
+          this.http.post('/api/customers/query',{query:{firstName:pass.name.firstName,lastName:pass.name.lastName}}).then(res=>{
+            pass.possibleIds=res.data;
+          
+          })
+          .catch(err=>{
+            console.log(err);
+            //this.toaster.error('Error','No Match found for ' + pass.name.firstName + ' ' + pass.name.lastName);
+          });
+        });
+      })
+      .catch(err=>{
+        console.log(err);
+        this.flightObj=null;
+        this.toaster.error('Error','No matching flight for that date and flight number yet.  Mark the flight completed first in Takeflite.');
+      });
     }
     
     processAssociate(){
@@ -436,7 +482,7 @@
         this.toaster.error('Error','Missing Information!');
         return;
       }
-      this.http.post('/api/customers/one',{userId:transaction.userId}).then(res=>{
+      return this.http.post('/api/customers/one',{userId:transaction.userId}).then(res=>{
         let customer=res.data;       
         if (res.data.suspended) {
           this.toaster.error('Error','Need to remove customer suspension first');
@@ -451,7 +497,7 @@
         else if (transaction.dateFlown.split('/').length===2) transaction.dateFlown+='/'+new Date().getFullYear();
         else if (transaction.dateFlown.split('/').length<2) transaction.dateFlown=transaction.date.toLocaleDateString();
         transaction.lastUpdatedBy=this.user._id;
-        this.http.post('/api/transactions/new',transaction).then(res=>{
+        return this.http.post('/api/transactions/new',transaction).then(res=>{
           //refresh customer after new transaction may have updated it  
           this.http.post('/api/customers/one',{userId:customer.userId})
             .then(res=>{
@@ -484,14 +530,51 @@
             });
             
           this.transaction={status:'Approved',awardRedeem:'award',points:0};
+          this.toaster.success('Success','Gold Points transaction successfully completed');
+          return res;
         }).catch(err=>{
-          console.log(err)
+          console.log(err);
           this.toaster.error('Error','Failed to create new transaction.  Customer point total may be inaccurate, please check.');
         });
       }).catch(err=>{
-        console.log(err)
+        console.log(err);
         this.toaster.error('Error','Can`t find user id for the primary member');
       });
+    }
+    
+    awardFlight(){
+      let promises = this.flightObj.flight.passengers.map(pass => {
+        if (!pass.userId||pass.transactionId) return null;
+        let transaction={status:'Approved',awardRedeem:'award',points:5,userId:pass.userId,date:new Date(this.flightObj.dateString),
+            dateFlown:this.flightObj.dateString,booking:pass.bookingNumber,route:pass.boardPoint.code+'-'+pass.offPoint.code,
+            flight:this.flightObj.flightNumber,lastUpdatedBy:0,description:pass.description
+        };
+        return this.assign(transaction).then(res=>{
+          pass.transactionId=res.data._id;
+          return pass;
+        })
+        .catch(err=>{
+          console.log(err);
+          return null;
+        });
+      });
+      Promise.all(promises).then(results => {
+        results.forEach(result=>{
+          if (!result) return;
+          let index=this.flightObj.flight.passengers.map(({firstName,lastName,offPoint:{code:offPoint},boardPoint:{code:boardPoint}})=>({firstName,lastName,offPoint,boardPoint})).findIndex(p =>
+            p.firstName === result.firstName &&
+            p.lastName === result.lastName &&
+            p.offPoint === result.offPoint.code &&
+            p.boardPoint === result.boardPoint.code);
+          if (index>-1) this.flightObj.flight.passengers[index]=result;
+          else this.toaster.error('Unable to save changes to flight data, the transaction went through, but don`t run this flight again');
+        });
+        this.http.patch('/api/flights/'+this.flightObj._id,{flight:this.flightObj.flight}).then(res=>{
+          this.toaster.success('Success','Completed Flight is now updated and complete.');
+        })
+        .catch(err=>{console.log(err)});
+      })
+      .catch(err=>{console.log(err)});
     }
     
     reset(user){
@@ -522,8 +605,10 @@
       if (typeof cust==='string') {
         this.http.post('/api/customers/one', { userId: cust }).then(res=>{
           cust=res.data;
+          this.chosenView="Manage Members";
           cust.selected=true;
           this.select(cust);
+          //this.showTransactions=true;
         });
       }
       else {
@@ -681,6 +766,7 @@
       this.existing={associates:['','','','']};
       this.chosenView=null;
       this.queryGo=null;
+      this.flightObj=null;
       this.showTransactions=false;
     }
     
@@ -710,6 +796,9 @@
           this.manyTransactions=res.data;
           this.offset=0;
         }).catch(err=>{console.log(err)});
+      }
+      if (index===7){
+        //After Flight Completed View
       }
     }
     
@@ -779,6 +868,7 @@
     }
     
     undoST(){
+      this.flightObj=undefined;
       this.showTransactions=false;
       this.queryGo='go';
       this.customer=undefined;

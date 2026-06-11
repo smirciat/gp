@@ -69,6 +69,21 @@ export function index(req, res) {
 }
 
 // Gets a single Flight from the DB
+export function query(req, res) {
+  if (!req.body.dateString||!req.body.flightNumber) return res.status(500).json('Please include date and flight number');
+  let date=new Date(req.body.dateString).toLocaleDateString();
+  return Flight.findOne({
+    where: {
+      dateString: date,
+      flightNumber:req.body.flightNumber
+    }
+  })
+    .then(handleEntityNotFound(res))
+    .then(respondWithResult(res))
+    .catch(handleError(res));
+}
+
+// Gets a single Flight from the DB
 export function show(req, res) {
   return Flight.findOne({
     where: {

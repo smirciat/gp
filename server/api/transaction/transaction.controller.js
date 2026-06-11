@@ -9,6 +9,7 @@
 
 'use strict';
 
+import _ from 'lodash';
 import localEnv from '../../config/local.env';
 import {Transaction,Customer,Flight,sequelize} from '../../sqldb';
 import { getManifest } from '../thing/thing.controller.js';
@@ -135,7 +136,7 @@ export async function newTransaction(req, res) {
           where:{userId:req.body.userId}
         }
     );
-    if (res) return res.status(200).json('New Transaction Successful');
+    if (res) return res.status(200).json(transaction);
     return 'New Transaction Successful';
   }
   catch(err){
@@ -245,7 +246,7 @@ async function flightCompleted(flight){
   if (flight.status!=="Completed") return;
   let f={
     dateString:dateString,
-    data:date,
+    date:date,
     flight:flight,
     flightNumber:flight.flightNumber.split('.')[0]
   };
@@ -288,14 +289,9 @@ async function flightCompleted(flight){
     leg.passengers.forEach(passenger=>{
       //**************************************************************Watch for 3 or more legs with a passenger riding through!
       if (passenger.boardPoint.name!==origin) return;
-      
-      console.log(passenger.name);
-      passenger.description = dateString + ' ' + passenger.bookingNumber + ' ' + passenger.boardPoint.name + '-' + passenger.offPoint.name;
+      passenger.description = dateString + ' ' + passenger.bookingNumber + ' ' + passenger.boardPoint.code + '-' + passenger.offPoint.code;
       passenger.description += ' ' + f.flightNumber + ' Assigned after Takeflite Webhook';
       passengers.push(passenger);
-      //try to match FFN with Customer record, if match generate new transaction
-      
-      //await gold point transaction here
     });
     manifest.passengers=passengers;
   });

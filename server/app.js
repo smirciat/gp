@@ -11,11 +11,17 @@ import config from './config/environment';
 import {fixEmail} from './api/customer/customer.controller.js';
 import {setBearer} from './api/thing/thing.controller.js';
 import http from 'http';
+import cors from 'cors';
 // Populate databases with sample data
 if (config.seedDB) { require('./config/seed'); }
 
 // Setup server
 var app = express();
+const corsOptions = {
+  origin: localEnv.FRONTEND,// Change to https://yourfrontend.com in production
+  optionsSuccessStatus: 200 // For legacy browser support (IE11, various Smart TVs)
+};
+app.use(cors(corsOptions));
 var server = http.createServer(app);
 var socketio = require('socket.io')(server, {
   serveClient: config.env !== 'production',
