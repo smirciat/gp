@@ -209,6 +209,7 @@
           primary.associatedAccounts = [...new Set(primary.associatedAccounts.filter(str => str !== ""))];
         });
         console.log(primary.associatedAccounts);
+        let deadAssociates=[];
         // create array of promises
         let promises = primary.associatedAccounts.map(ass => {
           return this.http.post('/api/customers/one', { userId: ass })
@@ -217,8 +218,13 @@
           })
           .catch(err=>{
             console.log(err);
-            this.toaster.error('Error','Associate User ID ' + ass + ' is not Found!');
-            return {error:true};
+            if (this.existing.associates.indexOf(ass)>-1) {
+              this.toaster.error('Error','Associate User ID ' + ass + ' is not Found!');
+              return {error:true};
+            }
+            deadAssociates.push(ass);
+            associates=associates.filter(assLocal=>assLocal!==ass);
+            return {ass: ass,data: null};
           });
         });
         return Promise.all(promises).then(results => {
@@ -227,6 +233,10 @@
           results.forEach(result => {
               if (!result||result.error) {
                 fail=true;
+                return;
+              }
+              if (!result.data) {
+                primary.associatedAccounts=primary.associatedAccounts.filter(assLocal=>assLocal!==result.ass);
                 return;
               }
               //if (result.data.gpType==="Primary") primaryFail=true;
