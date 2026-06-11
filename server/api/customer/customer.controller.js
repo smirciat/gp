@@ -94,11 +94,26 @@ export function index(req, res) {
 
 // Gets a list of Customers from a query
 export function query(req, res) {
+  let arr;
   let q=req.body.query||{};
   let newQ={where:{},limit:100};
   if (q) {
     if (q.account) newQ.where.account={[Op.iLike]:'%'+q.account+'%'};
     if (q.id) newQ.where.userId={[Op.iLike]:'%'+q.id+'%'};
+    if (q.firstName&&!q.lastName) {
+      arr=q.firstName.split(' ');
+      if (arr.length>1) {
+        q.firstName=arr[0];
+        q.lastName=arr[1];
+      }
+    }
+    if (!q.firstName&&q.lastName) {
+      arr=q.lastName.split(' ');
+      if (arr.length>1) {
+        q.firstName=arr[0];
+        q.lastName=arr[1];
+      }
+    }
     if (q.firstName&&q.lastName) {
       newQ.where.fullName={[Op.and]:[{[Op.iLike]:'%'+q.firstName+'%'},{[Op.iLike]:'%'+q.lastName+'%'}]};
     }

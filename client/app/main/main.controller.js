@@ -105,13 +105,17 @@
       this.http.post('/api/flights/query',{dateString:this.flightDate,flightNumber:this.flightNumber}).then(res=>{
         this.flightObj=res.data;
         this.flightObj.flight.passengers.forEach(pass=>{
-          let firstName;
-          if (pass.name.firstName) firstName=pass.name.firstName.split(' ')[0];
-          let lastName;
-          if (pass.name.lastName) lastName=pass.name.lastName.split(' ')[pass.name.lastName.split(' ').length-1];
+          let firstName=pass.name.firstName;
+          let lastName=pass.name.lastName;
           this.http.post('/api/customers/query',{query:{firstName:firstName,lastName:lastName}}).then(res=>{
             pass.possibleIds=res.data;
-          
+            if (res.data.length===0) {
+              if (firstName) firstName=firstName.substring(0,4);
+              if (lastName) lastName=lastName.substring(0,4);
+              this.http.post('/api/customers/query',{query:{firstName:firstName,lastName:lastName}}).then(res=>{
+                pass.possibleIds=res.data;
+              });
+            }
           })
           .catch(err=>{
             console.log(err);
@@ -547,6 +551,9 @@
     }
     
     awardFlight(){
+      if (!this.flightObj||!this.flightObj.flight||!this.flightObj.flight.passengers||this.flightObj.flight.passengers.length<1) {
+        return this.toaster.error('Error','Please Load the Flight First');
+      }
       let promises = this.flightObj.flight.passengers.map(pass => {
         if (!pass.userId||pass.transactionId) return null;
         let transaction={status:'Approved',awardRedeem:'award',points:5,userId:pass.userId,date:new Date(this.flightObj.dateString),
@@ -571,7 +578,7 @@
             p.offPoint === result.offPoint.code &&
             p.boardPoint === result.boardPoint.code);
           if (index>-1) this.flightObj.flight.passengers[index]=result;
-          else this.toaster.error('Unable to save changes to flight data, the transaction went through, but don`t run this flight again');
+          else this.toaster.error('Error','Unable to save changes to flight data, the transaction went through, but don`t run this flight again');
         });
         this.http.patch('/api/flights/'+this.flightObj._id,{flight:this.flightObj.flight}).then(res=>{
           this.toaster.success('Success','Completed Flight is now updated and complete.');

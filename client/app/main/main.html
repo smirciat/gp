@@ -195,8 +195,7 @@
   <!--Show Transactions-->
   <div ng-if="main.showTransactions&&main.chosenView==='Manage Members'">
     <div class="single-centered" ng-if="main.hasRole('user')">
-      <button class="btn btn-warning" ng-click="main.undoST()">Back to Query</button>
-      <span ng-if="main.flightObj">&nbsp&nbsp&nbsp</span>
+      <button class="btn btn-warning" ng-click="main.undoST()" ng-if="!main.flightObj">Back to Query</button>
       <button class="btn btn-info" ng-click="main.chosenView='After Flight Completed'" ng-if="main.flightObj">Back to `After Flight Completed`</button>
     </div>
     <hr>
