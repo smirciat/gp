@@ -521,7 +521,7 @@
             <p ng-repeat="possible in pass.possibleIds track by $index">
               <span ng-click="main.altSelect(possible.userId)"><a href="#">{{possible.userId}}</a></span>&nbsp
               - {{possible.fullName}}, ({{possible.currentPoints}})&nbsp
-              <span ng-click="main.useId(possible,pass)"><a href="#">Use This ID</a></span>
+              <span ng-click="main.useId(possible,pass)" ng-if="!pass.transactionId"><a href="#">Use This ID</a></span>
             </p>
           </td>
           <td>{{pass.transactionId}}</td>

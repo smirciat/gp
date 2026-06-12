@@ -564,11 +564,8 @@
       if (!this.flightObj||!this.flightObj.flight||!this.flightObj.flight.passengers||this.flightObj.flight.passengers.length<1) {
         return this.toaster.error('Error','Please Load the Flight First');
       }
-      this.flightObj.flight.passengers.forEach((p,index)=>{
-        p._id=index;
-      });
       let promises = this.flightObj.flight.passengers.map(pass => {
-        if (!pass.userId||pass.transactionId) return null;
+        if (!pass.userId||pass.transactionId) return pass;
         let transaction={status:'Approved',awardRedeem:'award',points:5,userId:pass.userId,date:new Date(this.flightObj.dateString),
             dateFlown:this.flightObj.dateString,booking:pass.bookingNumber,route:pass.boardPoint.code+'-'+pass.offPoint.code,
             flight:this.flightObj.flightNumber,lastUpdatedBy:0,description:pass.description
@@ -579,20 +576,10 @@
         })
         .catch(err=>{
           console.log(err);
-          return null;
+          return pass;
         });
       });
       Promise.all(promises).then(results => {
-        results.forEach(result=>{
-          if (!result) return;
-          let passengers=this.flightObj.flight.passengers.filter(p=>
-            p.name.firstName === result.name.firstName &&
-            p.name.lastName === result.name.lastName &&
-            p.offPoint.code === result.offPoint.code &&
-            p.boardPoint.code === result.boardPoint.code);
-          if (passengers.length>0) this.flightObj.flight.passengers[passengers[0]._id]=result;
-          else this.toaster.error('Error','Unable to save changes to flight data, the transaction went through, but don`t run this flight again');
-        });
         this.http.patch('/api/flights/'+this.flightObj._id,{flight:this.flightObj.flight}).then(res=>{
           this.toaster.success('Success','Completed Flight is now updated and complete.');
         })
