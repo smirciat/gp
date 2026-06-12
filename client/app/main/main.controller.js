@@ -46,7 +46,7 @@
         this.transferComplete=false;
       });
       //this.http.post('/api/things/ssm').then(res=>{console.log(res)}).catch(err=>{console.log(err)})
-      this.http.post('/api/flights/query',{dateString:'6/10/2026',flightNumber:'852'}).then(res=>{
+      this.http.post('/api/flights/query',{dateString:'6/11/2026',flightNumber:'822'}).then(res=>{
         console.log(res.data);
       }).catch(err=>{console.log(err)});
       this.transactionModal=this.Modal.confirm.transaction(response=>{
@@ -564,6 +564,9 @@
       if (!this.flightObj||!this.flightObj.flight||!this.flightObj.flight.passengers||this.flightObj.flight.passengers.length<1) {
         return this.toaster.error('Error','Please Load the Flight First');
       }
+      this.flightObj.flight.passengers.forEach((p,index)=>{
+        p._id=index;
+      });
       let promises = this.flightObj.flight.passengers.map(pass => {
         if (!pass.userId||pass.transactionId) return null;
         let transaction={status:'Approved',awardRedeem:'award',points:5,userId:pass.userId,date:new Date(this.flightObj.dateString),
@@ -582,12 +585,12 @@
       Promise.all(promises).then(results => {
         results.forEach(result=>{
           if (!result) return;
-          let index=this.flightObj.flight.passengers.map(({firstName,lastName,offPoint:{code:offPoint},boardPoint:{code:boardPoint}})=>({firstName,lastName,offPoint,boardPoint})).findIndex(p =>
-            p.firstName === result.firstName &&
-            p.lastName === result.lastName &&
-            p.offPoint === result.offPoint.code &&
-            p.boardPoint === result.boardPoint.code);
-          if (index>-1) this.flightObj.flight.passengers[index]=result;
+          let passengers=this.flightObj.flight.passengers.filter(p=>
+            p.name.firstName === result.name.firstName &&
+            p.name.lastName === result.name.lastName &&
+            p.offPoint.code === result.offPoint.code &&
+            p.boardPoint.code === result.boardPoint.code);
+          if (passengers.length>0) this.flightObj.flight.passengers[passengers[0]._id]=result;
           else this.toaster.error('Error','Unable to save changes to flight data, the transaction went through, but don`t run this flight again');
         });
         this.http.patch('/api/flights/'+this.flightObj._id,{flight:this.flightObj.flight}).then(res=>{
