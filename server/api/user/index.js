@@ -15,7 +15,7 @@ router.patch('/:id', auth.isAuthenticated(), controller.update);
 router.post('/query', auth.hasRole('user'), controller.query);
 router.post('/reset', auth.hasRole('user'), controller.reset);
 router.put('/:id/changerole', auth.hasRole('admin'), controller.adminChangeRole);
-router.put('/:id/password', auth.hasRole('user'), controller.changePassword);
+router.put('/:id/password', auth.hasRole('guest'), controller.changePassword);
 router.get('/:id', auth.isAuthenticated(), controller.show);
 router.post('/', controller.createUser);
 
