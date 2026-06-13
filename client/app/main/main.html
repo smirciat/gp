@@ -56,7 +56,7 @@
   <!--Manage Members Selector-->
   <div ng-if="main.testView('Manage Members','Assign Points')&&!main.showTransactions&&main.hasRole('user')">
     <div class='single-centered' ng-if="main.flightObj">
-      <button class="btn btn-warning" ng-click="main.returnToFlight()">Return to `After Flight Completed`</button>
+      <button class="btn btn-info" ng-click="main.returnToFlight()">Return to `After Flight Completed`</button>
     </div>
     <br ng-if="main.flightObj">
     <div class="single-centered">
@@ -202,6 +202,8 @@
     <br ng-if="main.flightObj">
     <div class="single-centered" ng-if="main.hasRole('user')">
       <button class="btn btn-warning" ng-click="main.undoST()" ng-if="!main.flightObj||main.frontDoor">Back to Query</button>
+    </div>
+    <div class="single-centered" ng-if="main.hasRole('user')">
       <button class="btn btn-info" ng-click="main.returnToFlight()" ng-if="main.flightObj">Back to `After Flight Completed`</button>
     </div>
     <hr>
