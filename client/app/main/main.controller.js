@@ -50,14 +50,21 @@
         console.log(res.data);
       }).catch(err=>{console.log(err)});
       this.transactionModal=this.Modal.confirm.transaction(response=>{
-        console.log(response);
         if (!response.transaction.description) response.transaction.description='';
         if (response.transaction.description.length<=5&&(response.transaction.dateFlown||response.transaction.booking||response.transaction.route||response.transaction.flight)) {
           response.transaction.description+='=>' +response.transaction.dateFlown+ ' '+response.transaction.booking+' '+response.transaction.route+' '+response.transaction.flight+' Agent ID: '+this.user._id;
         }
-        this.http.patch('/api/transactions/'+response.transaction._id,response.transaction).then(res=>{
-          this.editableTransaction=res.data;
+        this.http.patch('/api/transactions/'+response.transaction._id,{newTransaction:response.transaction,oldTransaction:this.oldTransaction}).then(res=>{
           this.toaster.success('Error','Successfully edited transaction');
+          
+          if (this.customer&&this.customer.userId===response.transaction.userId) {
+            this.http.post('/api/customers/one', { userId: this.customer.userId }).then(res => {
+              this.customer=res.data;
+              let index=this.customers.map(e=>e.userId).indexOf(res.data.userId);
+              if (index>-1) this.customers[index]=res.data;
+            })
+            .catch(err=>{console.log(err)});
+          }
         }).catch(err=>{
           console.log(err);
           this.toaster.error('Error','Failed to edit transaction');
@@ -610,6 +617,17 @@
       });
     }
     
+    returnToFlight(){
+      this.frontDoor=false;
+      this.chosenView="After Flight Completed";
+    }
+    
+    memberQuery(){
+      this.frontDoor=false;
+      this.showTransactions=false;
+      this.chosenView="Manage Members";
+    }
+    
     altSelect(cust,fieldName){
       console.log(cust)
       if (this.chosenView==='Manage Members'&&fieldName==='userId') return;
@@ -690,6 +708,7 @@
            });
            this.queryGo=null;
            this.showTransactions=true;
+           this.frontDoor=true;
          })
           .catch(err=>{
             console.log(err);
@@ -722,6 +741,7 @@
     editTransaction(tran,index,all){
       document.documentElement.style.setProperty('--modal-dialog-width', '95%');
       this.editableTransaction=tran;
+      this.oldTransaction=JSON.parse(JSON.stringify(tran));
       this.transactionModal(tran);
     }
     
@@ -779,6 +799,7 @@
       this.queryGo=null;
       this.flightObj=null;
       this.showTransactions=false;
+      this.frontDoor=false;
     }
     
     retryQuery(){
@@ -879,7 +900,7 @@
     }
     
     undoST(){
-      this.flightObj=undefined;
+      //this.flightObj=undefined;
       this.showTransactions=false;
       this.queryGo='go';
       this.customer=undefined;

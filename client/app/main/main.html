@@ -55,6 +55,10 @@
   </div>
   <!--Manage Members Selector-->
   <div ng-if="main.testView('Manage Members','Assign Points')&&!main.showTransactions&&main.hasRole('user')">
+    <div class='single-centered' ng-if="main.flightObj">
+      <button class="btn btn-warning" ng-click="main.returnToFlight()">Return to `After Flight Completed`</button>
+    </div>
+    <br ng-if="main.flightObj">
     <div class="single-centered">
       <button class="btn btn-primary" ng-click="main.go()">Display all customers with</button>
     </div>
@@ -125,6 +129,7 @@
     </div>
   <!--Manage Members Results-->
   <div ng-if="main.testView('Manage Members','Assign Points')&&main.queryGo">
+    
     <div class="single-centered" ng-if="main.customers.length===0">
       <h3 ng-if="!main.hasRole('user')">There are not currently any GP members that have an email that matches the current 
           user email. Ensure you have registered as a user with the correct email, or contact Bering Air to ensure your 
@@ -194,9 +199,10 @@
   </div>
   <!--Show Transactions-->
   <div ng-if="main.showTransactions&&main.chosenView==='Manage Members'">
+    <br ng-if="main.flightObj">
     <div class="single-centered" ng-if="main.hasRole('user')">
-      <button class="btn btn-warning" ng-click="main.undoST()" ng-if="!main.flightObj">Back to Query</button>
-      <button class="btn btn-info" ng-click="main.chosenView='After Flight Completed'" ng-if="main.flightObj">Back to `After Flight Completed`</button>
+      <button class="btn btn-warning" ng-click="main.undoST()" ng-if="!main.flightObj||main.frontDoor">Back to Query</button>
+      <button class="btn btn-info" ng-click="main.returnToFlight()" ng-if="main.flightObj">Back to `After Flight Completed`</button>
     </div>
     <hr>
     <div class="single-centered">
@@ -476,6 +482,10 @@
   </div>
   <!--After Flight Completed-->
   <div style="margin-left:10%;margin-right:10%;" ng-if="main.testView('After Flight Completed')&&main.hasRole('user')">
+    <div class="single-centered">
+      <button class='btn btn-warning' ng-click="main.memberQuery()">Member Query</button> 
+    </div>
+    <br>
     <div class="points-row">
         <h5>Enter Date:</h5>&nbsp
         <div style="padding-left:0px;padding-top:0px" class="input-group">
@@ -520,7 +530,7 @@
           <td>
             <p ng-repeat="possible in pass.possibleIds track by $index">
               <span ng-click="main.altSelect(possible.userId)"><a href="#">{{possible.userId}}</a></span>&nbsp
-              - {{possible.fullName}}, ({{possible.currentPoints}})&nbsp
+              - {{possible.fullName}},<span ng-if="possible.dob"> DOB: {{possible.dob}},</span> ({{possible.currentPoints}})&nbsp
               <span ng-click="main.useId(possible,pass)" ng-if="!pass.transactionId"><a href="#">Use This ID</a></span>
             </p>
           </td>

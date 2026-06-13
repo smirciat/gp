@@ -147,19 +147,54 @@ export async function newTransaction(req, res) {
 }
 
 // Updates an existing Transaction in the DB
-export function update(req, res) {
-  if (req.body._id) {
-    delete req.body._id;
+export async function update(req, res) {
+  //oldTransaction updates to newTransaction
+  if (!req.body.newTransaction||!req.body.oldTransaction)  {
+    if (res) return res.status(500).json('Please incude newTransaction and oldTransaction');
+    return 'Please incude newTransaction and oldTransaction';
   }
-  return Transaction.findOne({
-    where: {
-      _id: req.params.id
+  
+  //test if we need to update a customer's currentPoints
+  if (req.body.newTransaction.points!==req.body.oldTransaction.points||req.body.newTransaction.awardRedeem!==req.body.oldTransaction.awardRedeem) {
+    let oldPoints=req.body.oldTransaction.points;
+    let newPoints=req.body.newTransaction.points;
+    if (req.body.newTransaction.awardRedeem==='redeem') newPoints=newPoints*-1;
+    if (req.body.oldTransaction.awardRedeem==='redeem') oldPoints=oldPoints*-1;
+    let increment = newPoints - oldPoints; //negative increment for redeem
+    let string='COALESCE("currentPoints",0) + ' + increment;
+  
+    try {
+      await Customer.update(
+        {
+          lastTransaction : req.body.oldTransaction._id,
+          currentPoints : sequelize.literal(string)
+        },
+        {
+          where:{userId:req.body.oldTransaction.userId}
+        }
+      );
     }
-  })
-    .then(handleEntityNotFound(res))
-    .then(saveUpdates(req.body))
-    .then(respondWithResult(res))
-    .catch(handleError(res));
+    catch(err){
+      console.log(err);
+      if (res) return res.status(500).json('Sequelize Error while updating customer currentPoints');
+      return 'Sequelize Error while updating customer currentPoints';
+    }
+  }
+  try {
+    await Transaction.update(
+      req.body.newTransaction,
+      {
+        where:{_id:req.body.oldTransaction._id}
+      }
+    );
+    if (res) return res.status(200).json('Updated Transaction Successful');
+    return 'Updated Transaction Successful';
+  }
+  catch(err){
+      console.log(err);
+      if (res) return res.status(500).json('Sequelize Error while updating transaction');
+      return 'Sequelize Error while updating transaction';
+    }
 }
 
 // Deletes a Transaction from the DB
