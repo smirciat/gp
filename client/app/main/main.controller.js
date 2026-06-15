@@ -409,6 +409,9 @@
     }
     
     sendWelcomeEmail(email,customer){
+      if (customer&&customer.badEmail){
+        return this.toaster.error('Error','This customer`s email has been rejected in the past, cannot send to this email.');
+      }
       this.http.post('/api/things/welcomeEmail',{to:email,customer:customer}).then(res=>{
         this.toaster.success('Success','Email Sent Successfully');
       }).catch(err=>{
@@ -544,7 +547,7 @@
               let html="You have a new transaction related to your Bering Air Gold Points Membership User ID# " + customer.userId + ".<br>";
               html+="We have " + awardRedeem + " you " + transaction.points + " points for an updated balance of " + customer.currentPoints + ".<br>";
               html+="If you have any questions, please contact Bering Air.";
-              if (customer.email) this.http.post('/api/things/email',{to:customer.email,html:html}).then(res=>{}).catch(err=>{
+              if (customer.email&&!customer.badEmail) this.http.post('/api/things/email',{to:customer.email,html:html}).then(res=>{}).catch(err=>{
                 console.log(err);
                 this.toaster.info('Error','Confirmation Email failed to send, but Transaction went through OK');
               });
@@ -596,6 +599,9 @@
     }
     
     reset(user){
+      if (user.badEmail){
+        return this.toaster.error('Error','Unable to reset this password, this email address has previously failed');
+      }
       this.http.post('/api/users/query',user).then(res=>{
         this.http.post('/api/users/reset',res.data).then(res=>{
           this.toaster.success('Success','Password reset to temporary, email has been sent to provide it.');
@@ -858,6 +864,7 @@
       console.log(index)
       if (index>-1) {
         if (this.customers[index].email!==this.customer.email){
+          this.customer.badEmail=false;
           //new email entered, send them one!
           //
           this.http.post('/api/users/query',{email:this.customer.email}).then(res=>{
@@ -871,6 +878,7 @@
               this.sendWelcomeEmail(this.customer.email,this.customer);
               this.updateCustomer(index);
             }
+            else this.toaster.error('Error','Customer Not Updated');
           })
           .catch(err=>{
             console.log(err);
@@ -878,7 +886,7 @@
             this.updateCustomer(index);
           });
         }
-        this.updateCustomer(index);
+        else this.updateCustomer(index);
       }
       else this.updateCustomer(-1);
     }
@@ -887,7 +895,7 @@
       
       if (this.customer.phone) this.customer.phone=this.customer.phone.replace(/\D/g, "");
       let obj={fullName:this.customer.fullName,email:this.customer.email,phone:this.customer.phone,dob:this.customer.dob,
-          address:this.customer.address,city:this.customer.city,state:this.customer.state,zip:this.customer.zip};
+          address:this.customer.address,city:this.customer.city,state:this.customer.state,zip:this.customer.zip,badEmail:this.customer.badEmail};
       this.http.patch('/api/customers/'+this.customer._id,obj).then(res=>{
         if (index>-1) {
           this.customers[index]=res.data;

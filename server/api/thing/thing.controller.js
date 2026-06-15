@@ -199,8 +199,12 @@ export async function welcomeEmail(req,res){
   let user={};
   let html=welcomeHtml;
   let attachPassword=true;
-  //if true, this is a new customer and we need to create a User for them
+  //if true, this is a new customer and we need to create a User for them ******************Maybe not???
   if (req.body.customer){
+    if (req.body.customer.badEmail){
+      if (res) return res.status(500).json('Failed to Send Email due to bad email address');
+      return 'Failed to Send Email due to bad email address';
+    }
     //attachPassword=false;
     let customer=req.body.customer;
     user = {name:customer.fullName,email:customer.email,forcePasswordChange:true};
