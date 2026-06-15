@@ -22,6 +22,7 @@ export default function(sequelize, DataTypes) {
     userName: DataTypes.STRING,
     fullName: DataTypes.STRING,
     email: DataTypes.STRING,
+    badEmail: DataTypes.BOOLEAN,
     phone: DataTypes.STRING,
     altName: DataTypes.STRING,
     active: {

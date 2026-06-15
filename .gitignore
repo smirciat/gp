@@ -8,3 +8,5 @@ dist
 npm-debug.log
 coverage
 GP.csv
+emails.csv
+email.csv

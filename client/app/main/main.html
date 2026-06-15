@@ -186,7 +186,7 @@
             <span class="fa-solid fa-envelope fa-2x" uib-tooltip="Send Welcome Email" tooltip-placement="bottom"></span></a>
           </td>
           <td ng-if="main.hasRole('user')"><a ng-click="main.reset(cust)" class="trash">
-            <span class="fa fa-key fa-2x" uib-tooltip="Reset User Password to Default" tooltip-placement="bottom"></span></a>
+            <span class="fa fa-key fa-2x" uib-tooltip="Reset User Password to Temporary" tooltip-placement="bottom"></span></a>
           </td>
           <td ng-if="main.hasRole('superadmin')"><a ng-click="main.suspendMember(cust)" class="trash" ng-if="!cust.suspended">
             <span class="fa-solid fa-circle-pause fa-2x" uib-tooltip="Suspend Member" tooltip-placement="bottom"></span></a>

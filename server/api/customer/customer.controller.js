@@ -11,6 +11,7 @@
 
 import _ from 'lodash';
 import {Customer,sequelize} from '../../sqldb';
+const csvToJson = require('convert-csv-to-json');
 const { Op } = require('sequelize');
 
 function respondWithResult(res, statusCode) {
@@ -93,7 +94,7 @@ export function index(req, res) {
 }
 
 // Gets a list of Customers from a query
-export function query(req, res) {
+export async function query(req, res) {
   let arr;
   let q=req.body.query||{};
   let newQ={where:{},limit:100};
@@ -124,6 +125,22 @@ export function query(req, res) {
       if (req.body.exact) newQ.where.email=q.email;
     }
     if (q.ca) newQ.where.ca=q.ca;
+  }
+  if (!res) {
+    if (!req.body.query.email||!req.body.exact) return 'Not setup to do this yet';
+    try {
+      await Customer.update(
+        { badEmail:true }, // Fields to update
+        {
+          where: {
+            email: 'req.body.query.email' // Condition to find the record(s)
+          }
+        }
+      );
+    }
+    catch(err){
+      return console.log(err);
+    }
   }
   return Customer.findAll(newQ)
     .then(respondWithResult(res))
@@ -244,5 +261,21 @@ export async function fixEmail(){
         await customer.save(); 
       }
     }
+  }
+}
+
+export async function loadEmailCSV(){
+  console.log(__dirname);
+  try {
+    const json = await csvToJson.getJsonFromCsvAsync('emails.csv');
+    json.forEach(email=>{
+      const address=email.address;
+      query()
+    });
+  
+    
+  }
+  catch(err){
+    console.log(err);
   }
 }
