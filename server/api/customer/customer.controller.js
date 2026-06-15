@@ -126,22 +126,6 @@ export async function query(req, res) {
     }
     if (q.ca) newQ.where.ca=q.ca;
   }
-  if (!res) {
-    if (!req.body.query.email||!req.body.exact) return 'Not setup to do this yet';
-    try {
-      await Customer.update(
-        { badEmail:true }, // Fields to update
-        {
-          where: {
-            email: 'req.body.query.email' // Condition to find the record(s)
-          }
-        }
-      );
-    }
-    catch(err){
-      return console.log(err);
-    }
-  }
   return Customer.findAll(newQ)
     .then(respondWithResult(res))
     .catch(handleError(res));
@@ -265,15 +249,25 @@ export async function fixEmail(){
 }
 
 export async function loadEmailCSV(){
-  console.log(__dirname);
   try {
     const json = await csvToJson.getJsonFromCsvAsync('emails.csv');
-    json.forEach(email=>{
+    for (const email of json) {
       const address=email.address;
-      query()
-    });
-  
-    
+      try {
+        await Customer.update(
+          { badEmail:true }, // Fields to update
+          {
+            where: {
+              email: address // Condition to find the record(s)
+            }
+          }
+        );
+        console.log('Email Address ' + address +' marked as bad in associated customers');
+      }
+      catch(err){
+        return console.log(err);
+      }
+    }
   }
   catch(err){
     console.log(err);

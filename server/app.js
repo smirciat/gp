@@ -8,7 +8,7 @@ import express from 'express';
 import sqldb from './sqldb';
 import localEnv from './config/local.env';
 import config from './config/environment';
-import {fixEmail} from './api/customer/customer.controller.js';
+import {fixEmail,loadEmailCSV} from './api/customer/customer.controller.js';
 import {setBearer} from './api/thing/thing.controller.js';
 import http from 'http';
 import cors from 'cors';
@@ -36,6 +36,7 @@ function startServer() {
   app.angularFullstack = server.listen(config.port, config.ip, function() {
     console.log('Express server listening on %d, in %s mode', config.port, app.get('env'));
     setBearer();
+    //loadEmailCSV();
   });
 }
 
