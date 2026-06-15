@@ -319,6 +319,7 @@
         this.toaster.error('Error','We need some info to create a new user');
         return;
       }
+      if (this.newMember.email) this.newMember.email=this.newMember.email.toLowerCase();
       this.http.post('/api/customers/last').then(res=>{
         this.newMember.userId=res.data.maxInt*1+1;
         this.newMember.userId=this.newMember.userId.toString();
@@ -865,6 +866,7 @@
       if (index>-1) {
         if (this.customers[index].email!==this.customer.email){
           this.customer.badEmail=false;
+          if (this.customer.email) this.customer.email=this.customer.email.toLowerCase();
           //new email entered, send them one!
           //
           this.http.post('/api/users/query',{email:this.customer.email}).then(res=>{
