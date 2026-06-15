@@ -24,8 +24,12 @@
     
     newSort() {
       this.filteredUsers=this.filteredUsers.sort((a,b)=>{
-        if (this.sort.selected==="_id") return a[this.sort.selected]-b[this.sort.selected];
-        else return a[this.sort.selected].localeCompare( b[this.sort.selected]);
+        if (this.sort.selected==="_id") return a._id-b._id;
+        else {
+          if (!a[this.sort.selected]) a[this.sort.selected]="";
+          if (!b[this.sort.selected]) b[this.sort.selected]="";
+          return a[this.sort.selected].localeCompare( b[this.sort.selected]);
+        }
       });
     }
     
