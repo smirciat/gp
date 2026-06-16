@@ -326,6 +326,19 @@ async function flightCompleted(flight){
       if (passenger.boardPoint.name!==origin) return;
       passenger.description = dateString + ' ' + passenger.bookingNumber + ' ' + passenger.boardPoint.code + '-' + passenger.offPoint.code;
       passenger.description += ' ' + f.flightNumber + ' Assigned after Takeflite Webhook';
+      if (passenger.name) {
+        let arr=[];
+        if (!passenger.name.firstName&&passenger.name.lastName) {
+          arr=passenger.name.lastName.split(' ');
+          passenger.name.firstName=arr.shift();
+          passenger.name.lastName=arr.join(' ');
+        }
+        if (passenger.name.firstName&&!passenger.name.lastName) {
+          arr=passenger.name.firstName.split(' ');
+          passenger.name.firstName=arr.shift();
+          passenger.name.lastName=arr.join(' ');
+        }
+      }
       passengers.push(passenger);
     });
     manifest.passengers=passengers;
