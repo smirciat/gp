@@ -182,7 +182,7 @@
           <td ng-click="main.altSelect(cust)">{{cust.email}}</td>
           <td ng-click="main.altSelect(cust)">{{cust.phone}}</td>
           <td ng-click="main.altSelect(cust)">{{cust.currentPoints}}<span ng-if="cust.combinedPoints">&nbsp({{cust.combinedPoints}})</span></td>
-          <td ng-if="main.hasRole('user')"><a ng-click="main.sendWelcomeEmail(cust.email)">
+          <td ng-if="main.hasRole('user')"><a ng-click="main.sendWelcomeEmail(cust.email,cust)">
             <span class="fa-solid fa-envelope fa-2x" uib-tooltip="Send Welcome Email" tooltip-placement="bottom"></span></a>
           </td>
           <td ng-if="main.hasRole('user')"><a ng-click="main.reset(cust)" class="trash">

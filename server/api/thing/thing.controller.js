@@ -205,19 +205,19 @@ export async function welcomeEmail(req,res){
       if (res) return res.status(500).json('Failed to Send Email due to bad email address');
       return 'Failed to Send Email due to bad email address';
     }
-    //attachPassword=false;
     let customer=req.body.customer;
     user = {name:customer.fullName,email:customer.email,forcePasswordChange:true};
     user.password = crypto.randomBytes(5).toString('hex');
     user.tempPassword=user.password;
     try {
-      console.log('Creating New User')
+      console.log('Creating New User');
       let resp = await createUser({body:user});
-      console.log(resp);
-      attachPassword=true;
+      if (resp&&resp.errors&&resp.errors.length>0) attachPassword=false;
+      else attachPassword=true;
     }
     catch(err) {
       console.log(err);
+      attachPassword=false;
     }
   }
   if (attachPassword) {
