@@ -279,6 +279,9 @@
           <td style="color:white;font-weight:bold">Type</td>
           <td style="color:white;font-weight:bold">Points</td>
           <td style="color:white;font-weight:bold">Description</td>
+          <td style="color:white;font-weight:bold">Booking</td>
+          <td style="color:white;font-weight:bold">Route</td>
+          <td style="color:white;font-weight:bold">Flight</td>
           <td style="color:white;font-weight:bold">Agent ID</td>
           <td style="color:white;font-weight:bold"></td>
           <td style="color:white;font-weight:bold"></td>
@@ -289,6 +292,9 @@
         <td>{{tran.awardRedeem}}</td>
         <td>{{tran.points}}</td>
         <td>{{tran.description}}</td>
+        <td>{{tran.booking}}</td>
+        <td>{{tran.route}}</td>
+        <td>{{tran.flight}}</td>
         <td>{{tran.lastUpdatedBy}}</td>
         <td ng-if="main.hasRole('user')"><a ng-click="main.editTransaction(tran,$index,'many')">
             <span class="fa-solid fa-pen-to-square fa-2x" uib-tooltip="Edit Transaction"></span></a></td>
