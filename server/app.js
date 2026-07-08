@@ -37,7 +37,7 @@ function startServer() {
   app.angularFullstack = server.listen(config.port, config.ip, function() {
     console.log('Express server listening on %d, in %s mode', config.port, app.get('env'));
     setBearer();
-    load();
+    //load();
     //loadEmailCSV();
   });
 }
