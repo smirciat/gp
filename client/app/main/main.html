@@ -274,23 +274,25 @@
     </div>
     <!--Old Event Table-->
     <div ng-if="main.oldEvents.length>0">
-      <h5>Transactions from old Gold Points System</h5>
-      <table class="table table-bordered table-striped">
+      <h5 ng-click="main.expandThis=!main.expandThis">
+        Transactions from Old Gold Points System 
+        <span ng-if="main.expandThis"> (Click to Hide) -</span>
+        <span ng-if="!main.expandThis"> (Click to Show) +</span>
+      </h5>
+      <table class="table table-bordered table-striped" ng-if="main.expamdThis">
         <thead><tr style="background-color:brown;">
           <td style="color:white;font-weight:bold">User ID</td>
           <td style="color:white;font-weight:bold">Points</td>
           <td style="color:white;font-weight:bold">Notes</td>
-          <td style="color:white;font-weight:bold">Reservation ID</td>
           <td style="color:white;font-weight:bold">Created At</td>
-          <td style="color:white;font-weight:bold">Comments</td>
+          <td style="color:white;font-weight:bold">Modified At</td>
         </tr></thead>
         <tbody><tr ng-repeat="tran in main.oldEvents track by $index" style="background-color:pink;">
           <td>{{tran.member_id}}</td>
           <td>{{tran.points}}</td>
           <td>{{tran.notes}}</td>
-          <td>{{tran.reservation_id}}</td>
-          <td>{{tran.created | date:'short'}}</td>
-          <td>{{tran.comments}}</td>
+          <td>{{tran.created | date:'medium'}}</td>
+          <td>{{tran.modified | date:'medium'}}</td>
         </tr></tbody>
       </table>
     </div>
