@@ -129,6 +129,44 @@ export function destroy(req, res) {
 export async function load(){
   const fs = require('fs');
   const path = require('path');
+  const filePath = path.join(__dirname, 'www1.gp_events.json');
+  const { chain } = require('stream-chain');
+  const { parser } = require('stream-json');
+  const { streamArray } = require('stream-json/streamers/StreamArray');
+    
+  // Create a pipeline chain
+  const pipeline = chain([
+    fs.createReadStream(filePath),
+    parser(),
+    streamArray()
+  ]);
+  
+  // Handle each object individually
+  pipeline.on('data', async ({ key, value }) => {
+    // 'key' is the array index; 'value' is your object
+    try {
+      await Event.create(value);
+      console.log(value.event_id);
+    }
+    catch(err) {
+      console.log(err);
+    }
+    
+    // Do your work here (e.g., save to a database)
+    // Ensure your logic doesn't store references that bloat memory
+  });
+  
+  pipeline.on('end', () => {
+    console.log('Successfully completed parsing the entire file!');
+  });
+  
+  pipeline.on('error', (err) => {
+    console.error('An error occurred during streaming:', err);
+  });
+}
+export async function oldLoad(){
+  const fs = require('fs');
+  const path = require('path');
   console.log(__dirname);
   //const filePath = path.join(__dirname, 'your-folder', 'data.json');
   const filePath = path.join(__dirname, 'www1.gp_events.json');
