@@ -695,6 +695,11 @@
          //get events from old system as well
          this.http.post('/api/events/query',{userId:this.customer.userId}).then(res=>{
            this.oldEvents=res.data.sort((a,b)=>a.event_id-b.event_id);
+           let cp=0;
+           this.oldEvents.forEach(event=>{
+             cp+=event.points;
+             event.cp=cp;
+           });
          }).catch(err=>{
            console.log(err);
          });

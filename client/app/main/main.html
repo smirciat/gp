@@ -284,6 +284,7 @@
         <thead><tr style="background-color:brown;">
           <td style="color:white;font-weight:bold">User ID</td>
           <td style="color:white;font-weight:bold">Points</td>
+          <td style="color:white;font-weight:bold">Balance</td>
           <td style="color:white;font-weight:bold">Notes</td>
           <td style="color:white;font-weight:bold">Created At</td>
           <td style="color:white;font-weight:bold">Modified At</td>
@@ -291,6 +292,7 @@
         <tbody><tr ng-repeat="tran in main.oldEvents track by $index" style="background-color:pink;">
           <td>{{tran.member_id}}</td>
           <td>{{tran.points}}</td>
+          <td>{{tran.cp}}</td>
           <td>{{tran.notes}}</td>
           <td>{{tran.created | date:'medium'}}</td>
           <td>{{tran.modified | date:'medium'}}</td>
