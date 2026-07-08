@@ -272,6 +272,29 @@
     <div ng-if="main.customerTransactions.length===0">
       <h4>No Transactions yet for that member!</h4>
     </div>
+    <!--Old Event Table-->
+    <div ng-if="main.oldEvents.length>0">
+      <h5>Transactions from old Gold Points System</h5>
+      <table class="table table-bordered table-striped">
+        <thead><tr style="background-color:brown;">
+          <td style="color:white;font-weight:bold">User ID</td>
+          <td style="color:white;font-weight:bold">Points</td>
+          <td style="color:white;font-weight:bold">Notes</td>
+          <td style="color:white;font-weight:bold">Reservation ID</td>
+          <td style="color:white;font-weight:bold">Created At</td>
+          <td style="color:white;font-weight:bold">Comments</td>
+        </tr></thead>
+        <tbody><tr ng-repeat="tran in main.customerTransactions track by $index" style="background-color:pink;">
+          <td>{{tran.member_id}}</td>
+          <td>{{tran.points}}</td>
+          <td>{{tran.notes}}</td>
+          <td>{{tran.reservation_id}}</td>
+          <td>{{tran.created | date:'short'}}</td>
+          <td>{{tran.comments}}</td>
+        </tr></tbody>
+      </table>
+    </div>
+    <!--New Event Table-->
     <table class="table table-bordered table-striped">
       <thead><tr style="background-color:black;">
           <td style="color:white;font-weight:bold">User ID</td>

@@ -14,6 +14,7 @@ var db = {
 };
 
 // Insert models below
+db.Event = require('../api/event/event.model').default(db.sequelize, Sequelize.DataTypes);
 db.Flight = require('../api/flight/flight.model').default(db.sequelize, Sequelize.DataTypes);
 db.Transaction = require('../api/transaction/transaction.model').default(db.sequelize, Sequelize.DataTypes);
 db.Customer = require('../api/customer/customer.model').default(db.sequelize, Sequelize.DataTypes);

@@ -19,6 +19,7 @@ export default function(app) {
   
   app.use(lusca.csrf({angular:true}));
   // Insert routes below
+  app.use('/api/events', require('./api/event'));
   app.use('/api/flights', require('./api/flight'));
   app.use('/api/transactions', require('./api/transaction'));
   app.use('/api/customers', require('./api/customer'));

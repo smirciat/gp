@@ -5,6 +5,7 @@ public
 client/bower_components
 dist
 /server/config/local.env.js
+/server/api/event/www1.gp_events.json
 npm-debug.log
 coverage
 GP.csv

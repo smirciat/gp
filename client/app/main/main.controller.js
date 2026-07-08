@@ -692,6 +692,13 @@
          let queryUsers=[];
          if (this.customer.associatedAccounts&&Array.isArray(this.customer.associatedAccounts)) queryUsers=JSON.parse(JSON.stringify(this.customer.associatedAccounts));
          queryUsers.push(cust.userId);
+         //get events from old system as well
+         this.http.post('/api/events/query',{userId:this.customer.userId}).then(res=>{
+           this.oldEvents=res.data.sort((a,b)=>a.event_id-b.event_id);
+         }).catch(err=>{
+           console.log(err);
+         });
+         
          this.http.post('/api/transactions/query',{queryUsers:queryUsers}).then(res=>{
          //this.http.post('/api/transactions/query',{userId:cust.userId}).then(res=>{
            cust.selected=undefined;
@@ -794,6 +801,7 @@
     }
     
     backToHub(){
+      this.oldEvents=[];
       if (this.user.role==='guest') {
         window.location.reload();
         return;
@@ -810,6 +818,7 @@
     }
     
     retryQuery(){
+      this.oldEvents=[];
       this.queryGo=null;
     }
     
