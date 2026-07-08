@@ -449,6 +449,10 @@
     assignRedeem(transaction){
       transaction=transaction||this.transaction;
       transaction.points=transaction.points*1;
+      if (!this.customer) {
+        this.toaster.error('Error','You need to select the customer from the query results below so that I can verify they have enough points to redeem');
+        return;
+      }
       let combinedPoints=this.customer.combinedPoints;
       if (combinedPoints!==0) combinedPoints=combinedPoints||this.customer.currentPoints;
       this.http.post('/api/customers/one',{userId:this.customer.userId}).then(res=>{
