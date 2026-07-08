@@ -20,6 +20,15 @@
     background-color: #fff9b3;
 }
 
+.old.table-striped > tbody > tr:nth-of-type(odd) > td,
+.old.table-striped > tbody > tr:nth-of-type(odd) > th {
+    background-color: #FFE4E1;
+}
+
+.old.table-striped > tbody > tr:nth-child(even) > td {
+    background-color: #FFF0F5;
+}
+
 .dashboard{
   font-weight:bold;
   font-size:2em;

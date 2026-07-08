@@ -268,19 +268,21 @@
     <div ng-if="main.customer.gpType==='Associate'" class="single-centered">
       Your Primary Member ID is &nbsp<a href="#" ng-click="main.altSelect(main.customer.primaryUserId)">{{main.customer.primaryUserId}}</a>
     </div>
-    <div class="single-centered"><h4>Gold Points Transactions</h4></div>
+    <hr>
+    <div class="single-centered"><h3>Gold Points Transactions</h3></div>
     <div ng-if="main.customerTransactions.length===0">
       <h4>No Transactions yet for that member!</h4>
     </div>
     <!--Old Event Table-->
     <div ng-if="main.oldEvents.length>0">
       <h5 ng-click="main.expandThis=!main.expandThis">
-        Transactions from Old Gold Points System 
-        <span ng-if="main.expandThis"> (Click to Hide) -</span>
-        <span ng-if="!main.expandThis"> (Click to Show) +</span>
+        <a href="#">Transactions from Old Gold Points System
+          <span ng-if="main.expandThis"> (Click to Hide) -</span>
+          <span ng-if="!main.expandThis"> (Click to Show) +</span>
+        </a>
         <br>
       </h5>
-      <table class="table table-bordered table-striped" ng-if="main.expandThis">
+      <table class="old table table-bordered table-striped" ng-if="main.expandThis">
         <thead><tr style="background-color:brown;">
           <td style="color:white;font-weight:bold">User ID</td>
           <td style="color:white;font-weight:bold">Points</td>
@@ -289,7 +291,7 @@
           <td style="color:white;font-weight:bold">Created At</td>
           <td style="color:white;font-weight:bold">Modified At</td>
         </tr></thead>
-        <tbody><tr ng-repeat="tran in main.oldEvents track by $index" style="background-color:pink;">
+        <tbody><tr ng-repeat="tran in main.oldEvents track by $index">
           <td>{{tran.member_id}}</td>
           <td>{{tran.points}}</td>
           <td>{{tran.cp}}</td>
@@ -299,6 +301,7 @@
         </tr></tbody>
       </table>
     </div>
+    <hr>
     <!--New Event Table-->
     <table class="table table-bordered table-striped">
       <thead><tr style="background-color:black;">
