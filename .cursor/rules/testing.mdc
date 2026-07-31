@@ -1,0 +1,26 @@
+---
+description: Testing conventions for Gold Points (Karma, Mocha, Supertest)
+globs: "**/*.{spec,integration}.js"
+alwaysApply: false
+---
+
+# Testing
+
+## Client unit tests (`*.spec.js`)
+
+- Framework: Karma + Mocha + Chai + Sinon
+- Colocate specs next to source (e.g. `main.controller.spec.js`)
+- Mock `$http`, ui-router, and services via Angular DI
+- Run: `npm test` (delegates to `grunt test`)
+
+## Server tests
+
+- Unit specs: `server/api/*/*.spec.js` (Mocha)
+- Integration tests: `server/api/*/*.integration.js` (Supertest against Express app)
+- Use `mocha.conf.js` and Grunt `mochaTest` / `mocha_istanbul` tasks
+
+## Guidelines
+
+- Match existing assertion style (Chai `expect`, Sinon stubs/spies).
+- Only add tests when requested or when covering non-trivial new behavior.
+- Do not introduce Jest, Vitest, or other test runners.

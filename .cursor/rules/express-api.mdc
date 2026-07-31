@@ -1,0 +1,42 @@
+---
+description: Express API and Sequelize conventions for Gold Points
+globs: server/**/*.js
+alwaysApply: false
+---
+
+# Express API
+
+## REST controllers
+
+Follow Rails-like naming documented in controller file headers:
+
+```
+GET    /api/transactions     -> index
+POST   /api/transactions     -> create
+GET    /api/transactions/:id -> show
+PUT    /api/transactions/:id -> update
+DELETE /api/transactions/:id -> destroy
+```
+
+Reuse the standard helper chain: `respondWithResult`, `handleEntityNotFound`, `handleError`, `saveUpdates`, `removeEntity`.
+
+## Adding a new resource
+
+1. Create `server/api/<name>/<name>.model.js` (Sequelize define)
+2. Create `server/api/<name>/<name>.controller.js`
+3. Create `server/api/<name>/index.js` (Express router)
+4. Register model in `server/sqldb/index.js`
+5. Mount router in `server/routes.js` as `app.use('/api/<names>', require('./api/<name>'))`
+
+## Models and queries
+
+- Sequelize 6 API: `findOne`, `findAll`, `entity.update()`, `Op` operators.
+- Timestamps disabled globally (`timestamps: false`).
+- Primary keys use `_id` (INTEGER auto-increment) on most models.
+
+## Server JS style
+
+- ES6 imports/exports (Babel transpiles in dev/test).
+- `'use strict'` at top of every file.
+- Auth middleware from `server/auth/auth.service.js` (`auth.isAuthenticated()`, `auth.hasRole()`).
+- Webhook routes must stay above `lusca.csrf()` in `server/routes.js`.

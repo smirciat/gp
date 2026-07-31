@@ -1,0 +1,41 @@
+---
+description: AngularJS client conventions for Gold Points
+globs: client/**/*.{js,html,css}
+alwaysApply: false
+---
+
+# AngularJS Client
+
+## Module and routing
+
+- Root module: `goldPointsApp`. Feature modules extend it (e.g. `goldPointsApp.auth`, `goldPointsApp.admin`).
+- Routes via ui-router `$stateProvider` in feature `*.js` files.
+- HTML5 mode enabled — use ui-sref, not hash URLs.
+
+## Component pattern
+
+Newer features use ES6 classes registered as components:
+
+```javascript
+class MainController {
+  constructor($http, Auth, User) { /* inject deps */ }
+  $onInit() { /* load data */ }
+}
+angular.module('goldPointsApp').component('main', {
+  templateUrl: 'app/main/main.html',
+  controller: MainController
+});
+```
+
+## Templates and data
+
+- Colocate `*.html`, `*.css`, `*.js` per feature under `client/app/<feature>/`.
+- `$http` calls hit `/api/*` endpoints.
+- Auth: `Auth.isLoggedIn()`, `Auth.hasRole()`, `Auth.isAdmin()` from `client/components/auth/`.
+- Guest users auto-query by email on main page load.
+- Use ui-select, toaster notifications, and Bootstrap classes for layout.
+
+## Do not
+
+- Introduce React, Vue, or Angular 2+ patterns.
+- Add TypeScript or modern build tooling unless explicitly requested.

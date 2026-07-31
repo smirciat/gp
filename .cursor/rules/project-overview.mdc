@@ -1,0 +1,23 @@
+---
+description: Core Gold Points project context and constraints
+alwaysApply: true
+---
+
+# Gold Points Project
+
+Legacy AngularJS 1.x + Express/Sequelize full-stack app for Bering Air Gold Points membership management.
+
+## Key paths
+
+- Client: `client/app/` (features), `client/components/` (shared)
+- Server API: `server/api/<resource>/` (controller, model, index router)
+- DB init: `server/sqldb/index.js`
+- Route registration: `server/routes.js`
+
+## Agent behavior
+
+- Match existing generator-angular-fullstack patterns; minimize diff scope.
+- Use Grunt (`grunt serve`, `grunt build`, `npm test`) — not modern bundlers.
+- Preserve legacy DB column names (`userId`, `gpType`, `associatedAccounts`, etc.).
+- Webhook routes (`/api/transactions/webhooks`) mount before CSRF — keep that order.
+- See `AGENTS.md` for full architecture and domain context.

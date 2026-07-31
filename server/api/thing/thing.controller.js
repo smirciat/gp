@@ -363,7 +363,7 @@ export async function setBearer(){
         'api-version': 'v1', 
         'Authorization': bearer
       },
-      
+      //data:data
     };
     if (!localEnv.STOP_WEBHOOKS) {
       info = await axios(config);
