@@ -8,12 +8,18 @@ import {redeemPoints} from './redeem.service';
 const GP_BASE_URL = 'https://gp.beringair.com';
 
 function integrationMeta(appName) {
-  return {
+  const meta = {
     app: appName,
     apiVersion: 'v1',
     service: 'gold-points',
     baseUrl: GP_BASE_URL
   };
+  if (appName === 'bering_public') {
+    meta.allowedRedemptionTypes = ['fare'];
+  } else if (appName === 'resbering') {
+    meta.allowedRedemptionTypes = ['fare', 'freight'];
+  }
+  return meta;
 }
 
 function readLookup(req) {
@@ -38,7 +44,8 @@ function readRedeemBody(body) {
   };
 }
 
-function validateRedeemRequest(body) {
+function validateRedeemRequest(body, options) {
+  options = options || {};
   if (!body.email && !body.userId) {
     return 'Provide email or userId for the member redeeming points.';
   }
@@ -48,10 +55,20 @@ function validateRedeemRequest(body) {
   if (!body.redemptionType) {
     return 'redemptionType is required (fare or freight).';
   }
+  if (options.fareOnly && body.redemptionType !== 'fare') {
+    return 'bering_public only supports fare redemption.';
+  }
   if (!body.booking) {
     return 'booking is required.';
   }
   return null;
+}
+
+function membershipForBeringPublic(membership) {
+  return Object.assign({}, membership, {
+    availableFreightRewards: [],
+    availableRewards: membership.availableFareRewards || []
+  });
 }
 
 export function metaResBering(req, res) {
@@ -104,7 +121,7 @@ export async function membershipBeringPublic(req, res) {
       return res.status(404).json({message: 'Gold Points member not found'});
     }
 
-    res.json(membership);
+    res.json(membershipForBeringPublic(membership));
   } catch (err) {
     console.log(err);
     res.status(500).json({message: 'Failed to load membership'});
@@ -130,7 +147,7 @@ export async function redeemResBering(req, res) {
 export async function redeemBeringPublic(req, res) {
   try {
     const body = readRedeemBody(req.body || {});
-    const validationError = validateRedeemRequest(body);
+    const validationError = validateRedeemRequest(body, {fareOnly: true});
     if (validationError) {
       return res.status(400).json({message: validationError});
     }

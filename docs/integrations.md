@@ -4,10 +4,10 @@
 
 Machine-to-machine routes mounted **before** `lusca` CSRF in `server/routes.js`. Intended for:
 
-| App | Route prefix | Audience |
-|-----|--------------|----------|
-| resBering desktop | `/api/integrations/resbering/v1` | Employees at cargo/ticket counter |
-| bering_public mobile | `/api/integrations/bering-public/v1` | App Store customers booking for themselves |
+| App | Route prefix | Audience | Redemption types |
+|-----|--------------|----------|------------------|
+| resBering desktop | `/api/integrations/resbering/v1` | Employees at cargo/ticket counter | **fare** and **freight** |
+| bering_public mobile | `/api/integrations/bering-public/v1` | App Store customers booking for themselves | **fare only** (passenger tickets) |
 
 ## Authentication
 
@@ -43,7 +43,7 @@ X-GP-Integration-Key: <token>
 
 **resBering** — `email` and/or `userId` (employee can look up any member).
 
-**bering_public** — `email` or `userId` (must match the signed-in customer in the calling app).
+**bering_public** — `email` or `userId` (must match the signed-in customer in the calling app). Membership responses omit freight tiers; use `availableFareRewards` only.
 
 Response includes:
 
@@ -62,8 +62,10 @@ Response includes:
 - **Booking required** — every redemption posts against a specific `booking` number.
 - **Primary** — redeems from the combined primary + associate pool (debits primary first, then associates).
 - **Associate** — redeems only from their own `currentPoints`.
-- **Freight** — `redemptionType: "freight"`; tier must include `freightLbs` or `freight` benefit (tiers 10–100).
-- **Fare** — `redemptionType: "fare"`; tier must include ticket discount, companion fare, or airline ticket benefit.
+- **Freight** — `redemptionType: "freight"`; tier must include `freightLbs` or `freight` benefit (tiers 10–100). **resBering desktop only** — bering_public rejects freight redemption.
+- **Fare** — `redemptionType: "fare"`; tier must include ticket discount, companion fare, or airline ticket benefit. Both apps.
+
+`GET …/meta` returns `allowedRedemptionTypes`: `["fare","freight"]` for resBering, `["fare"]` for bering_public.
 
 ### Redemption request
 
@@ -91,10 +93,10 @@ Response includes `tier`, `appliedBenefit`, `redeemFromPool`, `transactions`, an
 curl -s -H "Authorization: Bearer $RESBERING_INTEGRATION_TOKEN" \
   'https://gp.beringair.com/api/integrations/resbering/v1/membership?email=member@example.com'
 
-# Tier redemption (bering_public)
+# Tier redemption (bering_public — fare only)
 curl -s -X POST -H "Authorization: Bearer $BERING_PUBLIC_INTEGRATION_TOKEN" \
   -H 'Content-Type: application/json' \
-  -d '{"email":"member@example.com","tierPoints":10,"redemptionType":"freight","booking":"ABC123"}' \
+  -d '{"email":"member@example.com","tierPoints":20,"redemptionType":"fare","booking":"ABC123"}' \
   'https://gp.beringair.com/api/integrations/bering-public/v1/redeem'
 ```
 
