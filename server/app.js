@@ -18,9 +18,18 @@ if (config.seedDB) { require('./config/seed'); }
 
 // Setup server
 var app = express();
+const integrationOrigins = (localEnv.INTEGRATION_CORS_ORIGINS || '')
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean);
+const corsOrigins = [
+  localEnv.FRONTEND,
+  'https://gp.beringair.com',
+  'https://reservations.beringair.com'
+].concat(integrationOrigins).filter(Boolean);
 const corsOptions = {
-  origin: localEnv.FRONTEND,// Change to https://yourfrontend.com in production
-  optionsSuccessStatus: 200 // For legacy browser support (IE11, various Smart TVs)
+  origin: corsOrigins.length === 1 ? corsOrigins[0] : corsOrigins,
+  optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
 var server = http.createServer(app);

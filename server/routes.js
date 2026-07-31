@@ -16,7 +16,9 @@ export default function(app) {
   //needed for webhooks route
   app.use(bodyParser.json({ type: '*/*' }));
   app.use('/api/transactions/webhooks', require('./api/transaction/indexWebhooks'));
-  
+  app.use('/api/integrations/resbering/v1', require('./api/integration/indexResBering'));
+  app.use('/api/integrations/bering-public/v1', require('./api/integration/indexBeringPublic'));
+
   app.use(lusca.csrf({angular:true}));
   // Insert routes below
   app.use('/api/events', require('./api/event'));

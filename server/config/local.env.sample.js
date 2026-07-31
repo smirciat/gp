@@ -10,5 +10,12 @@ module.exports = {
   SESSION_SECRET:   'goldpoints-secret',
 
   // Control debug level for modules using visionmedia/debug
-  DEBUG: ''
+  DEBUG: '',
+
+  // Integration API tokens (Bearer or X-GP-Integration-Key header) — mount before CSRF in routes.js
+  RESBERING_INTEGRATION_TOKEN: '',
+  BERING_PUBLIC_INTEGRATION_TOKEN: '',
+
+  // Optional comma-separated browser origins for integration clients
+  INTEGRATION_CORS_ORIGINS: ''
 };

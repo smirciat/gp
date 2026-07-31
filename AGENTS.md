@@ -46,6 +46,8 @@ REST endpoints under `/api/`:
 - `/api/customers` — Gold Points member accounts and point balances
 - `/api/transactions` — point awards, redemptions, approvals
 - `/api/transactions/webhooks` — external webhook handler (mounted before CSRF)
+- `/api/integrations/resbering/v1` — resBering desktop employee integration (API token)
+- `/api/integrations/bering-public/v1` — bering_public mobile customer integration (API token)
 - `/api/flights` — flight data queries for point assignment
 - `/api/events` — event/points ledger records
 - `/api/users` — user accounts
@@ -92,4 +94,5 @@ Production runs via PM2 (`ecosystem.config.js`) from `dist/server` on Node 12.
 ## Further Reading
 
 - `docs/legacy-development.md` — guardrails for safe changes on this legacy stack
+- `docs/integrations.md` — resBering / bering_public integration API
 - `.cursor/rules/` — scoped Cursor rules for client, server, and tests
