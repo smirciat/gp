@@ -16,6 +16,8 @@ router.post('/customers/query', controller.queryCustomersResBering);
 router.get('/customers/:userId', controller.getCustomerResBering);
 router.post('/transactions/query', controller.queryTransactionsResBering);
 router.post('/members/enroll', controller.enrollMemberResBering);
+router.post('/transactions/assign', controller.assignManualPointsResBering);
+router.patch('/customers/:userId/suspension', controller.setMemberSuspensionResBering);
 router.post('/redeem', controller.redeemResBering);
 router.post('/flights/manifest', controller.importFlightManifestResBering);
 

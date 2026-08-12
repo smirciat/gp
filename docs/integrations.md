@@ -89,9 +89,30 @@ Response: `{ count, limit, userIds, transactions: [{ _id, userId, date, awardRed
 
 Required: `firstName`, `lastName`, `email`. Optional: `middleName`, `phone`, `dob`, address fields, `gpType` (`Primary` default or `Associate`), `primaryUserId` (required for Associate), `allowDuplicate` (default `false` — returns **409** when email already exists).
 
-Response **201**: `{ customer, transaction, membership, duplicateEmail? }` — 10-point signup transaction is created and associate is linked to primary `associatedAccounts` when applicable.
+Response **201**: `{ customer, transaction, membership, duplicateEmail?, welcomeEmail? }` — 10-point signup transaction (`status: Approved`), associate linked to primary `associatedAccounts` when applicable.
 
-Welcome email is **not** sent by this route yet (legacy GP staff UI still sends via `/api/things/welcomeEmail`).
+**Welcome email:** when not a duplicate-email enroll, GP calls the same logic as `POST /api/things/welcomeEmail` — creates guest `User`, temp password, Mailgun send (`MAILGUN_*` on GP server). Enrollment still succeeds if email fails; response includes `welcomeEmail: { sent, skipped, reason? }`.
+
+### Manual assign / suspend (resBering staff — Phase 5)
+
+`POST …/transactions/assign`
+
+```json
+{
+  "userId": "363",
+  "points": 25,
+  "awardRedeem": "award",
+  "dateFlown": "8/12/2026",
+  "booking": "L12345",
+  "route": "OME-GAM",
+  "flight": "801",
+  "description": "Manual adjustment"
+}
+```
+
+Response **201**: `{ points, awardRedeem, transactions[], membership }` — all rows **`Approved`** immediately (no pending queue).
+
+`PATCH …/customers/:userId/suspension` — `{ "suspended": true | false }`.
 
 ### Membership lookup
 

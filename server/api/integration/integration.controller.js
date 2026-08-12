@@ -11,6 +11,7 @@ import {
 } from './customers.service';
 import {queryTransactions} from './transactions.service';
 import {enrollMember} from './members-enroll.service';
+import {assignManualPoints, setMemberSuspension} from './manual-assign.service';
 const GP_BASE_URL = 'https://gp.beringair.com';
 
 function integrationMeta(appName) {
@@ -186,6 +187,32 @@ export async function getCustomerResBering(req, res) {
   } catch (err) {
     console.log(err);
     res.status(err.status || 500).json({message: err.message || 'Failed to load customer'});
+  }
+}
+
+export async function assignManualPointsResBering(req, res) {
+  try {
+    const result = await assignManualPoints(req.body || {});
+    res.status(201).json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(err.status || 500).json({
+      message: err.message || 'Manual assign failed'
+    });
+  }
+}
+
+export async function setMemberSuspensionResBering(req, res) {
+  try {
+    const userId = req.params.userId;
+    const suspended = req.body ? req.body.suspended : undefined;
+    const result = await setMemberSuspension(userId, suspended);
+    res.json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(err.status || 500).json({
+      message: err.message || 'Suspension update failed'
+    });
   }
 }
 

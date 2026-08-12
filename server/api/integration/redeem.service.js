@@ -110,6 +110,8 @@ function buildDebitPlan(membership, points) {
   return buildOwnDebitPlan(membership, points);
 }
 
+export { buildDebitPlan, normalizeDateFlown };
+
 export async function redeemPoints({
   email,
   userId,

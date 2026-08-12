@@ -7,6 +7,7 @@ import {
   findCustomersByEmail,
   loadMembershipGroup
 } from './membership.service';
+import {welcomeEmail} from '../thing/thing.controller.js';
 
 const SIGNUP_POINTS = 10;
 
@@ -69,6 +70,43 @@ function readEnrollInput(body) {
     lastUpdatedBy:
       body.lastUpdatedBy != null ? Math.floor(Number(body.lastUpdatedBy)) : 0
   };
+}
+
+async function sendEnrollWelcomeEmail(customer, options) {
+  options = options || {};
+  if (options.skip) {
+    return {
+      sent: false,
+      skipped: true,
+      reason: 'Skipped when enrolling with duplicate email.'
+    };
+  }
+  if (!customer || !customer.email) {
+    return { sent: false, skipped: true, reason: 'No email on member.' };
+  }
+  if (customer.badEmail) {
+    return {
+      sent: false,
+      skipped: true,
+      reason: 'Member email flagged bad on GP account.'
+    };
+  }
+  try {
+    const result = await welcomeEmail({
+      body: { to: customer.email, customer: customer }
+    });
+    if (result === 'Failed to Send Email') {
+      return { sent: false, skipped: false, reason: 'Mailgun send failed.' };
+    }
+    return { sent: true, skipped: false };
+  } catch (err) {
+    console.log(err);
+    return {
+      sent: false,
+      skipped: false,
+      reason: err && err.message ? err.message : 'Welcome email failed.'
+    };
+  }
 }
 
 /**
@@ -177,10 +215,17 @@ export async function enrollMember(body) {
 
   const membership = await loadMembershipGroup(customer);
 
+  const skipWelcome =
+    input.allowDuplicate && duplicates.length > 0;
+  const welcomeEmailStatus = await sendEnrollWelcomeEmail(plain, {
+    skip: skipWelcome
+  });
+
   return {
     customer: plain,
     transaction: transaction.get({plain: true}),
     membership,
-    duplicateEmail: input.allowDuplicate && duplicates.length > 0
+    duplicateEmail: input.allowDuplicate && duplicates.length > 0,
+    welcomeEmail: welcomeEmailStatus
   };
 }
