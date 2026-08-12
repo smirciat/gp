@@ -10,6 +10,7 @@ import {
   queryCustomers
 } from './customers.service';
 import {queryTransactions} from './transactions.service';
+import {enrollMember} from './members-enroll.service';
 const GP_BASE_URL = 'https://gp.beringair.com';
 
 function integrationMeta(appName) {
@@ -185,6 +186,19 @@ export async function getCustomerResBering(req, res) {
   } catch (err) {
     console.log(err);
     res.status(err.status || 500).json({message: err.message || 'Failed to load customer'});
+  }
+}
+
+export async function enrollMemberResBering(req, res) {
+  try {
+    const result = await enrollMember(req.body || {});
+    res.status(201).json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(err.status || 500).json({
+      message: err.message || 'Enrollment failed',
+      duplicateCount: err.duplicateCount
+    });
   }
 }
 

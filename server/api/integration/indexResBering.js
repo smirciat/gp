@@ -15,6 +15,7 @@ router.post('/membership', controller.membershipResBering);
 router.post('/customers/query', controller.queryCustomersResBering);
 router.get('/customers/:userId', controller.getCustomerResBering);
 router.post('/transactions/query', controller.queryTransactionsResBering);
+router.post('/members/enroll', controller.enrollMemberResBering);
 router.post('/redeem', controller.redeemResBering);
 router.post('/flights/manifest', controller.importFlightManifestResBering);
 

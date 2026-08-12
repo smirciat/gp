@@ -40,6 +40,7 @@ X-GP-Integration-Key: <token>
 | `POST` | `/customers/query` | Staff search (read-only summaries; `q` or structured `query`) |
 | `GET` | `/customers/:userId` | Membership detail by userId (same shape as `/membership`) |
 | `POST` | `/transactions/query` | Ledger rows for `userId` and/or `queryUsers` (read-only) |
+| `POST` | `/members/enroll` | Create primary or associate + 10-pt signup transaction |
 | `POST` | `/redeem` | Tier-based redemption against a booking |
 | `POST` | `/flights/manifest` | Ingest completed-flight passengers from resBering (#92) |
 
@@ -81,6 +82,16 @@ or household:
 ```
 
 Response: `{ count, limit, userIds, transactions: [{ _id, userId, date, awardRedeem, points, status, booking, description, … }] }`.
+
+### Member enrollment (resBering staff)
+
+`POST …/members/enroll` — creates a new GP member without exposing raw `POST /api/customers`.
+
+Required: `firstName`, `lastName`, `email`. Optional: `middleName`, `phone`, `dob`, address fields, `gpType` (`Primary` default or `Associate`), `primaryUserId` (required for Associate), `allowDuplicate` (default `false` — returns **409** when email already exists).
+
+Response **201**: `{ customer, transaction, membership, duplicateEmail? }` — 10-point signup transaction is created and associate is linked to primary `associatedAccounts` when applicable.
+
+Welcome email is **not** sent by this route yet (legacy GP staff UI still sends via `/api/things/welcomeEmail`).
 
 ### Membership lookup
 
