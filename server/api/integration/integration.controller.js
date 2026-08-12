@@ -4,7 +4,12 @@ import localEnv from '../../config/local.env';
 import {listRewardTiers} from './rewards.service';
 import {resolveMembership} from './membership.service';
 import {redeemPoints} from './redeem.service';
-
+import {upsertFlightManifestFromResBering} from './flight-manifest.service';
+import {
+  getCustomerMembership,
+  queryCustomers
+} from './customers.service';
+import {queryTransactions} from './transactions.service';
 const GP_BASE_URL = 'https://gp.beringair.com';
 
 function integrationMeta(appName) {
@@ -141,6 +146,62 @@ export async function redeemResBering(req, res) {
   } catch (err) {
     console.log(err);
     res.status(err.status || 500).json({message: err.message || 'Redemption failed'});
+  }
+}
+
+export async function importFlightManifestResBering(req, res) {
+  try {
+    const result = await upsertFlightManifestFromResBering(req.body || {});
+    res.status(result.created ? 201 : 200).json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(err.status || 500).json({message: err.message || 'Flight manifest import failed'});
+  }
+}
+
+export async function queryCustomersResBering(req, res) {
+  try {
+    const body = req.body || {};
+    const result = await queryCustomers({
+      q: body.q,
+      search: body.search,
+      query: body.query,
+      limit: body.limit
+    });
+    res.json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(err.status || 500).json({message: err.message || 'Customer query failed'});
+  }
+}
+
+export async function getCustomerResBering(req, res) {
+  try {
+    const membership = await getCustomerMembership(req.params.userId);
+    if (!membership) {
+      return res.status(404).json({message: 'Gold Points member not found'});
+    }
+    res.json(membership);
+  } catch (err) {
+    console.log(err);
+    res.status(err.status || 500).json({message: err.message || 'Failed to load customer'});
+  }
+}
+
+export async function queryTransactionsResBering(req, res) {
+  try {
+    const body = req.body || {};
+    const result = await queryTransactions({
+      userId: body.userId,
+      queryUsers: body.queryUsers,
+      limit: body.limit
+    });
+    res.json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(err.status || 500).json({
+      message: err.message || 'Transaction query failed'
+    });
   }
 }
 

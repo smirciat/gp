@@ -12,6 +12,10 @@ router.get('/meta', controller.metaResBering);
 router.get('/rewards', controller.rewardCatalog);
 router.get('/membership', controller.membershipResBering);
 router.post('/membership', controller.membershipResBering);
+router.post('/customers/query', controller.queryCustomersResBering);
+router.get('/customers/:userId', controller.getCustomerResBering);
+router.post('/transactions/query', controller.queryTransactionsResBering);
 router.post('/redeem', controller.redeemResBering);
+router.post('/flights/manifest', controller.importFlightManifestResBering);
 
 module.exports = router;

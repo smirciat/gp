@@ -18,13 +18,15 @@ function normalizePoints(customer) {
   return row;
 }
 
-function memberSummary(customer) {
+export function memberSummary(customer) {
   const row = normalizePoints(customer);
   return {
     _id: row._id,
     userId: row.userId,
     fullName: row.fullName,
     email: row.email,
+    account: row.account || null,
+    phone: row.phone || null,
     gpType: row.gpType,
     primaryUserId: row.primaryUserId || null,
     currentPoints: row.currentPoints * 1 || 0,

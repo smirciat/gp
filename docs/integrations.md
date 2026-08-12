@@ -37,7 +37,50 @@ X-GP-Integration-Key: <token>
 | `GET` | `/meta` | API identity, version, and `baseUrl` |
 | `GET` | `/rewards` | Full reward tier catalog |
 | `GET`/`POST` | `/membership` | Lookup member by email and/or userId |
+| `POST` | `/customers/query` | Staff search (read-only summaries; `q` or structured `query`) |
+| `GET` | `/customers/:userId` | Membership detail by userId (same shape as `/membership`) |
+| `POST` | `/transactions/query` | Ledger rows for `userId` and/or `queryUsers` (read-only) |
 | `POST` | `/redeem` | Tier-based redemption against a booking |
+| `POST` | `/flights/manifest` | Ingest completed-flight passengers from resBering (#92) |
+
+### Customer search (resBering staff)
+
+`POST …/customers/query` — Bearer token required. Does **not** dump the full roster; provide search criteria.
+
+```json
+{ "q": "smith", "limit": 50 }
+```
+
+(`search` is accepted as an alias for `q`.)
+
+Or structured (legacy Manage Members style):
+
+```json
+{
+  "query": { "email": "a@b.com", "firstName": "Ann", "lastName": "Smith", "id": "123", "account": "ACME" },
+  "limit": 50
+}
+```
+
+Response: `{ count, limit, customers: [{ userId, fullName, email, account, phone, gpType, primaryUserId, currentPoints, suspended, active, _id }] }`.
+
+`GET …/customers/:userId` returns the full membership group (primary, associates, redeemable balance, available rewards).
+
+### Transaction query (resBering staff)
+
+`POST …/transactions/query`
+
+```json
+{ "userId": "363", "limit": 100 }
+```
+
+or household:
+
+```json
+{ "queryUsers": ["363", "41357"], "limit": 100 }
+```
+
+Response: `{ count, limit, userIds, transactions: [{ _id, userId, date, awardRedeem, points, status, booking, description, … }] }`.
 
 ### Membership lookup
 
@@ -105,6 +148,8 @@ curl -s -X POST -H "Authorization: Bearer $BERING_PUBLIC_INTEGRATION_TOKEN" \
 | File | Role |
 |------|------|
 | `server/api/integration/membership.service.js` | Email/userId lookup, primary/associate group, redeemable balance |
+| `server/api/integration/customers.service.js` | Staff customer search + detail (read-only) |
+| `server/api/integration/transactions.service.js` | Staff transaction query (read-only) |
 | `server/api/integration/rewards.service.js` | Tier catalog and fare/freight validation |
 | `server/api/integration/redeem.service.js` | Pool vs own-account debit + `newTransaction` |
 | `server/api/integration/integration.auth.js` | Per-app API tokens |
@@ -113,7 +158,7 @@ Reward tiers follow the Bering Air Gold Points marketing program (10–1000 poin
 
 ## Client logic not duplicated here
 
-The legacy Angular `main.controller.js` still owns staff-only flows (create member, associate management, flight award batch, transfers, transaction edit/delete). Integration APIs only cover **lookup**, **available rewards**, and **tier redemption**.
+The legacy Angular `main.controller.js` still owns staff-only flows (create member, associate management, flight award batch, transfers, transaction edit/delete). Integration APIs cover **lookup**, **staff search/detail (read-only)**, **available rewards**, and **tier redemption**.
 
 ## CORS
 
