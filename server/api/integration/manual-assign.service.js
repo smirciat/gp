@@ -6,6 +6,11 @@ import {
   loadMembershipGroup
 } from './membership.service';
 import {buildDebitPlan, normalizeDateFlown} from './redeem.service';
+import {
+  MAX_AWARD_POINTS_PER_TXN,
+  MAX_REDEEM_POINTS_PER_TXN,
+  validateTransactionPoints
+} from '../transaction/points-guard';
 
 function appendLegacyDescription(description, meta) {
   let text = description != null ? String(description) : '';
@@ -79,8 +84,8 @@ async function postApprovedTransaction(input, debit, meta) {
 }
 
 /**
- * Manual award or redeem (any positive integer points) — staff Assign Points.
- * Redeem uses primary pool debit when member is primary; otherwise own balance only.
+ * Manual award or redeem — staff Assign Points / integration assign.
+ * Awards capped at {@link MAX_AWARD_POINTS_PER_TXN}; redeems at {@link MAX_REDEEM_POINTS_PER_TXN}.
  */
 export async function assignManualPoints(body) {
   const input = readAssignInput(body || {});
@@ -90,6 +95,14 @@ export async function assignManualPoints(body) {
     err.status = 400;
     throw err;
   }
+
+  const validated = validateTransactionPoints(input.points, input.awardRedeem);
+  if (!validated.ok) {
+    const err = new Error(validated.message);
+    err.status = 400;
+    throw err;
+  }
+  input.points = validated.points;
 
   const seed = await findCustomerByIdentifier({userId: input.userId});
   if (!seed) {

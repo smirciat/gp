@@ -515,6 +515,14 @@
         this.toaster.error('Error','Missing Information!');
         return;
       }
+      if (transaction.awardRedeem==='award'&&transaction.points>100) {
+        this.toaster.error('Error','Award cannot exceed 100 points per transaction (flight awards are 5).');
+        return;
+      }
+      if (transaction.awardRedeem==='redeem'&&transaction.points>1000) {
+        this.toaster.error('Error','Redeem cannot exceed 1000 points per transaction.');
+        return;
+      }
       return this.http.post('/api/customers/one',{userId:transaction.userId}).then(res=>{
         let customer=res.data;       
         if (res.data.suspended) {
@@ -774,20 +782,21 @@
           if (all==='all') this.allTransactions.splice(index,1);
           else if (all==='many') this.manyTransactions.splice(index,1);
           else this.customerTransactions.splice(index,1);
-          this.http.post('/api/customers/one',{userId:tran.userId}).then(res=>{
-            if (!res.data||!res.data.userId) return;
-            if (tran.awardRedeem==="award") res.data.currentPoints-=tran.points;
-            else res.data.currentPoints+=tran.points;
-            this.http.patch('/api/customers/'+res.data._id,{currentPoints:res.data.currentPoints}).then(res=>{
+          const refreshUserId=tran.userId;
+          if (this.customer&&this.customer.userId===refreshUserId) {
+            this.http.post('/api/customers/one',{userId:refreshUserId}).then(res=>{
+              if (!res.data||!res.data.userId) return;
+              this.customer=res.data;
+              const idx=this.customers.map(e=>e.userId).indexOf(res.data.userId);
+              if (idx>-1) this.customers[idx]=res.data;
               this.toaster.success('Success','Deleted transaction and updated customer point total accordingly');
             }).catch(err=>{
-              console.log(err)});
-              this.toaster.error('Error','Failed to update customer point total after deletion');
-          }).catch(err=>{
-            console.log(err);
-            this.toaster.error('Error','Failed to find customer after deletion so point total is not updated');
-          });
-            
+              console.log(err);
+              this.toaster.error('Error','Failed to refresh customer after deletion');
+            });
+          } else {
+            this.toaster.success('Success','Deleted transaction and updated customer point total accordingly');
+          }
         }).catch(err=>{
           console.log(err);
           this.toaster.error('Error','Failed to delete transaction');

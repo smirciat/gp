@@ -13,8 +13,22 @@ import _ from 'lodash';
 import localEnv from '../../config/local.env';
 import {Transaction,Customer,Flight,sequelize} from '../../sqldb';
 import { getManifest } from '../thing/thing.controller.js';
+import {
+  normalizePoints,
+  reverseBalanceDelta,
+  signedBalanceDelta,
+  validateTransactionPoints
+} from './points-guard';
 const { Op } = require('sequelize');
 import https from 'https';
+
+function newTransactionFailure(res, message, statusCode) {
+  statusCode = statusCode || 400;
+  if (res) {
+    return res.status(statusCode).json(message);
+  }
+  return message;
+}
 
 function respondWithResult(res, statusCode) {
   statusCode = statusCode || 200;
@@ -114,6 +128,14 @@ export async function newTransaction(req, res) {
     if (res) return res.status(500).json('Can`t create transaction');
     return 'Can`t create transaction';
   }
+
+  const awardRedeem = req.body.awardRedeem || 'award';
+  const validated = validateTransactionPoints(req.body.points, awardRedeem);
+  if (!validated.ok) {
+    return newTransactionFailure(res, validated.message, 400);
+  }
+  req.body.points = validated.points;
+
   let transaction;
   try {
     transaction = await Transaction.create(req.body);
@@ -123,9 +145,19 @@ export async function newTransaction(req, res) {
     if (res) return res.status(500).json('Sequelize Error while creating transaction');
     return 'Sequelize Error while creating transaction';
   }
-  let increment = req.body.points; //negative increment for redeem
-  let string='COALESCE("currentPoints",0) - ' + increment;
-  if (req.body.awardRedeem==='award') string='COALESCE("currentPoints",0) + ' + increment;
+
+  if (validated.skipBalance) {
+    if (res) return res.status(200).json(transaction);
+    return 'New Transaction Successful';
+  }
+
+  const delta = signedBalanceDelta(awardRedeem, validated.points);
+  if (delta === 0) {
+    if (res) return res.status(200).json(transaction);
+    return 'New Transaction Successful';
+  }
+
+  const string = 'COALESCE("currentPoints",0) + ' + delta;
   try {
     await Customer.update(
       {
@@ -154,30 +186,51 @@ export async function update(req, res) {
     return 'Please incude newTransaction and oldTransaction';
   }
   
-  //test if we need to update a customer's currentPoints
-  if (req.body.newTransaction.points!==req.body.oldTransaction.points||req.body.newTransaction.awardRedeem!==req.body.oldTransaction.awardRedeem) {
-    let oldPoints=req.body.oldTransaction.points;
-    let newPoints=req.body.newTransaction.points;
-    if (req.body.newTransaction.awardRedeem==='redeem') newPoints=newPoints*-1;
-    if (req.body.oldTransaction.awardRedeem==='redeem') oldPoints=oldPoints*-1;
-    let increment = newPoints - oldPoints; //negative increment for redeem
-    let string='COALESCE("currentPoints",0) + ' + increment;
-  
-    try {
-      await Customer.update(
-        {
-          lastTransaction : req.body.oldTransaction._id,
-          currentPoints : sequelize.literal(string)
-        },
-        {
-          where:{userId:req.body.oldTransaction.userId}
+  const newType = req.body.newTransaction.awardRedeem || 'award';
+  const newValidated = validateTransactionPoints(
+    req.body.newTransaction.points,
+    newType
+  );
+  if (!newValidated.ok) {
+    if (res) return res.status(400).json(newValidated.message);
+    return newValidated.message;
+  }
+  req.body.newTransaction.points = newValidated.points;
+
+  const pointsOrTypeChanged =
+    req.body.newTransaction.points !== req.body.oldTransaction.points ||
+    req.body.newTransaction.awardRedeem !== req.body.oldTransaction.awardRedeem;
+
+  if (pointsOrTypeChanged) {
+    const oldDelta = signedBalanceDelta(
+      req.body.oldTransaction.awardRedeem,
+      req.body.oldTransaction.points
+    );
+    const newDelta = newValidated.skipBalance
+      ? 0
+      : signedBalanceDelta(newType, newValidated.points);
+    const increment = newDelta - oldDelta;
+    if (increment !== 0) {
+      const string = 'COALESCE("currentPoints",0) + ' + increment;
+      try {
+        await Customer.update(
+          {
+            lastTransaction: req.body.oldTransaction._id,
+            currentPoints: sequelize.literal(string)
+          },
+          {
+            where: { userId: req.body.oldTransaction.userId }
+          }
+        );
+      } catch (err) {
+        console.log(err);
+        if (res) {
+          return res
+            .status(500)
+            .json('Sequelize Error while updating customer currentPoints');
         }
-      );
-    }
-    catch(err){
-      console.log(err);
-      if (res) return res.status(500).json('Sequelize Error while updating customer currentPoints');
-      return 'Sequelize Error while updating customer currentPoints';
+        return 'Sequelize Error while updating customer currentPoints';
+      }
     }
   }
   try {
@@ -197,16 +250,34 @@ export async function update(req, res) {
     }
 }
 
-// Deletes a Transaction from the DB
-export function destroy(req, res) {
-  return Transaction.findOne({
-    where: {
-      _id: req.params.id
+// Deletes a Transaction from the DB and reverses its effect on currentPoints
+export async function destroy(req, res) {
+  try {
+    const row = await Transaction.findOne({
+      where: { _id: req.params.id }
+    });
+    if (!row) {
+      res.status(404).end();
+      return;
     }
-  })
-    .then(handleEntityNotFound(res))
-    .then(removeEntity(res))
-    .catch(handleError(res));
+
+    const plain = row.get({ plain: true });
+    const delta = reverseBalanceDelta(plain.awardRedeem, plain.points);
+    if (delta !== 0) {
+      const customer = await Customer.findOne({
+        where: { userId: plain.userId }
+      });
+      if (customer) {
+        const cp = normalizePoints(customer.get({ plain: true }).currentPoints) || 0;
+        await customer.update({ currentPoints: cp + delta });
+      }
+    }
+
+    await row.destroy();
+    res.status(204).end();
+  } catch (err) {
+    handleError(res)(err);
+  }
 }
 
 export function webhookOptions(req,res){

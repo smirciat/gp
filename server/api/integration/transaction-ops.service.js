@@ -3,6 +3,12 @@
 import {Transaction, Customer, sequelize} from '../../sqldb';
 import {findCustomerByIdentifier} from './membership.service';
 import {transactionSummary} from './transactions.service';
+import {
+  normalizePoints,
+  reverseBalanceDelta,
+  signedBalanceDelta,
+  validateTransactionPoints
+} from '../transaction/points-guard';
 
 const PAGE_SIZE = 1000;
 
@@ -35,38 +41,48 @@ export async function updateTransaction({oldTransaction, newTransaction} = {}) {
     throw err;
   }
 
-  if (
-    newTransaction.points !== oldTransaction.points ||
-    newTransaction.awardRedeem !== oldTransaction.awardRedeem
-  ) {
-    let oldPoints = oldTransaction.points * 1 || 0;
-    let newPoints = newTransaction.points * 1 || 0;
-    if (newTransaction.awardRedeem === 'redeem') {
-      newPoints = newPoints * -1;
-    }
-    if (oldTransaction.awardRedeem === 'redeem') {
-      oldPoints = oldPoints * -1;
-    }
-    const increment = newPoints - oldPoints;
-    const string = 'COALESCE("currentPoints",0) + ' + increment;
+  const newType = newTransaction.awardRedeem || 'award';
+  const newValidated = validateTransactionPoints(newTransaction.points, newType);
+  if (!newValidated.ok) {
+    const err = new Error(newValidated.message);
+    err.status = 400;
+    throw err;
+  }
+  newTransaction.points = newValidated.points;
 
-    try {
-      await Customer.update(
-        {
-          lastTransaction: oldTransaction._id,
-          currentPoints: sequelize.literal(string)
-        },
-        {
-          where: {userId: oldTransaction.userId}
-        }
-      );
-    } catch (updateErr) {
-      console.log(updateErr);
-      const err = new Error(
-        'Sequelize error while updating customer currentPoints.'
-      );
-      err.status = 500;
-      throw err;
+  const pointsOrTypeChanged =
+    newTransaction.points !== oldTransaction.points ||
+    newTransaction.awardRedeem !== oldTransaction.awardRedeem;
+
+  if (pointsOrTypeChanged) {
+    const oldDelta = signedBalanceDelta(
+      oldTransaction.awardRedeem,
+      oldTransaction.points
+    );
+    const newDelta = newValidated.skipBalance
+      ? 0
+      : signedBalanceDelta(newType, newValidated.points);
+    const increment = newDelta - oldDelta;
+    if (increment !== 0) {
+      const string = 'COALESCE("currentPoints",0) + ' + increment;
+      try {
+        await Customer.update(
+          {
+            lastTransaction: oldTransaction._id,
+            currentPoints: sequelize.literal(string)
+          },
+          {
+            where: {userId: oldTransaction.userId}
+          }
+        );
+      } catch (updateErr) {
+        console.log(updateErr);
+        const err = new Error(
+          'Sequelize error while updating customer currentPoints.'
+        );
+        err.status = 500;
+        throw err;
+      }
     }
   }
 
@@ -108,17 +124,11 @@ export async function deleteTransaction(transactionId) {
   }
 
   const plain = row.get({plain: true});
+  const delta = reverseBalanceDelta(plain.awardRedeem, plain.points);
   const customer = await findCustomerByIdentifier({userId: plain.userId});
-  if (customer) {
-    const custPlain = customer.get({plain: true});
-    let currentPoints = custPlain.currentPoints * 1 || 0;
-    const points = plain.points * 1 || 0;
-    if (plain.awardRedeem === 'award') {
-      currentPoints -= points;
-    } else {
-      currentPoints += points;
-    }
-    await customer.update({currentPoints: currentPoints});
+  if (customer && delta !== 0) {
+    const cp = normalizePoints(customer.get({plain: true}).currentPoints) || 0;
+    await customer.update({currentPoints: cp + delta});
   }
 
   await row.destroy();
