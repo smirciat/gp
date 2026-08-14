@@ -63,6 +63,10 @@ function buildStructuredWhere(query) {
     where.email = {[Op.iLike]: '%' + String(q.email).trim() + '%'};
   }
 
+  if (q.ca) {
+    where.ca = {[Op.iLike]: '%' + String(q.ca).trim() + '%'};
+  }
+
   return where;
 }
 

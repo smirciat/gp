@@ -18,6 +18,12 @@ router.post('/transactions/query', controller.queryTransactionsResBering);
 router.post('/members/enroll', controller.enrollMemberResBering);
 router.post('/transactions/assign', controller.assignManualPointsResBering);
 router.patch('/customers/:userId/suspension', controller.setMemberSuspensionResBering);
+router.patch('/customers/:userId', controller.patchMemberResBering);
+router.post('/customers/:userId/welcome', controller.resendWelcomeResBering);
+router.post('/customers/:userId/promote', controller.promoteAssociateResBering);
+router.post('/members/attach-associates', controller.attachAssociatesResBering);
+router.post('/events/query', controller.queryLegacyEventsResBering);
+router.post('/points/transfer', controller.transferPointsResBering);
 router.post('/redeem', controller.redeemResBering);
 router.post('/flights/manifest', controller.importFlightManifestResBering);
 

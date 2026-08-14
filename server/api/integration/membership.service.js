@@ -27,11 +27,17 @@ export function memberSummary(customer) {
     email: row.email,
     account: row.account || null,
     phone: row.phone || null,
+    dob: row.dob || null,
+    address: row.address || null,
+    city: row.city || null,
+    state: row.state || null,
+    zip: row.zip || null,
     gpType: row.gpType,
     primaryUserId: row.primaryUserId || null,
     currentPoints: row.currentPoints * 1 || 0,
     suspended: !!row.suspended,
-    active: row.active !== false
+    active: row.active !== false,
+    badEmail: !!row.badEmail
   };
 }
 

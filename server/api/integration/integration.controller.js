@@ -12,6 +12,14 @@ import {
 import {queryTransactions} from './transactions.service';
 import {enrollMember} from './members-enroll.service';
 import {assignManualPoints, setMemberSuspension} from './manual-assign.service';
+import {
+  attachAssociates,
+  patchMemberDetails,
+  promoteAssociate,
+  queryLegacyEvents,
+  resendWelcome,
+  transferPoints
+} from './member-ops.service';
 const GP_BASE_URL = 'https://gp.beringair.com';
 
 function integrationMeta(appName) {
@@ -225,6 +233,85 @@ export async function enrollMemberResBering(req, res) {
     res.status(err.status || 500).json({
       message: err.message || 'Enrollment failed',
       duplicateCount: err.duplicateCount
+    });
+  }
+}
+
+export async function queryLegacyEventsResBering(req, res) {
+  try {
+    const body = req.body || {};
+    const result = await queryLegacyEvents({
+      userId: body.userId || req.query.userId
+    });
+    res.json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(err.status || 500).json({
+      message: err.message || 'Legacy event query failed'
+    });
+  }
+}
+
+export async function patchMemberResBering(req, res) {
+  try {
+    const result = await patchMemberDetails(req.params.userId, req.body || {});
+    res.json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(err.status || 500).json({
+      message: err.message || 'Member update failed'
+    });
+  }
+}
+
+export async function attachAssociatesResBering(req, res) {
+  try {
+    const body = req.body || {};
+    const membership = await attachAssociates({
+      primaryUserId: body.primaryUserId,
+      associateUserIds: body.associateUserIds
+    });
+    res.json({membership: membership});
+  } catch (err) {
+    console.log(err);
+    res.status(err.status || 500).json({
+      message: err.message || 'Attach associates failed'
+    });
+  }
+}
+
+export async function promoteAssociateResBering(req, res) {
+  try {
+    const membership = await promoteAssociate(req.params.userId);
+    res.json({membership: membership});
+  } catch (err) {
+    console.log(err);
+    res.status(err.status || 500).json({
+      message: err.message || 'Promote associate failed'
+    });
+  }
+}
+
+export async function resendWelcomeResBering(req, res) {
+  try {
+    const result = await resendWelcome(req.params.userId);
+    res.json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(err.status || 500).json({
+      message: err.message || 'Welcome email failed'
+    });
+  }
+}
+
+export async function transferPointsResBering(req, res) {
+  try {
+    const result = await transferPoints(req.body || {});
+    res.status(201).json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(err.status || 500).json({
+      message: err.message || 'Transfer failed'
     });
   }
 }

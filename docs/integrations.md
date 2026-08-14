@@ -83,6 +83,10 @@ or household:
 
 Response: `{ count, limit, userIds, transactions: [{ _id, userId, date, awardRedeem, points, status, booking, description, … }] }`.
 
+**Ledger split (do not merge):** `Transaction` is the **current** ledger (from **1 May 2026**). History **before** that lives in the GP `Event` table (`member_id`, `points`, `notes`, `created` / `modified`). Staff UI shows them as two sections.
+
+`POST …/events/query` `{ "userId": "363" }` → `{ count, userId, cutoff: "2026-05-01", events: [{ event_id, member_id, points, runningBalance, notes, created, modified }] }`.
+
 ### Member enrollment (resBering staff)
 
 `POST …/members/enroll` — creates a new GP member without exposing raw `POST /api/customers`.
