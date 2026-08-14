@@ -267,6 +267,28 @@ export async function resendWelcome(userId) {
 /**
  * Staff transfer: redeem from source (pool if primary), award to destination.
  */
+export async function deleteMember(userId) {
+  const id = userId != null ? String(userId).trim() : '';
+  if (!id) {
+    const err = new Error('userId is required.');
+    err.status = 400;
+    throw err;
+  }
+  const customer = await findCustomerByIdentifier({userId: id});
+  if (!customer) {
+    const err = new Error('Gold Points member not found');
+    err.status = 404;
+    throw err;
+  }
+  const plain = customer.get({plain: true});
+  await customer.destroy();
+  return {
+    deleted: true,
+    userId: id,
+    fullName: plain.fullName || null
+  };
+}
+
 export async function transferPoints({
   fromUserId,
   toUserId,

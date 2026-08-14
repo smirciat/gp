@@ -14,7 +14,7 @@ function capLimit(limit) {
   return Math.min(n, MAX_LIMIT);
 }
 
-function transactionSummary(row) {
+export function transactionSummary(row) {
   const plain = row.get ? row.get({plain: true}) : row;
   return {
     _id: plain._id,
@@ -30,7 +30,8 @@ function transactionSummary(row) {
     pointsRedeemed: plain.pointsRedeemed * 1 || 0,
     pointsEarned: plain.pointsEarned * 1 || 0,
     status: plain.status || null,
-    description: plain.description || null
+    description: plain.description || null,
+    lastUpdatedBy: plain.lastUpdatedBy != null ? plain.lastUpdatedBy : null
   };
 }
 

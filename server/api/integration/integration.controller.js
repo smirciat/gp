@@ -7,13 +7,20 @@ import {redeemPoints} from './redeem.service';
 import {upsertFlightManifestFromResBering} from './flight-manifest.service';
 import {
   getCustomerMembership,
+  listCustomersByPoints,
   queryCustomers
 } from './customers.service';
 import {queryTransactions} from './transactions.service';
+import {
+  deleteTransaction,
+  listAllTransactions,
+  updateTransaction
+} from './transaction-ops.service';
 import {enrollMember} from './members-enroll.service';
 import {assignManualPoints, setMemberSuspension} from './manual-assign.service';
 import {
   attachAssociates,
+  deleteMember,
   patchMemberDetails,
   promoteAssociate,
   queryLegacyEvents,
@@ -329,6 +336,71 @@ export async function queryTransactionsResBering(req, res) {
     console.log(err);
     res.status(err.status || 500).json({
       message: err.message || 'Transaction query failed'
+    });
+  }
+}
+
+export async function listCustomersByPointsResBering(req, res) {
+  try {
+    const result = await listCustomersByPoints();
+    res.json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(err.status || 500).json({
+      message: err.message || 'Customer roster failed'
+    });
+  }
+}
+
+export async function listAllTransactionsResBering(req, res) {
+  try {
+    const body = req.body || {};
+    const result = await listAllTransactions({offset: body.offset});
+    res.json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(err.status || 500).json({
+      message: err.message || 'Transaction list failed'
+    });
+  }
+}
+
+export async function patchTransactionResBering(req, res) {
+  try {
+    const body = req.body || {};
+    const result = await updateTransaction({
+      oldTransaction: body.oldTransaction,
+      newTransaction: body.newTransaction
+    });
+    res.json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(err.status || 500).json({
+      message: err.message || 'Transaction update failed'
+    });
+  }
+}
+
+export async function deleteTransactionResBering(req, res) {
+  try {
+    const result = await deleteTransaction(req.params.transactionId);
+    res.json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(err.status || 500).json({
+      message: err.message || 'Transaction delete failed'
+    });
+  }
+}
+
+export async function deleteMemberResBering(req, res) {
+  try {
+    const result = await deleteMember(req.params.userId);
+    res.json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(err.status || 500).json({
+      message: err.message || 'Member delete failed'
     });
   }
 }

@@ -127,6 +127,23 @@ export async function queryCustomers({q, search, query, limit} = {}) {
 /**
  * Membership detail for one member (primary + associates), same shape as /membership.
  */
+/**
+ * Full roster sorted by currentPoints descending (legacy List By Points).
+ */
+export async function listCustomersByPoints() {
+  const rows = await Customer.findAll({
+    order: [
+      ['currentPoints', 'DESC'],
+      ['userId', 'ASC']
+    ]
+  });
+
+  return {
+    count: rows.length,
+    customers: rows.map(memberSummary)
+  };
+}
+
 export async function getCustomerMembership(userId) {
   if (userId == null || String(userId).trim() === '') {
     const err = new Error('userId is required');
