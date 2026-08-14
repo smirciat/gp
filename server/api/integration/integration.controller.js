@@ -27,6 +27,10 @@ import {
   resendWelcome,
   transferPoints
 } from './member-ops.service';
+import {
+  auditMemberBalance,
+  listStoredMismatches
+} from '../balance-audit/balance-audit.service';
 const GP_BASE_URL = 'https://gp.beringair.com';
 
 function integrationMeta(appName) {
@@ -401,6 +405,39 @@ export async function deleteMemberResBering(req, res) {
     console.log(err);
     res.status(err.status || 500).json({
       message: err.message || 'Member delete failed'
+    });
+  }
+}
+
+export async function listBalanceMismatchesResBering(req, res) {
+  try {
+    const limit =
+      req.query.limit != null ? Number(req.query.limit) : undefined;
+    const offset =
+      req.query.offset != null ? Number(req.query.offset) : undefined;
+    const result = await listStoredMismatches({limit, offset});
+    res.json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(err.status || 500).json({
+      message: err.message || 'Balance audit list failed'
+    });
+  }
+}
+
+export async function getMemberBalanceAuditResBering(req, res) {
+  try {
+    const userId =
+      typeof req.params.userId === 'string' ? req.params.userId.trim() : '';
+    if (!userId) {
+      return res.status(400).json({message: 'userId is required.'});
+    }
+    const audit = await auditMemberBalance(userId);
+    res.json(audit);
+  } catch (err) {
+    console.log(err);
+    res.status(err.status || 500).json({
+      message: err.message || 'Balance audit lookup failed'
     });
   }
 }

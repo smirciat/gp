@@ -42,6 +42,20 @@ npm test
 
 Copy `server/config/local.env.sample.js` to `server/config/local.env.js` for local secrets.
 
+## Babel syntax ceiling (agents — read this)
+
+Production GP runs **`dist/server`** built with **`babel-preset-es2015`** (Node 12). Newer JavaScript **parses at edit time** in Cursor but **crashes at startup** with `Unexpected token` on `?.`, `??`, etc.
+
+| OK in `server/**/*.js` | Not OK |
+|------------------------|--------|
+| `import` / `export`, `const` / `let`, arrow functions, `async`/`await`, classes, template literals | Optional chaining `?.` |
+| Explicit null checks: `row && row.value` | Nullish coalescing `??` |
+| Ternary: `x != null ? x : 0` | `??=` / `||=` / `&&=` |
+
+**Example (balance audit cron, Aug 2026):** `parts.find(p => p.type === 'hour')?.value ?? 0` → use a helper with `find` + `if (match && match.value != null)`.
+
+When resBering agents add GP integration code, match existing files in `server/api/integration/` — do not copy TypeScript habits from `apps/api/`.
+
 ## Where else this is documented
 
 - `AGENTS.md` — agent entry point, stack, API resources, roles

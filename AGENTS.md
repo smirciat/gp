@@ -10,7 +10,7 @@ Bering Air Gold Points membership management app. Tracks members, point awards/r
 | Backend | Express 4, Sequelize 6 |
 | Database | SQLite (dev), PostgreSQL (prod via `SEQUELIZE_URI`) |
 | Auth | Passport local JWT |
-| Build | Grunt, Bower, Babel (ES2015 + class properties) |
+| Build | Grunt, Bower, Babel (**ES2015 only** — see syntax limits below) |
 | Tests | Karma/Mocha (client), Mocha/Supertest (server) |
 
 Generated from [generator-angular-fullstack](https://github.com/DaftMonk/generator-angular-fullstack) v3.8.0. Preserve existing patterns unless modernization is explicitly requested.
@@ -78,6 +78,7 @@ Production runs via PM2 (`ecosystem.config.js`) from `dist/server` on Node 12.
 ## Conventions
 
 - **Server**: ES6 `import`/`export` with `babel-register` in dev/test. Controllers follow Rails-like REST naming (`index`, `show`, `create`, `update`, `destroy`).
+- **Babel syntax ceiling (recurring agent bug):** transpile target is **ES2015** (`babel-preset-es2015`). **Do not use** optional chaining (`?.`), nullish coalescing (`??`), logical assignment, or other post-ES2015 syntax in `server/**/*.js`. Use explicit `if`, `&&`, and ternary instead. resBering agents editing GP hit this often — see `docs/legacy-development.md` § Babel.
 - **Models**: Sequelize models in `server/api/<resource>/<resource>.model.js`; register new models in `server/sqldb/index.js`.
 - **Routes**: Register new API routers in `server/routes.js`. Webhook routes mount before `lusca` CSRF middleware.
 - **Client**: Angular module `goldPointsApp`. Feature areas use ui-router states. Newer components use ES6 classes with `$onInit`.

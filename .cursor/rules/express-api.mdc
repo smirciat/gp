@@ -36,7 +36,8 @@ Reuse the standard helper chain: `respondWithResult`, `handleEntityNotFound`, `h
 
 ## Server JS style
 
-- ES6 imports/exports (Babel transpiles in dev/test).
+- ES6 imports/exports — **Babel preset is ES2015 only** (not resBering’s modern Node).
+- **Forbidden in `server/**/*.js`:** optional chaining (`?.`), nullish coalescing (`??`), and other syntax newer than ES2015. Startup fails with `SyntaxError: Unexpected token` (common when resBering agents paste TS-style code). Use `x && x.y`, ternary, or small helpers instead.
 - `'use strict'` at top of every file.
 - Auth middleware from `server/auth/auth.service.js` (`auth.isAuthenticated()`, `auth.hasRole()`).
 - Webhook routes must stay above `lusca.csrf()` in `server/routes.js`.

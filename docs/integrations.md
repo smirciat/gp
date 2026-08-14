@@ -118,6 +118,17 @@ Response **201**: `{ points, awardRedeem, transactions[], membership }` — all 
 
 `PATCH …/customers/:userId/suspension` — `{ "suspended": true | false }`.
 
+### Balance audit (#154)
+
+Alert-only reconciliation of `Customer.currentPoints` vs transaction ledger sum (same rules as balance updates: `award` +, `redeem` −, `beginning` skipped).
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| `GET` | `…/audit/mismatches?limit=&offset=` | Open mismatches from last nightly prod job |
+| `GET` | `…/audit/members/:userId` | Live audit for one member (manage-tab banner) |
+
+Nightly job: GP server ~03:00 America/Anchorage, prod only (`GP_BALANCE_AUDIT=0` disables). Table: `gp_balance_mismatch`. **No auto-repair.**
+
 ### Membership lookup
 
 **resBering** — `email` and/or `userId` (employee can look up any member).

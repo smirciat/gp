@@ -11,6 +11,7 @@ import config from './config/environment';
 import {load} from './api/event/event.controller.js';
 import {fixEmail,loadEmailCSV} from './api/customer/customer.controller.js';
 import {setBearer} from './api/thing/thing.controller.js';
+import {scheduleBalanceAudit} from './api/balance-audit/balance-audit.cron';
 import http from 'http';
 import cors from 'cors';
 // Populate databases with sample data
@@ -46,6 +47,7 @@ function startServer() {
   app.angularFullstack = server.listen(config.port, config.ip, function() {
     console.log('Express server listening on %d, in %s mode', config.port, app.get('env'));
     setBearer();
+    scheduleBalanceAudit();
     //load();
     //loadEmailCSV();
   });

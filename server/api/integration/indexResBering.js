@@ -31,5 +31,7 @@ router.post('/events/query', controller.queryLegacyEventsResBering);
 router.post('/points/transfer', controller.transferPointsResBering);
 router.post('/redeem', controller.redeemResBering);
 router.post('/flights/manifest', controller.importFlightManifestResBering);
+router.get('/audit/mismatches', controller.listBalanceMismatchesResBering);
+router.get('/audit/members/:userId', controller.getMemberBalanceAuditResBering);
 
 module.exports = router;

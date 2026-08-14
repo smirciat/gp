@@ -20,5 +20,9 @@ db.Transaction = require('../api/transaction/transaction.model').default(db.sequ
 db.Customer = require('../api/customer/customer.model').default(db.sequelize, Sequelize.DataTypes);
 db.Thing = require('../api/thing/thing.model').default(db.sequelize, Sequelize.DataTypes);
 db.User = require('../api/user/user.model')(db.sequelize, Sequelize.DataTypes);
+db.BalanceMismatch = require('../api/balance-audit/balance-audit.model').default(
+  db.sequelize,
+  Sequelize.DataTypes
+);
 
 module.exports = db;
