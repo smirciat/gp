@@ -4,12 +4,14 @@ import sqldb from '../../sqldb';
 const {sequelize, BalanceMismatch, Customer} = sqldb;
 const {Op} = require('sequelize');
 import {assignManualPoints} from '../integration/manual-assign.service';
+import {newTransaction} from '../transaction/transaction.controller';
 
 /**
  * Ledger sum for balance audit.
  * May 2026 cutover: opening balance was stored on Customer (currentPoints = points)
  * and mirrored as Transactions with awardRedeem='beginning' (+points, no balance bump
  * at post). Audit counts beginning like award.
+ * awardRedeem='audit' = staff repair trail only (skipBalance, not in sum).
  */
 const LEDGER_SUM_CASE = `
         CASE
@@ -18,16 +20,26 @@ const LEDGER_SUM_CASE = `
           ELSE 0
         END`;
 
-const LEDGER_MISMATCH_SQL = `
-  WITH ledger AS (
+const LEDGER_AGG_SQL = `
     SELECT "userId",
+      SUM(CASE WHEN "awardRedeem" = 'beginning' THEN COALESCE(points, 0) ELSE 0 END)::integer AS ledger_beginning,
+      SUM(CASE WHEN "awardRedeem" = 'award' THEN COALESCE(points, 0) ELSE 0 END)::integer AS ledger_award,
+      SUM(CASE WHEN "awardRedeem" = 'redeem' THEN COALESCE(points, 0) ELSE 0 END)::integer AS ledger_redeem,
       SUM(${LEDGER_SUM_CASE})::integer AS computed
     FROM "Transactions"
+`;
+
+const LEDGER_MISMATCH_SQL = `
+  WITH ledger AS (
+    ${LEDGER_AGG_SQL}
     GROUP BY "userId"
   )
   SELECT c."userId",
     c."fullName",
     COALESCE(c."currentPoints", 0)::integer AS stored,
+    COALESCE(l.ledger_beginning, 0)::integer AS ledger_beginning,
+    COALESCE(l.ledger_award, 0)::integer AS ledger_award,
+    COALESCE(l.ledger_redeem, 0)::integer AS ledger_redeem,
     COALESCE(l.computed, 0)::integer AS computed
   FROM "Customers" c
   LEFT JOIN ledger l ON l."userId" = c."userId"
@@ -36,15 +48,16 @@ const LEDGER_MISMATCH_SQL = `
 
 const MEMBER_AUDIT_SQL = `
   WITH ledger AS (
-    SELECT "userId",
-      SUM(${LEDGER_SUM_CASE})::integer AS computed
-    FROM "Transactions"
+    ${LEDGER_AGG_SQL}
     WHERE "userId" = :userId
     GROUP BY "userId"
   )
   SELECT c."userId",
     c."fullName",
     COALESCE(c."currentPoints", 0)::integer AS stored,
+    COALESCE(l.ledger_beginning, 0)::integer AS ledger_beginning,
+    COALESCE(l.ledger_award, 0)::integer AS ledger_award,
+    COALESCE(l.ledger_redeem, 0)::integer AS ledger_redeem,
     COALESCE(l.computed, 0)::integer AS computed
   FROM "Customers" c
   LEFT JOIN ledger l ON l."userId" = c."userId"
@@ -60,8 +73,66 @@ function normalizeAuditRow(row) {
     fullName: row.fullName || null,
     storedPoints: stored,
     computedPoints: computed,
+    ledgerBeginning: row.ledger_beginning * 1 || 0,
+    ledgerAward: row.ledger_award * 1 || 0,
+    ledgerRedeem: row.ledger_redeem * 1 || 0,
     delta: stored - computed,
     mismatch: stored !== computed
+  };
+}
+
+function auditRepairDescription(mode, audit) {
+  return (
+    'Balance audit repair (' +
+    mode +
+    '): stored ' +
+    audit.storedPoints +
+    ' corrected to ledger ' +
+    audit.computedPoints
+  );
+}
+
+/**
+ * Post skipBalance AUDIT row documenting a stored-balance correction (trust_ledger).
+ * Does not change ledger sum or currentPoints.
+ */
+async function postAuditRepairTrailTransaction(userId, audit, mode) {
+  const points = Math.abs(audit.delta);
+  if (!points) {
+    return null;
+  }
+
+  const customer = await Customer.findOne({where: {userId: userId}});
+  const account = customer ? customer.account || '' : '';
+  const description = auditRepairDescription(mode, audit);
+
+  const body = {
+    userId: userId,
+    account: account,
+    points: points,
+    awardRedeem: 'audit',
+    status: 'Approved',
+    date: new Date(),
+    dateFlown: '',
+    booking: 'AUDIT',
+    route: '',
+    flight: '',
+    description: description,
+    lastUpdatedBy: 0
+  };
+
+  const result = await newTransaction({body: body}, null);
+  if (typeof result === 'string' && result.indexOf('Successful') === -1) {
+    const err = new Error(result);
+    err.status = 500;
+    throw err;
+  }
+
+  return {
+    points: points,
+    awardRedeem: 'audit',
+    description: description,
+    transactionId: result && result._id != null ? result._id : null
   };
 }
 
@@ -168,6 +239,7 @@ export async function repairMemberBalanceToLedger(userId) {
   if (!audit.mismatch) {
     return {
       userId: audit.userId,
+      fullName: audit.fullName,
       repaired: false,
       reason: 'already_aligned',
       audit
@@ -178,15 +250,24 @@ export async function repairMemberBalanceToLedger(userId) {
     {currentPoints: audit.computedPoints},
     {where: {userId: audit.userId}}
   );
+
+  const trailTransaction = await postAuditRepairTrailTransaction(
+    audit.userId,
+    audit,
+    'trust_ledger'
+  );
+
   await BalanceMismatch.destroy({where: {userId: audit.userId}});
 
   return {
     userId: audit.userId,
+    fullName: audit.fullName,
     repaired: true,
     mode: 'trust_ledger',
     previousStoredPoints: audit.storedPoints,
     computedPoints: audit.computedPoints,
-    delta: audit.delta
+    delta: audit.delta,
+    trailTransaction: trailTransaction
   };
 }
 
@@ -199,12 +280,14 @@ export async function repairMemberBalanceViaTransaction(userId) {
   if (!initial.mismatch) {
     return {
       userId: initial.userId,
+      fullName: initial.fullName,
       repaired: false,
       reason: 'already_aligned',
       audit: initial
     };
   }
 
+  const repairDescription = auditRepairDescription('trust_stored', initial);
   const adjustments = [];
   let iterations = 0;
   const maxIterations = 50;
@@ -224,7 +307,7 @@ export async function repairMemberBalanceViaTransaction(userId) {
       userId: audit.userId,
       points: chunk,
       awardRedeem: awardRedeem,
-      description: 'Balance audit repair',
+      description: repairDescription,
       booking: 'AUDIT',
       route: '',
       flight: '',
@@ -241,12 +324,14 @@ export async function repairMemberBalanceViaTransaction(userId) {
 
   return {
     userId: initial.userId,
+    fullName: initial.fullName,
     repaired: !after.mismatch,
     mode: 'trust_stored',
     adjustmentCount: adjustments.length,
     adjustments: adjustments,
     previousStoredPoints: initial.storedPoints,
     previousComputedPoints: initial.computedPoints,
+    computedPoints: after.computedPoints,
     after
   };
 }
@@ -288,9 +373,13 @@ export async function batchRepairMemberBalances(options) {
         const audit = await auditMemberBalance(userId);
         previews.push({
           userId: userId,
+          fullName: audit.fullName,
           mismatch: audit.mismatch,
           storedPoints: audit.storedPoints,
           computedPoints: audit.computedPoints,
+          ledgerBeginning: audit.ledgerBeginning,
+          ledgerAward: audit.ledgerAward,
+          ledgerRedeem: audit.ledgerRedeem,
           delta: audit.delta,
           plannedMode: mode
         });
