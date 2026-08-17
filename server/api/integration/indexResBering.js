@@ -34,5 +34,6 @@ router.post('/flights/manifest', controller.importFlightManifestResBering);
 router.get('/audit/mismatches', controller.listBalanceMismatchesResBering);
 router.get('/audit/members/:userId', controller.getMemberBalanceAuditResBering);
 router.post('/audit/repair/batch', controller.batchRepairBalanceAuditResBering);
+router.post('/audit/run', controller.runBalanceAuditResBering);
 
 module.exports = router;

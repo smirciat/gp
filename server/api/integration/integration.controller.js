@@ -30,7 +30,8 @@ import {
 import {
   auditMemberBalance,
   batchRepairMemberBalances,
-  listStoredMismatches
+  listStoredMismatches,
+  runFullBalanceAudit
 } from '../balance-audit/balance-audit.service';
 const GP_BASE_URL = 'https://gp.beringair.com';
 
@@ -460,6 +461,18 @@ export async function batchRepairBalanceAuditResBering(req, res) {
     console.log(err);
     res.status(err.status || 500).json({
       message: err.message || 'Balance audit batch repair failed'
+    });
+  }
+}
+
+export async function runBalanceAuditResBering(req, res) {
+  try {
+    const result = await runFullBalanceAudit();
+    res.json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(err.status || 500).json({
+      message: err.message || 'Balance audit run failed'
     });
   }
 }

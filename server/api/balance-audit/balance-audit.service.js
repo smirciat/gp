@@ -5,16 +5,23 @@ const {sequelize, BalanceMismatch, Customer} = sqldb;
 const {Op} = require('sequelize');
 import {assignManualPoints} from '../integration/manual-assign.service';
 
+/**
+ * Ledger sum for balance audit.
+ * May 2026 cutover: opening balance was stored on Customer (currentPoints = points)
+ * and mirrored as Transactions with awardRedeem='beginning' (+points, no balance bump
+ * at post). Audit counts beginning like award.
+ */
+const LEDGER_SUM_CASE = `
+        CASE
+          WHEN "awardRedeem" IN ('award', 'beginning') THEN COALESCE(points, 0)
+          WHEN "awardRedeem" = 'redeem' THEN -COALESCE(points, 0)
+          ELSE 0
+        END`;
+
 const LEDGER_MISMATCH_SQL = `
   WITH ledger AS (
     SELECT "userId",
-      SUM(
-        CASE
-          WHEN "awardRedeem" = 'award' THEN COALESCE(points, 0)
-          WHEN "awardRedeem" = 'redeem' THEN -COALESCE(points, 0)
-          ELSE 0
-        END
-      )::integer AS computed
+      SUM(${LEDGER_SUM_CASE})::integer AS computed
     FROM "Transactions"
     GROUP BY "userId"
   )
@@ -30,13 +37,7 @@ const LEDGER_MISMATCH_SQL = `
 const MEMBER_AUDIT_SQL = `
   WITH ledger AS (
     SELECT "userId",
-      SUM(
-        CASE
-          WHEN "awardRedeem" = 'award' THEN COALESCE(points, 0)
-          WHEN "awardRedeem" = 'redeem' THEN -COALESCE(points, 0)
-          ELSE 0
-        END
-      )::integer AS computed
+      SUM(${LEDGER_SUM_CASE})::integer AS computed
     FROM "Transactions"
     WHERE "userId" = :userId
     GROUP BY "userId"

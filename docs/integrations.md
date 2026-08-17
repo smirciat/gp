@@ -120,7 +120,7 @@ Response **201**: `{ points, awardRedeem, transactions[], membership }` — all 
 
 ### Balance audit (#154)
 
-Alert-only reconciliation of `Customer.currentPoints` vs transaction ledger sum (same rules as balance updates: `award` +, `redeem` −, `beginning` skipped).
+Alert-only reconciliation of `Customer.currentPoints` vs transaction ledger sum (`award` +, `redeem` −, **`beginning` +** — May cutover opening balance rows).
 
 | Method | Path | Purpose |
 |--------|------|---------|
