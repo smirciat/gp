@@ -6,6 +6,7 @@ import {
   loadMembershipGroup
 } from './membership.service';
 import {buildDebitPlan, normalizeDateFlown} from './redeem.service';
+import {ensureMembershipBalancesAlignedForSpend} from '../balance-audit/balance-audit.service';
 import {
   MAX_AWARD_POINTS_PER_TXN,
   MAX_REDEEM_POINTS_PER_TXN,
@@ -111,11 +112,21 @@ export async function assignManualPoints(body) {
     throw err;
   }
 
-  const membership = await loadMembershipGroup(seed);
+  let membership = await loadMembershipGroup(seed);
   if (!membership) {
     const err = new Error('Gold Points membership could not be loaded');
     err.status = 404;
     throw err;
+  }
+
+  if (input.awardRedeem === 'redeem') {
+    await ensureMembershipBalancesAlignedForSpend(membership);
+    membership = await loadMembershipGroup(seed);
+    if (!membership) {
+      const err = new Error('Gold Points membership could not be reloaded after balance repair');
+      err.status = 500;
+      throw err;
+    }
   }
 
   const meta = {

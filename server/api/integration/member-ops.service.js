@@ -7,6 +7,7 @@ import {
 } from './membership.service';
 import {welcomeEmail} from '../thing/thing.controller.js';
 import {assignManualPoints} from './manual-assign.service';
+import {ensureMemberBalanceAlignedForSpend} from '../balance-audit/balance-audit.service';
 
 const ALLOWED_PATCH_FIELDS = [
   'fullName',
@@ -325,6 +326,9 @@ export async function transferPoints({
     throw err;
   }
   const sourcePlain = source.get({plain: true});
+
+  await ensureMemberBalanceAlignedForSpend(fromId);
+  await ensureMemberBalanceAlignedForSpend(toId);
 
   const description =
     'GP Transfer from ' +

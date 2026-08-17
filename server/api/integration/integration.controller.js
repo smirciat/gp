@@ -29,6 +29,7 @@ import {
 } from './member-ops.service';
 import {
   auditMemberBalance,
+  batchRepairMemberBalances,
   listStoredMismatches
 } from '../balance-audit/balance-audit.service';
 const GP_BASE_URL = 'https://gp.beringair.com';
@@ -438,6 +439,27 @@ export async function getMemberBalanceAuditResBering(req, res) {
     console.log(err);
     res.status(err.status || 500).json({
       message: err.message || 'Balance audit lookup failed'
+    });
+  }
+}
+
+export async function batchRepairBalanceAuditResBering(req, res) {
+  try {
+    const body = req.body || {};
+    const userIds = Array.isArray(body.userIds)
+      ? body.userIds
+      : undefined;
+    const result = await batchRepairMemberBalances({
+      mode: body.mode,
+      userIds: userIds,
+      maxCount: body.maxCount,
+      dryRun: body.dryRun
+    });
+    res.json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(err.status || 500).json({
+      message: err.message || 'Balance audit batch repair failed'
     });
   }
 }

@@ -7,6 +7,10 @@ import {
   memberRedeemsFromPool
 } from './membership.service';
 import {validateTierRedemption} from './rewards.service';
+import {
+  ensureMemberBalanceAlignedForSpend,
+  ensureMembershipBalancesAlignedForSpend
+} from '../balance-audit/balance-audit.service';
 
 function buildDescription(meta) {
   let description = meta.description || '';
@@ -141,11 +145,21 @@ export async function redeemPoints({
     throw err;
   }
 
-  const membership = await loadMembershipGroup(seedCustomer);
+  let membership = await loadMembershipGroup(seedCustomer);
   if (!membership) {
     const err = new Error('Gold Points membership could not be loaded');
     err.status = 404;
     throw err;
+  }
+
+  const balanceRepairs = await ensureMembershipBalancesAlignedForSpend(membership);
+  if (balanceRepairs.length) {
+    membership = await loadMembershipGroup(seedCustomer);
+    if (!membership) {
+      const err = new Error('Gold Points membership could not be reloaded after balance repair');
+      err.status = 500;
+      throw err;
+    }
   }
 
   if (membership.redeemablePoints < redeemAmount) {

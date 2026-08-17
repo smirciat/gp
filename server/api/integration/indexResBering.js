@@ -33,5 +33,6 @@ router.post('/redeem', controller.redeemResBering);
 router.post('/flights/manifest', controller.importFlightManifestResBering);
 router.get('/audit/mismatches', controller.listBalanceMismatchesResBering);
 router.get('/audit/members/:userId', controller.getMemberBalanceAuditResBering);
+router.post('/audit/repair/batch', controller.batchRepairBalanceAuditResBering);
 
 module.exports = router;
