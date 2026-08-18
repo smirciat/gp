@@ -13,6 +13,7 @@ import _ from 'lodash';
 import localEnv from '../../config/local.env';
 import {Transaction,Customer,Flight,sequelize} from '../../sqldb';
 import { getManifest } from '../thing/thing.controller.js';
+import { normalizeFlightManifestPassengers } from '../flight/manifest-passenger-name';
 import {
   normalizePoints,
   reverseBalanceDelta,
@@ -382,12 +383,21 @@ async function flightCompleted(flight){
         flightNum:f.flightNumber
       }
     });
-    manifest=manifest.flight;
+    manifest = manifest && manifest.flight ? manifest.flight : manifest;
+    if (!manifest || !manifest.flightLegs) {
+      console.log(
+        'flightCompleted: manifest missing flightLegs for',
+        f.flightNumber,
+        dateString
+      );
+      return;
+    }
   }
   catch(err){
     console.log(err);
     return;
   }
+  normalizeFlightManifestPassengers(manifest);
   //Iterate passenger list and find matches with FFN field filled
   let passengers=[];
   manifest.flightLegs.forEach(leg=>{
@@ -397,19 +407,6 @@ async function flightCompleted(flight){
       if (passenger.boardPoint.name!==origin) return;
       passenger.description = dateString + ' ' + passenger.bookingNumber + ' ' + passenger.boardPoint.code + '-' + passenger.offPoint.code;
       passenger.description += ' ' + f.flightNumber + ' Assigned after Takeflite Webhook';
-      if (passenger.name) {
-        let arr=[];
-        if (!passenger.name.firstName&&passenger.name.lastName) {
-          arr=passenger.name.lastName.split(' ');
-          passenger.name.firstName=arr.shift();
-          passenger.name.lastName=arr.join(' ');
-        }
-        if (passenger.name.firstName&&!passenger.name.lastName) {
-          arr=passenger.name.firstName.split(' ');
-          passenger.name.firstName=arr.shift();
-          passenger.name.lastName=arr.join(' ');
-        }
-      }
       passengers.push(passenger);
     });
     manifest.passengers=passengers;

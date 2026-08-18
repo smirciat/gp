@@ -126,6 +126,11 @@ export async function query(req, res) {
     }
     if (q.ca) newQ.where.ca=q.ca;
   }
+  if (Object.keys(newQ.where).length === 0) {
+    return res.status(400).json({
+      message: 'Query requires at least one of: firstName, lastName, email, account, id, or ca.',
+    });
+  }
   return Customer.findAll(newQ)
     .then(respondWithResult(res))
     .catch(handleError(res));

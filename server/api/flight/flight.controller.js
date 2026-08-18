@@ -11,6 +11,7 @@
 
 import _ from 'lodash';
 import {Flight} from '../../sqldb';
+import { normalizeFlightManifestPassengers } from './manifest-passenger-name';
 
 function respondWithResult(res, statusCode) {
   statusCode = statusCode || 200;
@@ -79,6 +80,12 @@ export function query(req, res) {
     }
   })
     .then(handleEntityNotFound(res))
+    .then((entity) => {
+      if (entity && entity.flight) {
+        normalizeFlightManifestPassengers(entity.flight);
+      }
+      return entity;
+    })
     .then(respondWithResult(res))
     .catch(handleError(res));
 }

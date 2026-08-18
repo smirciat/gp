@@ -2,6 +2,32 @@
 
 (function() {
 
+  function manifestPassengerNameParts(name) {
+    if (!name) return { firstName: '', lastName: '' };
+    let firstName = String(name.firstName || name.first || '').trim();
+    let lastName = String(name.lastName || name.last || '').trim();
+    if (!firstName && !lastName && name.fullName) {
+      const parts = String(name.fullName).trim().split(/\s+/);
+      firstName = parts[0] || '';
+      lastName = parts.slice(1).join(' ');
+    }
+    if (!firstName && lastName) {
+      const arr = lastName.split(/\s+/);
+      if (arr.length > 1) {
+        firstName = arr.shift();
+        lastName = arr.join(' ');
+      }
+    }
+    if (firstName && !lastName) {
+      const arr = firstName.split(/\s+/);
+      if (arr.length > 1) {
+        firstName = arr.shift();
+        lastName = arr.join(' ');
+      }
+    }
+    return { firstName, lastName };
+  }
+
   class MainController {
 
     constructor($http, $scope, socket,Auth,User,$timeout,toaster,Modal) {
@@ -112,13 +138,22 @@
       this.http.post('/api/flights/query',{dateString:this.flightDate,flightNumber:this.flightNumber}).then(res=>{
         this.flightObj=res.data;
         this.flightObj.flight.passengers.forEach(pass=>{
-          let firstName=pass.name.firstName;
-          let lastName=pass.name.lastName;
+          if (!pass.name) pass.name = {};
+          const normalized = manifestPassengerNameParts(pass.name);
+          pass.name.firstName = normalized.firstName;
+          pass.name.lastName = normalized.lastName;
+          let firstName = normalized.firstName;
+          let lastName = normalized.lastName;
+          if (!firstName && !lastName) {
+            pass.possibleIds = [];
+            return;
+          }
           this.http.post('/api/customers/query',{query:{firstName:firstName,lastName:lastName}}).then(res=>{
             pass.possibleIds=res.data;
             if (res.data.length===0) {
               if (firstName) firstName=firstName.substring(0,4);
               if (lastName) lastName=lastName.substring(0,4);
+              if (!firstName && !lastName) return;
               this.http.post('/api/customers/query',{query:{firstName:firstName,lastName:lastName}}).then(res=>{
                 pass.possibleIds=res.data;
               });
@@ -126,7 +161,6 @@
           })
           .catch(err=>{
             console.log(err);
-            //this.toaster.error('Error','No Match found for ' + pass.name.firstName + ' ' + pass.name.lastName);
           });
         });
       })
