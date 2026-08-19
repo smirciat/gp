@@ -3,7 +3,8 @@
 import {Event} from '../../sqldb';
 import {
   findCustomerByIdentifier,
-  loadMembershipGroup
+  loadMembershipGroup,
+  resolveMembership
 } from './membership.service';
 import {welcomeEmail} from '../thing/thing.controller.js';
 import {assignManualPoints} from './manual-assign.service';
@@ -362,5 +363,112 @@ export async function transferPoints({
     redeem: redeemResult,
     award: awardResult,
     membership: redeemResult.membership
+  };
+}
+
+/**
+ * Guest-parity household debit: primary first, then associates, then award dest.
+ */
+export async function transferHouseholdPoints({
+  actorUserId,
+  toUserId,
+  points,
+  lastUpdatedBy
+} = {}) {
+  const actorId = actorUserId != null ? String(actorUserId).trim() : '';
+  const toId = toUserId != null ? String(toUserId).trim() : '';
+  const amount = Math.floor(Number(points));
+  if (!actorId || !toId || !Number.isFinite(amount) || amount < 1) {
+    const err = new Error(
+      'toUserId and a positive integer points are required.'
+    );
+    err.status = 400;
+    err.code = 'invalid_request';
+    throw err;
+  }
+  if (actorId === toId) {
+    const err = new Error('Cannot transfer to the same member.');
+    err.status = 400;
+    err.code = 'invalid_request';
+    throw err;
+  }
+
+  const membership = await resolveMembership({userId: actorId});
+  if (!membership || !membership.primary) {
+    const err = new Error('Source member not found.');
+    err.status = 404;
+    err.code = 'not_found';
+    throw err;
+  }
+  if (membership.member && membership.member.suspended) {
+    const err = new Error('Need to remove customer suspension first');
+    err.status = 403;
+    err.code = 'suspended';
+    throw err;
+  }
+
+  const dest = await findCustomerByIdentifier({userId: toId});
+  if (!dest) {
+    const err = new Error('Destination member not found.');
+    err.status = 404;
+    err.code = 'not_found';
+    throw err;
+  }
+  const destPlain = dest.get({plain: true});
+  if (destPlain.suspended) {
+    const err = new Error('Need to remove customer suspension first');
+    err.status = 403;
+    err.code = 'suspended';
+    throw err;
+  }
+
+  const combined = Number(membership.combinedPoints) || 0;
+  if (amount > combined) {
+    const err = new Error('Try again with an available amount of points');
+    err.status = 400;
+    err.code = 'insufficient_points';
+    throw err;
+  }
+
+  const slices = [];
+  let left = amount;
+  const takeFrom = (userId, currentPoints) => {
+    if (left <= 0) return;
+    const available = Number(currentPoints) || 0;
+    if (available <= 0) return;
+    const take = Math.min(available, left);
+    slices.push({fromUserId: String(userId), points: take});
+    left -= take;
+  };
+
+  takeFrom(membership.primary.userId, membership.primary.currentPoints);
+  for (const associate of membership.associates || []) {
+    takeFrom(associate.userId, associate.currentPoints);
+  }
+  if (left > 0 || !slices.length) {
+    const err = new Error('Try again with an available amount of points');
+    err.status = 400;
+    err.code = 'insufficient_points';
+    throw err;
+  }
+
+  const results = [];
+  for (const slice of slices) {
+    results.push(
+      await transferPoints({
+        fromUserId: slice.fromUserId,
+        toUserId: toId,
+        points: slice.points,
+        lastUpdatedBy
+      })
+    );
+  }
+
+  return {
+    points: amount,
+    fromUserId: actorId,
+    toUserId: toId,
+    slices,
+    transfers: results
   };
 }

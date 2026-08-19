@@ -5,6 +5,7 @@ import {listRewardTiers} from './rewards.service';
 import {resolveMembership} from './membership.service';
 import {redeemPoints} from './redeem.service';
 import {verifyMemberCredentials} from './auth-verify.service';
+import {requestGuestPasswordReset} from './password-reset.service';
 import {upsertFlightManifestFromResBering} from './flight-manifest.service';
 import {
   getCustomerMembership,
@@ -26,8 +27,13 @@ import {
   promoteAssociate,
   queryLegacyEvents,
   resendWelcome,
+  transferHouseholdPoints,
   transferPoints
 } from './member-ops.service';
+import {
+  consumeTransferCode,
+  sendTransferSms
+} from './transfer-sms.service';
 import {
   auditMemberBalance,
   batchRepairMemberBalances,
@@ -503,6 +509,98 @@ export async function loginBeringPublic(req, res) {
   } catch (err) {
     console.log(err);
     res.status(500).json({message: 'Login verify failed'});
+  }
+}
+
+export async function requestPasswordResetBeringPublic(req, res) {
+  try {
+    const result = await requestGuestPasswordReset({
+      email: req.body && req.body.email
+    });
+    res.json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(err.status || 500).json({
+      message: err.message || 'Password reset failed',
+      code: err.code
+    });
+  }
+}
+
+export async function sendTransferSmsBeringPublic(req, res) {
+  try {
+    const userId =
+      req.body && req.body.userId != null ? String(req.body.userId).trim() : '';
+    if (!userId) {
+      return res.status(400).json({
+        message: 'userId is required.',
+        code: 'invalid_request'
+      });
+    }
+    const membership = await resolveMembership({userId});
+    if (!membership || !membership.member) {
+      return res.status(404).json({
+        message: 'Gold Points member not found.',
+        code: 'not_found'
+      });
+    }
+    if (membership.member.suspended) {
+      return res.status(403).json({
+        message: 'Need to remove customer suspension first',
+        code: 'suspended'
+      });
+    }
+    const phone =
+      (membership.member.phone && String(membership.member.phone).trim()) ||
+      (membership.primary &&
+        membership.primary.phone &&
+        String(membership.primary.phone).trim()) ||
+      '';
+    if (!phone) {
+      return res.status(400).json({
+        message:
+          'We need a phone number associated with your account to authenticate a transfer.',
+        code: 'no_phone'
+      });
+    }
+    const result = await sendTransferSms({userId, phone});
+    res.json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(err.status || 500).json({
+      message: err.message || 'SMS failed',
+      code: err.code
+    });
+  }
+}
+
+export async function transferHouseholdBeringPublic(req, res) {
+  try {
+    const body = req.body || {};
+    const fromUserId =
+      body.fromUserId != null ? String(body.fromUserId).trim() : '';
+    const toUserId = body.toUserId != null ? String(body.toUserId).trim() : '';
+    const code = body.code;
+    if (!fromUserId || !toUserId) {
+      return res.status(400).json({
+        message: 'fromUserId and toUserId are required.',
+        code: 'invalid_request'
+      });
+    }
+    consumeTransferCode(fromUserId, code);
+    const result = await transferHouseholdPoints({
+      actorUserId: fromUserId,
+      toUserId,
+      points: body.points,
+      lastUpdatedBy: 'bering-public'
+    });
+    res.status(201).json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(err.status || 500).json({
+      message: err.message || 'Transfer failed',
+      code: err.code
+    });
   }
 }
 

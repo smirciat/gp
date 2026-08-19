@@ -46,6 +46,16 @@ Used by resBering public API (`POST /api/public/gp/auth/login`) so members keep 
 **403** `{ code: "suspended" }` — member is suspended (cannot sign in).  
 **400** — missing email or password.
 
+### Member password reset (bering-public — Phase B slice 6)
+
+`POST /api/integrations/bering-public/v1/auth/password-reset`
+
+```json
+{ "email": "member@example.com" }
+```
+
+Writes a new golddb guest `User` temp password (same as staff `POST /api/users/reset`) and sends it with the existing Mailgun welcome template. Unknown emails and staff users get the same generic `{ message }` — no enumeration. Does **not** return the password.
+
 ### Ledger reads (bering-public — Phase B slice 2)
 
 Same shapes as resBering staff routes. Public token may query any `userId`; **resBering** `/api/public/gp/*` constrains to the signed-in member’s household.
@@ -55,6 +65,15 @@ Same shapes as resBering staff routes. Public token may query any `userId`; **re
 | `GET`/`POST` | `/membership` | Lookup by email or userId (fare rewards only) |
 | `POST` | `/transactions/query` | `{ userId }` and/or `{ queryUsers, limit }` |
 | `POST` | `/events/query` | `{ userId }` — legacy `Event` rows before 1 May 2026 |
+
+### Member transfer + SMS (bering-public — Phase B slice 5)
+
+Twilio stays on GP. resBering forces `fromUserId` from the member session.
+
+| Method | Path | Body | Notes |
+|--------|------|------|-------|
+| `POST` | `/transfer/sms` | `{ userId }` | Sends six-digit code; `{ sent, phoneLast4 }` |
+| `POST` | `/transfer` | `{ fromUserId, toUserId, points, code }` | Verifies code then household debit (primary, then associates) |
 
 ## Endpoints (both trees)
 
