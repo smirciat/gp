@@ -1,5 +1,24 @@
 <toaster-container></toaster-container>
-<div ng-if="main.hasRole('guest')" class="fill-remaining" style="background-color:#ffffcc;">
+<div ng-if="main.showStaffRedirect()" class="fill-remaining gp-staff-cutover">
+  <div class="container gp-staff-cutover__panel">
+    <h1>Staff Gold Points tools moved</h1>
+    <p>Counter and cargo staff should use <strong>Reservations</strong>, not this site, for member lookup, enrollment, assign points, and After Flight awards.</p>
+    <p>
+      <a class="btn btn-success btn-lg" ng-href="{{main.staffOpsUrl}}" target="_blank" rel="noopener">
+        Open Gold Points in Reservations
+      </a>
+    </p>
+    <p class="gp-staff-cutover__hint">
+      Sign in to <strong>reservations.beringair.com</strong> with your employee username, then
+      <strong>View → Gold Points…</strong>
+    </p>
+    <p class="gp-staff-cutover__members">
+      <strong>Members:</strong> this site is still for personal Gold Points accounts.
+      Sign out and use <strong>Login</strong> with your member email, or ask staff for help.
+    </p>
+  </div>
+</div>
+<div ng-if="main.hasRole('guest') && !main.showStaffRedirect()" class="fill-remaining" style="background-color:#ffffcc;">
   <br>
   <!--main hub-->
   <div ng-if="!main.chosenView">
@@ -19,7 +38,7 @@
                   tooltip-placement="bottom" tooltip-append-to-body="true" ng-click="main.setView(0)">
                   <a href="#">{{main.views[0]}}</a>
                 </td>
-                <td ng-click="main.setView(3)"><a href="#" ng-if="main.hasRole('user')">{{main.views[3]}}</a></td>
+                <td ng-click="main.setView(3)"><a href="#" ng-if="main.hasRole('user') && !main.staffUiRetired">{{main.views[3]}}</a></td>
               </tr>
               <tr>
                 <!--<td uib-tooltip="This link is to connect a Gold Points Member Account to a User Account." 
@@ -29,16 +48,16 @@
                 <td></td>
                 <td uib-tooltip="This link is to create a New Gold Points Primary Member. Associate Accounts can be created or monitored in 'Manage Members'" 
                   tooltip-placement="bottom" tooltip-append-to-body="true" ng-click="main.setView(4)">
-                  <a href="#" ng-if="main.hasRole('user')">{{main.views[4]}}</a>
+                  <a href="#" ng-if="main.hasRole('user') && !main.staffUiRetired">{{main.views[4]}}</a>
                 </td>
               </tr>
               <tr>
                 <td></td>
-                <td ng-click="main.setView(5)"><a href="#" ng-if="main.hasRole('user')">{{main.views[5]}}</a></td>
+                <td ng-click="main.setView(5)"><a href="#" ng-if="main.hasRole('user') && !main.staffUiRetired">{{main.views[5]}}</a></td>
               </tr>
               <tr>
-                <td ng-click="main.setView(7)"><a href="#" ng-if="main.hasRole('user')">{{main.views[7]}}</a></td>
-                <td ng-click="main.setView(6)"><a href="#" ng-if="main.hasRole('user')">{{main.views[6]}}</a></td>
+                <td ng-click="main.setView(7)"><a href="#" ng-if="main.hasRole('user') && !main.staffUiRetired">{{main.views[7]}}</a></td>
+                <td ng-click="main.setView(6)"><a href="#" ng-if="main.hasRole('user') && !main.staffUiRetired">{{main.views[6]}}</a></td>
               </tr>
             </tbody>
           </table>

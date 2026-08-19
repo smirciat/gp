@@ -47,6 +47,8 @@
       this.existing={associates:['','','','']};
       this.chosenView=null;
       this.queryGo=null;
+      this.staffUiRetired=false;
+      this.staffOpsUrl='https://reservations.beringair.com/gold-points';
       this.customers=[];
       this.transaction={status:'Approved',awardRedeem:'award',points:0};
       this.showLength=50;
@@ -58,6 +60,12 @@
     }
 
     $onInit() {
+      this.http.get('/api/meta/site').then(res=>{
+        if (res.data) {
+          this.staffUiRetired=!!res.data.staffUiRetired;
+          if (res.data.staffOpsUrl) this.staffOpsUrl=res.data.staffOpsUrl;
+        }
+      }).catch(err=>{console.log(err);});
       this.flightDate=new Date();
       this.user=this.User.get(res=>{
         if (res.role==="guest"&&res.email){
@@ -874,7 +882,15 @@
       this.queryGo=null;
     }
     
+    showStaffRedirect(){
+      return this.staffUiRetired&&this.hasRole('user');
+    }
+    
     setView(index){
+      if (this.showStaffRedirect()) {
+        this.toaster.info('Staff tools moved','Open Reservations → View → Gold Points… for counter work.');
+        return;
+      }
       if (this.user.role==='guest'&&index>0) {
         this.toaster.error('Error','This Selection is Restricted to Employee Users.  Contact Site Admin if You Believe This is in Error.');
         return;

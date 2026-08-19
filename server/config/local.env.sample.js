@@ -17,5 +17,9 @@ module.exports = {
   BERING_PUBLIC_INTEGRATION_TOKEN: '',
 
   // Optional comma-separated browser origins for integration clients
-  INTEGRATION_CORS_ORIGINS: ''
+  INTEGRATION_CORS_ORIGINS: '',
+
+  // Phase A staff cutover (#167): set to '1' to hide legacy staff hub; members stay on guest UI.
+  GP_STAFF_UI_RETIRED: '',
+  GP_STAFF_OPS_URL: 'https://reservations.beringair.com/gold-points'
 };

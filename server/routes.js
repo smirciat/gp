@@ -19,6 +19,16 @@ export default function(app) {
   app.use('/api/integrations/resbering/v1', require('./api/integration/indexResBering'));
   app.use('/api/integrations/bering-public/v1', require('./api/integration/indexBeringPublic'));
 
+  app.get('/api/meta/site', function(req, res) {
+    res.json({
+      staffUiRetired: String(localEnv.GP_STAFF_UI_RETIRED || '') === '1',
+      staffOpsUrl:
+        (localEnv.GP_STAFF_OPS_URL &&
+          String(localEnv.GP_STAFF_OPS_URL).trim()) ||
+        'https://reservations.beringair.com/gold-points',
+    });
+  });
+
   app.use(lusca.csrf({angular:true}));
   // Insert routes below
   app.use('/api/events', require('./api/event'));

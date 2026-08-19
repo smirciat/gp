@@ -10,11 +10,17 @@ class NavbarController {
   isCollapsed = true;
   //end-non-standard
 
-  constructor(Auth) {
+  constructor(Auth, $http) {
     this.isLoggedIn = Auth.isLoggedIn;
     this.isAdmin = Auth.isAdmin;
     this.hasRole=Auth.hasRole;
     this.getCurrentUser = Auth.getCurrentUser;
+    this.staffUiRetired = false;
+    $http.get('/api/meta/site').then(res => {
+      if (res.data) {
+        this.staffUiRetired = !!res.data.staffUiRetired;
+      }
+    }).catch(() => {});
   }
 
 }

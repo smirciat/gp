@@ -34,6 +34,39 @@
   font-size:2em;
   text-align:center;
 }
+
+.gp-staff-cutover {
+  background-color: #ffffcc;
+  padding: 2rem 1rem 3rem;
+}
+
+.gp-staff-cutover__panel {
+  max-width: 42rem;
+  margin: 2rem auto;
+  padding: 1.5rem 1.75rem;
+  background: #fff9b3;
+  border: 2px solid #333;
+  text-align: center;
+}
+
+.gp-staff-cutover__panel h1 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0 0 1rem;
+}
+
+.gp-staff-cutover__hint,
+.gp-staff-cutover__members {
+  margin-top: 1.25rem;
+  font-size: 1rem;
+  text-align: left;
+}
+
+.gp-staff-cutover__members {
+  margin-top: 1.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid #999;
+}
 .width50{
   font-size:1.3em;
   text-align:center;
