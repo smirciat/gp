@@ -4,6 +4,7 @@ import localEnv from '../../config/local.env';
 import {listRewardTiers} from './rewards.service';
 import {resolveMembership} from './membership.service';
 import {redeemPoints} from './redeem.service';
+import {verifyMemberCredentials} from './auth-verify.service';
 import {upsertFlightManifestFromResBering} from './flight-manifest.service';
 import {
   getCustomerMembership,
@@ -346,6 +347,14 @@ export async function queryTransactionsResBering(req, res) {
   }
 }
 
+export async function queryTransactionsBeringPublic(req, res) {
+  return queryTransactionsResBering(req, res);
+}
+
+export async function queryLegacyEventsBeringPublic(req, res) {
+  return queryLegacyEventsResBering(req, res);
+}
+
 export async function listCustomersByPointsResBering(req, res) {
   try {
     const result = await listCustomersByPoints();
@@ -474,6 +483,26 @@ export async function runBalanceAuditResBering(req, res) {
     res.status(err.status || 500).json({
       message: err.message || 'Balance audit run failed'
     });
+  }
+}
+
+export async function loginBeringPublic(req, res) {
+  try {
+    const body = req.body || {};
+    const result = await verifyMemberCredentials({
+      email: body.email,
+      password: body.password
+    });
+    if (!result.ok) {
+      return res.status(result.status).json({
+        message: result.message,
+        code: result.code
+      });
+    }
+    res.json({member: result.member});
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({message: 'Login verify failed'});
   }
 }
 

@@ -9,9 +9,12 @@ var router = express.Router();
 router.use(requireBeringPublicIntegration());
 
 router.get('/meta', controller.metaBeringPublic);
+router.post('/auth/login', controller.loginBeringPublic);
 router.get('/rewards', controller.rewardCatalog);
 router.get('/membership', controller.membershipBeringPublic);
 router.post('/membership', controller.membershipBeringPublic);
+router.post('/transactions/query', controller.queryTransactionsBeringPublic);
+router.post('/events/query', controller.queryLegacyEventsBeringPublic);
 router.post('/redeem', controller.redeemBeringPublic);
 
 module.exports = router;

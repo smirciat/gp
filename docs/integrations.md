@@ -30,16 +30,44 @@ or
 X-GP-Integration-Key: <token>
 ```
 
+### Member login verify (bering-public only)
+
+`POST /api/integrations/bering-public/v1/auth/login`
+
+Used by resBering public API (`POST /api/public/gp/auth/login`) so members keep the same Gold Points email + password. **Does not** set a GP browser cookie. Password hashes stay on golddb.
+
+```json
+{ "email": "member@example.com", "password": "…" }
+```
+
+**200:** `{ member: { gpUserId, email, phone, fullName, gpType, suspended: false } }` — no password/salt.
+
+**401** `{ code: "invalid_credentials" }` — unknown email, wrong password, or non-guest GP user.  
+**403** `{ code: "suspended" }` — member is suspended (cannot sign in).  
+**400** — missing email or password.
+
+### Ledger reads (bering-public — Phase B slice 2)
+
+Same shapes as resBering staff routes. Public token may query any `userId`; **resBering** `/api/public/gp/*` constrains to the signed-in member’s household.
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| `GET`/`POST` | `/membership` | Lookup by email or userId (fare rewards only) |
+| `POST` | `/transactions/query` | `{ userId }` and/or `{ queryUsers, limit }` |
+| `POST` | `/events/query` | `{ userId }` — legacy `Event` rows before 1 May 2026 |
+
 ## Endpoints (both trees)
 
 | Method | Path | Purpose |
 |--------|------|---------|
 | `GET` | `/meta` | API identity, version, and `baseUrl` |
+| `POST` | `/auth/login` | **bering-public only** — verify member email + password (no GP session cookie) |
 | `GET` | `/rewards` | Full reward tier catalog |
 | `GET`/`POST` | `/membership` | Lookup member by email and/or userId |
 | `POST` | `/customers/query` | Staff search (read-only summaries; `q` or structured `query`) |
 | `GET` | `/customers/:userId` | Membership detail by userId (same shape as `/membership`) |
-| `POST` | `/transactions/query` | Ledger rows for `userId` and/or `queryUsers` (read-only) |
+| `POST` | `/transactions/query` | Ledger rows for `userId` and/or `queryUsers` (read-only) — **also on bering-public** |
+| `POST` | `/events/query` | Legacy `Event` rows (pre–1 May 2026) — **also on bering-public** |
 | `POST` | `/members/enroll` | Create primary or associate + 10-pt signup transaction |
 | `POST` | `/redeem` | Tier-based redemption against a booking |
 | `POST` | `/flights/manifest` | Ingest completed-flight passengers from resBering (#92) |
