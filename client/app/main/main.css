@@ -67,6 +67,15 @@
   padding-top: 1rem;
   border-top: 1px solid #999;
 }
+
+.gp-public-pointer {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  background: #fff9b3;
+  border: 1px solid #c4b000;
+  text-align: center;
+  font-weight: 600;
+}
 .width50{
   font-size:1.3em;
   text-align:center;
