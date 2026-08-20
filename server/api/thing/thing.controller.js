@@ -206,25 +206,49 @@ export async function welcomeEmail(req,res){
       return 'Failed to Send Email due to bad email address';
     }
     let customer=req.body.customer;
-    user = {name:customer.fullName,email:customer.email,forcePasswordChange:true};
-    user.password = crypto.randomBytes(5).toString('hex');
-    user.tempPassword=user.password;
-    try {
-      console.log('Creating New User');
-      let resp = await createUser({body:user});
-      if (resp&&resp.errors&&resp.errors.length>0) attachPassword=false;
-      else attachPassword=true;
-    }
-    catch(err) {
-      console.log(err);
-      attachPassword=false;
+    const emailLower = String(req.body.to || customer.email || '')
+      .trim()
+      .toLowerCase();
+    const existingUser = emailLower
+      ? await User.findOne({where:{email: emailLower}})
+      : null;
+    if (existingUser) {
+      const temp = crypto.randomBytes(5).toString('hex');
+      existingUser.password = temp;
+      existingUser.tempPassword = temp;
+      existingUser.forcePasswordChange = true;
+      await existingUser.save();
+      user = existingUser;
+      attachPassword = true;
+    } else {
+      user = {name:customer.fullName,email:customer.email,forcePasswordChange:true};
+      user.password = crypto.randomBytes(5).toString('hex');
+      user.tempPassword=user.password;
+      try {
+        console.log('Creating New User');
+        let resp = await createUser({body:user});
+        if (resp&&resp.errors&&resp.errors.length>0) attachPassword=false;
+        else attachPassword=true;
+      }
+      catch(err) {
+        console.log(err);
+        attachPassword=false;
+      }
     }
   }
   if (attachPassword) {
     try {
-      if (!user.email) user=await User.findOne({where:{email:req.body.to}});
-      if (user.tempPassword) html+="<br><br>Your temporary password is: " + user.tempPassword;
-      else html+="<br><br>Your User profile does not contain a temporary password, you`ll need to contact Bering Air and have us perform a password reset for you.";
+      if (!user.email) {
+        const emailLower = String(req.body.to || '').trim().toLowerCase();
+        user = emailLower
+          ? await User.findOne({where:{email: emailLower}})
+          : null;
+      }
+      if (user && user.tempPassword) {
+        html+="<br><br>Your temporary password is: " + user.tempPassword;
+      } else if (user) {
+        html+="<br><br>Your User profile does not contain a temporary password, you`ll need to contact Bering Air and have us perform a password reset for you.";
+      }
     }
     catch(err) {
       console.log(err);
