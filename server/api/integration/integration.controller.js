@@ -40,6 +40,7 @@ import {
   listStoredMismatches,
   runFullBalanceAudit
 } from '../balance-audit/balance-audit.service';
+import {resolveStaffAgentId} from './staff-agent.service';
 const GP_BASE_URL = 'https://gp.beringair.com';
 
 function integrationMeta(appName) {
@@ -108,6 +109,25 @@ function membershipForBeringPublic(membership) {
 
 export function metaResBering(req, res) {
   res.json(integrationMeta('resbering'));
+}
+
+export async function staffAgentIdResBering(req, res) {
+  try {
+    const body = req.body || {};
+    const email =
+      typeof req.query.email === 'string'
+        ? req.query.email
+        : typeof body.email === 'string'
+          ? body.email
+          : '';
+    const result = await resolveStaffAgentId(email);
+    res.json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(err.status || 500).json({
+      message: err.message || 'Staff agent lookup failed'
+    });
+  }
 }
 
 export function metaBeringPublic(req, res) {
