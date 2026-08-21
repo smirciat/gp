@@ -10,6 +10,7 @@ router.use(requireResBeringIntegration());
 
 router.get('/meta', controller.metaResBering);
 router.get('/staff/agent-id', controller.staffAgentIdResBering);
+router.get('/staff/email-roster', controller.staffEmailRosterResBering);
 router.get('/rewards', controller.rewardCatalog);
 router.get('/membership', controller.membershipResBering);
 router.post('/membership', controller.membershipResBering);

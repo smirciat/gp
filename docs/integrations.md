@@ -128,6 +128,8 @@ or household:
 { "queryUsers": ["363", "41357"], "limit": 100 }
 ```
 
+`limit` is capped at **5000** (default 100). Staff member detail requests 2000 so the household list can sort oldest-first without only reversing the newest 100.
+
 Response: `{ count, limit, userIds, transactions: [{ _id, userId, date, awardRedeem, points, status, booking, description, … }] }`.
 
 **Ledger split (do not merge):** `Transaction` is the **current** ledger (from **1 May 2026**). History **before** that lives in the GP `Event` table (`member_id`, `points`, `notes`, `created` / `modified`). Staff UI shows them as two sections.

@@ -3,7 +3,7 @@
 import {Transaction} from '../../sqldb';
 const {Op} = require('sequelize');
 
-const MAX_LIMIT = 200;
+const MAX_LIMIT = 5000;
 const DEFAULT_LIMIT = 100;
 
 function capLimit(limit) {

@@ -34,3 +34,29 @@ export async function resolveStaffAgentId(email) {
     role: user.role
   };
 }
+
+/** All legacy GP staff login users (role user/admin) with email — for resBering agent id sync. */
+export async function listStaffAgentEmails() {
+  const users = await User.findAll({
+    where: {
+      role: {[Op.in]: ['user', 'admin']},
+      email: {[Op.ne]: null}
+    },
+    attributes: ['_id', 'email', 'role', 'name'],
+    order: [['_id', 'ASC']]
+  });
+
+  return users
+    .map((user) => {
+      const email =
+        user.email != null ? String(user.email).trim().toLowerCase() : '';
+      if (!email) return null;
+      return {
+        agentId: user._id,
+        email,
+        role: user.role,
+        name: user.name != null ? String(user.name).trim() : null
+      };
+    })
+    .filter(Boolean);
+}

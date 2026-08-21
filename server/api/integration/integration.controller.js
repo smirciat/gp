@@ -40,7 +40,7 @@ import {
   listStoredMismatches,
   runFullBalanceAudit
 } from '../balance-audit/balance-audit.service';
-import {resolveStaffAgentId} from './staff-agent.service';
+import {resolveStaffAgentId, listStaffAgentEmails} from './staff-agent.service';
 const GP_BASE_URL = 'https://gp.beringair.com';
 
 function integrationMeta(appName) {
@@ -126,6 +126,18 @@ export async function staffAgentIdResBering(req, res) {
     console.log(err);
     res.status(err.status || 500).json({
       message: err.message || 'Staff agent lookup failed'
+    });
+  }
+}
+
+export async function staffEmailRosterResBering(req, res) {
+  try {
+    const staff = await listStaffAgentEmails();
+    res.json({count: staff.length, staff});
+  } catch (err) {
+    console.log(err);
+    res.status(err.status || 500).json({
+      message: err.message || 'Staff email roster failed'
     });
   }
 }
