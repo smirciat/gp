@@ -3,6 +3,9 @@
 import {User} from '../../sqldb';
 const {Op} = require('sequelize');
 
+/** Legacy GP staff login roles (not guest). superadmin = GP app owner tier. */
+const GP_STAFF_AGENT_ROLES = ['user', 'admin', 'superadmin'];
+
 /**
  * Legacy GP staff login User._id — stored on transactions as lastUpdatedBy / Agent id.
  */
@@ -17,7 +20,7 @@ export async function resolveStaffAgentId(email) {
   const user = await User.findOne({
     where: {
       email: {[Op.iLike]: normalized},
-      role: {[Op.in]: ['user', 'admin']}
+      role: {[Op.in]: GP_STAFF_AGENT_ROLES}
     },
     attributes: ['_id', 'email', 'role']
   });
@@ -35,11 +38,11 @@ export async function resolveStaffAgentId(email) {
   };
 }
 
-/** All legacy GP staff login users (role user/admin) with email — for resBering agent id sync. */
+/** All legacy GP staff login users (role user/admin/superadmin) with email — for resBering agent id sync. */
 export async function listStaffAgentEmails() {
   const users = await User.findAll({
     where: {
-      role: {[Op.in]: ['user', 'admin']},
+      role: {[Op.in]: GP_STAFF_AGENT_ROLES},
       email: {[Op.ne]: null}
     },
     attributes: ['_id', 'email', 'role', 'name'],
