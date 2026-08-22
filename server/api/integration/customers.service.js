@@ -32,6 +32,19 @@ function buildStructuredWhere(query) {
 
   let firstName = q.firstName;
   let lastName = q.lastName;
+  const suffixRe = /^(jr|sr|jnr|snr|ii|iii|iv|v|2nd|3rd|4th|5th)\.?$/i;
+  function stripSuffixes(value) {
+    const tokens = String(value || '')
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+    while (tokens.length && suffixRe.test(tokens[tokens.length - 1])) {
+      tokens.pop();
+    }
+    return tokens.join(' ');
+  }
+  if (firstName) firstName = stripSuffixes(firstName);
+  if (lastName) lastName = stripSuffixes(lastName);
   if (firstName && !lastName) {
     const parts = String(firstName).trim().split(/\s+/);
     if (parts.length > 1) {
@@ -40,9 +53,12 @@ function buildStructuredWhere(query) {
     }
   } else if (!firstName && lastName) {
     const parts = String(lastName).trim().split(/\s+/);
-    if (parts.length > 1) {
+    const remainder = parts.slice(1);
+    const remainderIsSuffixes =
+      remainder.length > 0 && remainder.every((token) => suffixRe.test(token));
+    if (parts.length > 1 && !remainderIsSuffixes) {
       firstName = parts[0];
-      lastName = parts.slice(1).join(' ');
+      lastName = remainder.join(' ');
     }
   }
 
