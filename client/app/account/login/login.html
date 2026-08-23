@@ -1,53 +1,78 @@
 <div class="container">
-  <div class="row">
-    <div class="col-sm-12">
-      <h1>Login</h1>
+  <div ng-if="vm.guestUiRetired" class="gp-guest-cutover gp-guest-cutover--login">
+    <div class="gp-guest-cutover__panel">
+      <h1>Gold Points moved</h1>
       <p>
-        Gold Points is also on the public website:
-        <a href="https://public.beringair.com/public/gold-points">public.beringair.com</a>
-        (same email and password). This login still works.
+        Member sign-in is now on the public Bering Air website — same email and password.
+      </p>
+      <p>
+        <a class="btn btn-success btn-lg" ng-href="{{vm.guestPublicUrl}}">
+          Open Gold Points on public.beringair.com
+        </a>
+      </p>
+      <p class="gp-guest-cutover__hint">
+        Bookmark <strong>public.beringair.com/gold-points</strong>. This gp.beringair.com login is retired.
       </p>
     </div>
-    <div class="col-sm-12">
-      <form class="form" name="form" ng-submit="vm.login(form)" novalidate>
+  </div>
 
-        <div class="form-group">
-          <label>Email</label>
-
-          <input type="email" name="email" class="form-control" ng-model="vm.user.email" required>
-        </div>
-
-        <div class="form-group">
-          <label>Password</label>
-
-          <input type="password" name="password" class="form-control" ng-model="vm.user.password" required>
-        </div>
-
-        <div class="form-group has-error">
-          <p class="help-block" ng-show="form.email.$error.required && form.password.$error.required && vm.submitted">
-             Please enter your email and password.
+  <div ng-if="!vm.guestUiRetired">
+    <div class="row">
+      <div class="col-sm-12">
+        <div class="gp-guest-nudge gp-guest-nudge--login">
+          <p class="gp-guest-nudge__title"><strong>Gold Points has a new home</strong> on the public website.</p>
+          <p class="gp-guest-nudge__sub">
+            Same email and password. gp.beringair.com will redirect there soon — try the new site and bookmark it.
           </p>
-          <p class="help-block" ng-show="form.email.$error.email && vm.submitted">
-             Please enter a valid email.
-          </p>
-
-          <p class="help-block">{{ vm.errors.other }}</p>
-        </div>
-
-        <div>
-          <button class="btn btn-inverse btn-lg btn-login" type="submit">
-            Login
-          </button>
-          <a class="btn btn-default btn-lg btn-register" ui-sref="signup">
-            Register
+          <a class="btn btn-success" ng-href="{{vm.guestPublicUrl}}">
+            Open Gold Points on public.beringair.com
           </a>
         </div>
+        <h1>Login</h1>
+      </div>
+      <div class="col-sm-12">
+        <form class="form" name="form" ng-submit="vm.login(form)" novalidate>
 
-      </form>
+          <div class="form-group">
+            <label>Email</label>
+
+            <input type="email" name="email" class="form-control" ng-model="vm.user.email" required>
+          </div>
+
+          <div class="form-group">
+            <label>Password</label>
+
+            <input type="password" name="password" class="form-control" ng-model="vm.user.password" required>
+          </div>
+
+          <div class="form-group has-error">
+            <p class="help-block" ng-show="form.email.$error.required && form.password.$error.required && vm.submitted">
+               Please enter your email and password.
+            </p>
+            <p class="help-block" ng-show="form.email.$error.email && vm.submitted">
+               Please enter a valid email.
+            </p>
+
+            <p class="help-block">{{ vm.errors.other }}</p>
+          </div>
+
+          <div>
+            <button class="btn btn-inverse btn-lg btn-login" type="submit">
+              Login
+            </button>
+            <a class="btn btn-default btn-lg btn-register" ui-sref="signup">
+              Register
+            </a>
+          </div>
+
+        </form>
+      </div>
     </div>
+    <hr>
   </div>
-  <hr>
 </div>
+<div ng-if="!vm.guestUiRetired">
 <hr>
 <h3 class="single-centered">Watch the Video Below to Learn How to Use This Site</h3>
 <div style="position:relative; width:100%; height:0px; padding-bottom:53.125%"><iframe allow="fullscreen" allowfullscreen height="100%" src="https://streamable.com/e/12bzs3?" width="100%" style="border:none; width:70%; height:70%; position:absolute; left: 50%; transform: translateX(-50%); top:0px; overflow:hidden;"></iframe></div>
+</div>

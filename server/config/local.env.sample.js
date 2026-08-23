@@ -21,5 +21,9 @@ module.exports = {
 
   // Phase A staff cutover (#167): set to '1' to hide legacy staff hub; members stay on guest UI.
   GP_STAFF_UI_RETIRED: '',
-  GP_STAFF_OPS_URL: 'https://reservations.beringair.com/gold-points'
+  GP_STAFF_OPS_URL: 'https://reservations.beringair.com/gold-points',
+
+  // Phase B 7b (#167): set to '1' to redirect guest members to public.beringair.com.
+  GP_GUEST_UI_RETIRED: '',
+  GP_GUEST_PUBLIC_URL: 'https://public.beringair.com/public/gold-points'
 };

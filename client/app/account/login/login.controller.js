@@ -1,13 +1,27 @@
 'use strict';
 
 class LoginController {
-  constructor(Auth, $state) {
+  constructor(Auth, $state, $http) {
     this.user = {};
     this.errors = {};
     this.submitted = false;
+    this.guestUiRetired = false;
+    this.guestPublicUrl = 'https://public.beringair.com/public/gold-points';
 
     this.Auth = Auth;
     this.$state = $state;
+    this.$http = $http;
+  }
+
+  $onInit() {
+    this.$http.get('/api/meta/site').then(res => {
+      if (res.data) {
+        this.guestUiRetired = !!res.data.guestUiRetired;
+        if (res.data.guestPublicUrl) {
+          this.guestPublicUrl = res.data.guestPublicUrl;
+        }
+      }
+    }).catch(() => {});
   }
 
   login(form) {
@@ -28,6 +42,8 @@ class LoginController {
     }
   }
 }
+
+LoginController.$inject = ['Auth', '$state', '$http'];
 
 angular.module('goldPointsApp')
   .controller('LoginController', LoginController);

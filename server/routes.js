@@ -26,6 +26,11 @@ export default function(app) {
         (localEnv.GP_STAFF_OPS_URL &&
           String(localEnv.GP_STAFF_OPS_URL).trim()) ||
         'https://reservations.beringair.com/gold-points',
+      guestUiRetired: String(localEnv.GP_GUEST_UI_RETIRED || '') === '1',
+      guestPublicUrl:
+        (localEnv.GP_GUEST_PUBLIC_URL &&
+          String(localEnv.GP_GUEST_PUBLIC_URL).trim()) ||
+        'https://public.beringair.com/public/gold-points',
     });
   });
 

@@ -19,16 +19,37 @@
     </p>
   </div>
 </div>
-<div ng-if="main.hasRole('guest') && !main.showStaffRedirect()" class="fill-remaining" style="background-color:#ffffcc;">
+<div ng-if="main.showGuestRedirect()" class="fill-remaining gp-guest-cutover">
+  <div class="container gp-guest-cutover__panel">
+    <h1>Gold Points moved</h1>
+    <p>
+      Member self-service — balance, transfers, and history — is now on the
+      <strong>public Bering Air website</strong>. Use the same email and password.
+    </p>
+    <p>
+      <a class="btn btn-success btn-lg" ng-href="{{main.guestPublicUrl}}" target="_self" rel="noopener">
+        Open Gold Points on public.beringair.com
+      </a>
+    </p>
+    <p class="gp-guest-cutover__hint">
+      Bookmark <strong>public.beringair.com/gold-points</strong>. This gp.beringair.com guest login is retired.
+    </p>
+  </div>
+</div>
+<div ng-if="main.hasRole('guest') && !main.showStaffRedirect() && !main.showGuestRedirect()" class="fill-remaining" style="background-color:#ffffcc;">
   <br>
   <!--main hub-->
   <div ng-if="!main.chosenView">
     <div class="container">
-      <p class="gp-public-pointer">
-        Gold Points is also on the public website:
-        <a href="https://public.beringair.com/public/gold-points">public.beringair.com</a>
-        (same email and password). This site still works.
-      </p>
+      <div class="gp-guest-nudge">
+        <p class="gp-guest-nudge__title"><strong>Gold Points has a new home</strong> on the public website.</p>
+        <p class="gp-guest-nudge__sub">
+          Same email and password. gp.beringair.com will redirect there soon — try it now and bookmark it.
+        </p>
+        <a class="btn btn-success btn-lg" ng-href="{{main.guestPublicUrl}}">
+          Open Gold Points on public.beringair.com
+        </a>
+      </div>
       <div class="row">
         <div class="col-md-12">
           <table class="table table-bordered table-striped dashboard" style="table-layout: fixed; width: 100%;">

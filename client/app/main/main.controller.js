@@ -49,6 +49,8 @@
       this.queryGo=null;
       this.staffUiRetired=false;
       this.staffOpsUrl='https://reservations.beringair.com/gold-points';
+      this.guestUiRetired=false;
+      this.guestPublicUrl='https://public.beringair.com/public/gold-points';
       this.customers=[];
       this.transaction={status:'Approved',awardRedeem:'award',points:0};
       this.showLength=50;
@@ -64,6 +66,8 @@
         if (res.data) {
           this.staffUiRetired=!!res.data.staffUiRetired;
           if (res.data.staffOpsUrl) this.staffOpsUrl=res.data.staffOpsUrl;
+          this.guestUiRetired=!!res.data.guestUiRetired;
+          if (res.data.guestPublicUrl) this.guestPublicUrl=res.data.guestPublicUrl;
         }
       }).catch(err=>{console.log(err);});
       this.flightDate=new Date();
@@ -884,6 +888,10 @@
     
     showStaffRedirect(){
       return this.staffUiRetired&&this.hasRole('user');
+    }
+
+    showGuestRedirect(){
+      return this.guestUiRetired&&this.hasRole('guest');
     }
     
     setView(index){
