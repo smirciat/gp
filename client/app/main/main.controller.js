@@ -1051,7 +1051,7 @@
       if (this.user.role==='guest'){
         this.http.post('/api/things/verify',{customer:this.customer,randomNumber:this.enteredRandomNumber}).then(res=>{
           this.enteredRandomNumber=null;
-          this.toaster.success('Success','Verification code is verified, beginning transfer');
+          this.toaster.info('Code accepted','Completing transfer…');
           this.transfer();
         }).catch(err=>{
           console.log(err);
@@ -1151,7 +1151,7 @@
     .then(res=>{
       console.log(res.data);
       this.randomNumber=res.data;
-      this.toaster.success('Success','Verification SMS message sent, check your phone for a verification code');
+      this.toaster.warning('Transfer not complete yet','We sent a verification code to your phone. Enter it below and click Submit — points are not transferred until you do.');
     })
     .catch(err=>{
       console.log(err);

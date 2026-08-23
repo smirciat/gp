@@ -364,6 +364,10 @@
       <hr>
       <div class="single-centered">
         <h3>Transfer Gold Points</h3>
+        <p style="max-width: 36em; margin: 0.5em auto 0; color: #555; font-size: 0.95em;">
+          Two steps: <strong>Begin Transfer</strong> sends a code to your phone. Enter the code and click
+          <strong>Submit</strong> to finish — points are <strong>not</strong> moved until then.
+        </p>
       </div>
       <div class="grid-parent3">
         <div>Transfer (from User ID: {{main.customer.userId}}) these Points:</div>
@@ -377,7 +381,8 @@
       </div>
       <div ng-if="main.randomNumber&&main.randomNumber!=='Error'">
         <div class="single-centered">
-          Enter Six Digit Code From Text Message, then Click Submit
+          <strong>Step 2: Enter code to complete transfer</strong><br>
+          Enter the six-digit code from your text message, then click Submit. Points are not transferred until you do.
         </div>
         <div class="single-centered">
           <textarea rows="1" ng-model="main.enteredRandomNumber"></textarea>
