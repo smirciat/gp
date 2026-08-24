@@ -64,3 +64,25 @@ export function signedBalanceDelta(awardRedeem, points) {
 export function reverseBalanceDelta(awardRedeem, points) {
   return -signedBalanceDelta(awardRedeem, points);
 }
+
+/** Staff/member transfer must satisfy both award and redeem caps per chunk. */
+export function gpTransferChunkSize(totalPoints) {
+  const cap = Math.min(MAX_AWARD_POINTS_PER_TXN, MAX_REDEEM_POINTS_PER_TXN);
+  return Math.min(Math.max(Math.floor(totalPoints), 0), cap);
+}
+
+export function gpTransferChunkPlan(totalPoints) {
+  const total = Math.floor(Number(totalPoints));
+  if (!Number.isFinite(total) || total < 1) {
+    return [];
+  }
+  const chunk = gpTransferChunkSize(total);
+  const chunks = [];
+  let remaining = total;
+  while (remaining > 0) {
+    const step = Math.min(remaining, chunk);
+    chunks.push(step);
+    remaining -= step;
+  }
+  return chunks;
+}

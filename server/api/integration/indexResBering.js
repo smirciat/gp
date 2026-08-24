@@ -34,6 +34,7 @@ router.post('/points/transfer', controller.transferPointsResBering);
 router.post('/redeem', controller.redeemResBering);
 router.post('/flights/manifest', controller.importFlightManifestResBering);
 router.get('/audit/mismatches', controller.listBalanceMismatchesResBering);
+router.get('/audit/partial-transfers', controller.listPartialGpTransfersResBering);
 router.get('/audit/members/:userId', controller.getMemberBalanceAuditResBering);
 router.post('/audit/repair/batch', controller.batchRepairBalanceAuditResBering);
 router.post('/audit/run', controller.runBalanceAuditResBering);

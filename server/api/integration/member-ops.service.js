@@ -9,6 +9,7 @@ import {
 import {welcomeEmail} from '../thing/thing.controller.js';
 import {assignManualPoints} from './manual-assign.service';
 import {ensureMemberBalanceAlignedForSpend} from '../balance-audit/balance-audit.service';
+import {gpTransferChunkPlan} from '../transaction/points-guard';
 
 const ALLOWED_PATCH_FIELDS = [
   'fullName',
@@ -341,28 +342,55 @@ export async function transferPoints({
     ', User ID: ' +
     toId;
 
-  const redeemResult = await assignManualPoints({
-    userId: fromId,
-    points: amount,
-    awardRedeem: 'redeem',
-    description: description,
-    lastUpdatedBy: lastUpdatedBy
-  });
-  const awardResult = await assignManualPoints({
-    userId: toId,
-    points: amount,
-    awardRedeem: 'award',
-    description: description,
-    lastUpdatedBy: lastUpdatedBy
-  });
+  const chunks = gpTransferChunkPlan(amount);
+  const redeemResults = [];
+  const awardResults = [];
+  let pointsRedeemed = 0;
+
+  for (let i = 0; i < chunks.length; i++) {
+    const chunkPoints = chunks[i];
+    const redeemResult = await assignManualPoints({
+      userId: fromId,
+      points: chunkPoints,
+      awardRedeem: 'redeem',
+      description: description,
+      lastUpdatedBy: lastUpdatedBy
+    });
+    redeemResults.push(redeemResult);
+    pointsRedeemed += chunkPoints;
+
+    try {
+      const awardResult = await assignManualPoints({
+        userId: toId,
+        points: chunkPoints,
+        awardRedeem: 'award',
+        description: description,
+        lastUpdatedBy: lastUpdatedBy
+      });
+      awardResults.push(awardResult);
+    } catch (err) {
+      err.partialTransfer = {
+        fromUserId: fromId,
+        toUserId: toId,
+        pointsRequested: amount,
+        pointsRedeemed: pointsRedeemed,
+        chunksCompleted: awardResults.length,
+        description: description
+      };
+      throw err;
+    }
+  }
+
+  const lastRedeem = redeemResults[redeemResults.length - 1];
 
   return {
     points: amount,
     fromUserId: fromId,
     toUserId: toId,
-    redeem: redeemResult,
-    award: awardResult,
-    membership: redeemResult.membership
+    chunks: chunks.length,
+    redeem: redeemResults.length === 1 ? redeemResults[0] : redeemResults,
+    award: awardResults.length === 1 ? awardResults[0] : awardResults,
+    membership: lastRedeem ? lastRedeem.membership : undefined
   };
 }
 

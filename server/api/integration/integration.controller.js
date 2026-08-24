@@ -37,6 +37,7 @@ import {
 import {
   auditMemberBalance,
   batchRepairMemberBalances,
+  listPartialGpTransferAnomalies,
   listStoredMismatches,
   runFullBalanceAudit
 } from '../balance-audit/balance-audit.service';
@@ -470,6 +471,22 @@ export async function listBalanceMismatchesResBering(req, res) {
     console.log(err);
     res.status(err.status || 500).json({
       message: err.message || 'Balance audit list failed'
+    });
+  }
+}
+
+export async function listPartialGpTransfersResBering(req, res) {
+  try {
+    const limit =
+      req.query.limit != null ? Number(req.query.limit) : undefined;
+    const offset =
+      req.query.offset != null ? Number(req.query.offset) : undefined;
+    const result = await listPartialGpTransferAnomalies({limit, offset});
+    res.json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(err.status || 500).json({
+      message: err.message || 'Partial transfer audit list failed'
     });
   }
 }

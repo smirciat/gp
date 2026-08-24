@@ -65,6 +65,147 @@ const MEMBER_AUDIT_SQL = `
   LIMIT 1
 `;
 
+const PARTIAL_GP_TRANSFER_REDEEM_SQL = `
+  SELECT r._id,
+    r."userId" AS "fromUserId",
+    r.points,
+    r.description,
+    r.date
+  FROM "Transactions" r
+  WHERE r."awardRedeem" = 'redeem'
+    AND r.description LIKE 'GP Transfer from%'
+  ORDER BY r.date DESC
+`;
+
+const PARTIAL_GP_TRANSFER_AWARD_SQL = `
+  SELECT a._id,
+    a."userId",
+    a.points,
+    a.description,
+    a.date
+  FROM "Transactions" a
+  WHERE a."awardRedeem" = 'award'
+    AND (
+      a.description LIKE 'GP Transfer from%'
+      OR a.description LIKE 'Transfer award repair from member%'
+    )
+`;
+
+function parseGpTransferDescription(description) {
+  const text = description != null ? String(description) : '';
+  const match = text.match(
+    /^GP Transfer from .+ User ID: (\d+) to .+ User ID: (\d+)$/
+  );
+  if (!match) {
+    return null;
+  }
+  return {
+    fromUserId: match[1],
+    toUserId: match[2]
+  };
+}
+
+function sumRepairAwardsForTransfer(repairRows, redeemRow, fromUserId, toUserId) {
+  const redeemDate = redeemRow.date ? new Date(redeemRow.date).getTime() : 0;
+  const repairPrefix =
+    'Transfer award repair from member ' + fromUserId;
+  let total = 0;
+
+  for (let i = 0; i < repairRows.length; i++) {
+    const row = repairRows[i];
+    if (String(row.userId) !== String(toUserId)) {
+      continue;
+    }
+    const description = row.description != null ? String(row.description) : '';
+    if (description.indexOf(repairPrefix) === -1) {
+      continue;
+    }
+    const rowDate = row.date ? new Date(row.date).getTime() : 0;
+    if (redeemDate && rowDate && rowDate + 60000 < redeemDate) {
+      continue;
+    }
+    total += row.points * 1 || 0;
+  }
+
+  return total;
+}
+
+function isGpTransferRedeemResolved(redeemRow, awardRows, repairRows) {
+  const parsed = parseGpTransferDescription(redeemRow.description);
+  if (!parsed) {
+    return true;
+  }
+
+  const points = redeemRow.points * 1 || 0;
+  for (let i = 0; i < awardRows.length; i++) {
+    const award = awardRows[i];
+    if (
+      String(award.userId) === parsed.toUserId &&
+      award.description === redeemRow.description &&
+      (award.points * 1 || 0) === points
+    ) {
+      return true;
+    }
+  }
+
+  const repaired = sumRepairAwardsForTransfer(
+    repairRows,
+    redeemRow,
+    parsed.fromUserId,
+    parsed.toUserId
+  );
+  return repaired >= points;
+}
+
+export async function findPartialGpTransferAnomalies() {
+  const [redeemRows] = await sequelize.query(PARTIAL_GP_TRANSFER_REDEEM_SQL);
+  if (!redeemRows.length) {
+    return [];
+  }
+
+  const [awardRows] = await sequelize.query(PARTIAL_GP_TRANSFER_AWARD_SQL);
+  const repairRows = awardRows.filter(function (row) {
+    const description = row.description != null ? String(row.description) : '';
+    return description.indexOf('Transfer award repair from member') !== -1;
+  });
+  const transferAwards = awardRows.filter(function (row) {
+    const description = row.description != null ? String(row.description) : '';
+    return description.indexOf('GP Transfer from') === 0;
+  });
+
+  const anomalies = [];
+  for (let i = 0; i < redeemRows.length; i++) {
+    const redeemRow = redeemRows[i];
+    if (isGpTransferRedeemResolved(redeemRow, transferAwards, repairRows)) {
+      continue;
+    }
+    const parsed = parseGpTransferDescription(redeemRow.description);
+    anomalies.push({
+      transactionId: redeemRow._id,
+      fromUserId: redeemRow.fromUserId,
+      toUserId: parsed ? parsed.toUserId : null,
+      points: redeemRow.points * 1 || 0,
+      description: redeemRow.description,
+      date: redeemRow.date
+    });
+  }
+
+  return anomalies;
+}
+
+export async function listPartialGpTransferAnomalies({limit, offset} = {}) {
+  const anomalies = await findPartialGpTransferAnomalies();
+  const capped = Math.min(Math.max(Math.floor(Number(limit)) || 50, 1), 200);
+  const skip = Math.max(Math.floor(Number(offset)) || 0, 0);
+
+  return {
+    count: anomalies.length,
+    limit: capped,
+    offset: skip,
+    partialTransfers: anomalies.slice(skip, skip + capped)
+  };
+}
+
 function normalizeAuditRow(row) {
   const stored = row.stored * 1 || 0;
   const computed = row.computed * 1 || 0;
@@ -171,6 +312,7 @@ export async function auditMemberBalance(userId) {
  */
 export async function runFullBalanceAudit() {
   const mismatches = await findAllLedgerMismatches();
+  const partialTransfers = await findPartialGpTransferAnomalies();
   const now = new Date();
   const openUserIds = [];
 
@@ -198,7 +340,9 @@ export async function runFullBalanceAudit() {
 
   return {
     checkedAt: now.toISOString(),
-    mismatchCount: mismatches.length
+    mismatchCount: mismatches.length,
+    partialTransferCount: partialTransfers.length,
+    partialTransfers: partialTransfers
   };
 }
 
