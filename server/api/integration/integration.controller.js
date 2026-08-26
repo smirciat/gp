@@ -641,7 +641,7 @@ export async function transferHouseholdBeringPublic(req, res) {
       actorUserId: fromUserId,
       toUserId,
       points: body.points,
-      lastUpdatedBy: 'bering-public'
+      lastUpdatedBy: 0
     });
     res.status(201).json(result);
   } catch (err) {

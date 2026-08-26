@@ -42,8 +42,13 @@ function readAssignInput(body) {
     route: body.route != null ? String(body.route).trim() : '',
     flight: body.flight != null ? String(body.flight).trim() : '',
     description: body.description != null ? String(body.description).trim() : '',
-    lastUpdatedBy:
-      body.lastUpdatedBy != null ? Math.floor(Number(body.lastUpdatedBy)) : 0
+    lastUpdatedBy: (() => {
+      if (body.lastUpdatedBy == null || body.lastUpdatedBy === '') {
+        return 0;
+      }
+      const n = Math.floor(Number(body.lastUpdatedBy));
+      return Number.isFinite(n) ? n : 0;
+    })()
   };
 }
 
