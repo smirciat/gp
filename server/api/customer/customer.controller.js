@@ -11,6 +11,7 @@
 
 import _ from 'lodash';
 import {Customer,sequelize} from '../../sqldb';
+import {buildFullNameSearchWhere} from './name-search';
 const csvToJson = require('convert-csv-to-json');
 const { Op } = require('sequelize');
 
@@ -115,11 +116,10 @@ export async function query(req, res) {
         q.lastName=arr[1];
       }
     }
-    if (q.firstName&&q.lastName) {
-      newQ.where.fullName={[Op.and]:[{[Op.iLike]:'%'+q.firstName+'%'},{[Op.iLike]:'%'+q.lastName+'%'}]};
+    const fullNameWhere = buildFullNameSearchWhere(q.firstName, q.lastName);
+    if (fullNameWhere) {
+      newQ.where.fullName = fullNameWhere;
     }
-    else if (q.firstName) newQ.where.fullName={[Op.iLike]:'%'+q.firstName+'%'};
-    else if (q.lastName) newQ.where.fullName={[Op.iLike]:'%'+q.lastName+'%'};
     if (q.email) {
       newQ.where.email={[Op.iLike]:'%'+q.email+'%'};
       if (req.body.exact) newQ.where.email=q.email;

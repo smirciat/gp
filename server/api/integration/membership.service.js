@@ -6,6 +6,9 @@ import {
   availableRewards,
   availableRewardsByType
 } from './rewards.service';
+import {householdIncludesUserId} from './household-transfer';
+
+export {householdIncludesUserId} from './household-transfer';
 
 function normalizePoints(customer) {
   const row = customer.get ? customer.get({plain: true}) : customer;

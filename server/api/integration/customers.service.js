@@ -7,6 +7,10 @@ import {
   loadMembershipGroup,
   memberSummary
 } from './membership.service';
+import {
+  buildFreeTextNameOrWhere,
+  buildFullNameSearchWhere,
+} from '../customer/name-search';
 
 const MAX_LIMIT = 100;
 const DEFAULT_LIMIT = 50;
@@ -62,17 +66,9 @@ function buildStructuredWhere(query) {
     }
   }
 
-  if (firstName && lastName) {
-    where.fullName = {
-      [Op.and]: [
-        {[Op.iLike]: '%' + firstName + '%'},
-        {[Op.iLike]: '%' + lastName + '%'}
-      ]
-    };
-  } else if (firstName) {
-    where.fullName = {[Op.iLike]: '%' + firstName + '%'};
-  } else if (lastName) {
-    where.fullName = {[Op.iLike]: '%' + lastName + '%'};
+  const fullNameWhere = buildFullNameSearchWhere(firstName, lastName);
+  if (fullNameWhere) {
+    where.fullName = fullNameWhere;
   }
 
   if (q.email) {
@@ -87,6 +83,8 @@ function buildStructuredWhere(query) {
 }
 
 function buildFreeTextWhere(q) {
+  const orWhere = buildFreeTextNameOrWhere(String(q).trim());
+  if (orWhere) return orWhere;
   const term = '%' + String(q).trim() + '%';
   return {
     [Op.or]: [

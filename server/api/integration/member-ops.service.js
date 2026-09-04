@@ -6,9 +6,13 @@ import {
   loadMembershipGroup,
   resolveMembership
 } from './membership.service';
+import {householdIncludesUserId} from './household-transfer';
 import {welcomeEmail} from '../thing/thing.controller.js';
 import {assignManualPoints} from './manual-assign.service';
-import {ensureMemberBalanceAlignedForSpend} from '../balance-audit/balance-audit.service';
+import {
+  ensureMemberBalanceAlignedForSpend,
+  ensureMembershipBalancesAlignedForSpend
+} from '../balance-audit/balance-audit.service';
 import {gpTransferChunkPlan} from '../transaction/points-guard';
 
 const ALLOWED_PATCH_FIELDS = [
@@ -421,7 +425,7 @@ export async function transferHouseholdPoints({
     throw err;
   }
 
-  const membership = await resolveMembership({userId: actorId});
+  let membership = await resolveMembership({userId: actorId});
   if (!membership || !membership.primary) {
     const err = new Error('Source member not found.');
     err.status = 404;
@@ -447,6 +451,24 @@ export async function transferHouseholdPoints({
     const err = new Error('Need to remove customer suspension first');
     err.status = 403;
     err.code = 'suspended';
+    throw err;
+  }
+
+  if (householdIncludesUserId(membership, toId)) {
+    const err = new Error(
+      'That User ID is already on your Gold Points account (Primary or Associate). Member transfers move points to a different person — use Manage Members to move points within your household.'
+    );
+    err.status = 400;
+    err.code = 'household_destination';
+    throw err;
+  }
+
+  await ensureMembershipBalancesAlignedForSpend(membership);
+  membership = await resolveMembership({userId: actorId});
+  if (!membership || !membership.primary) {
+    const err = new Error('Source member not found.');
+    err.status = 404;
+    err.code = 'not_found';
     throw err;
   }
 
